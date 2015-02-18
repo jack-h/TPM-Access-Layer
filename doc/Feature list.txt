@@ -1,0 +1,11 @@
+                             LFAA TPM Access Layer
+                             ---------------------
+
+Main Feature Set
+----------------
+- Interact with the TPMs through the UCP protocol
+- Provide an implementation for the Low Level Access Layer
+- Parse and process mapping files to provide an abstracted view to clients
+
+
+- 
