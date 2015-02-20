@@ -21,7 +21,7 @@ typedef int FPGA;
 
 // Return type for most of the function calls, specifying whether the call
 // succeeded or failed
-typedef enum {SUCCESS, FAILURE} ERROR;
+typedef enum {SUCCESS, FAILURE, NOT_IMPLEMENTED} ERROR;
 
 // Define possible board statuses
 typedef enum { OK,                 // Board is functioning properly
@@ -57,6 +57,5 @@ typedef struct REGISTER_INFO {
     unsigned int  size;  // ### Memory size in bytes 
     char          *description; // ### Register string description
 } REGISTER_INFO;
-
 
 #endif // DEFINITIONS

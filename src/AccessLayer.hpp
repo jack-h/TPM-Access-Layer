@@ -1,8 +1,6 @@
 #ifndef TPM_ACCESS_LAYER
 #define TPM_ACCESS_LAYER
 
-#include <Definitions.hpp>
-
 /* This header file lists the functions which will be provided by the Low-Level 
    Access Layer, acting as a bridge between TPMs and LMC. This layer will 
    implement the client side of the interface control protocol and internally 
@@ -18,6 +16,8 @@
 // _TODO: Define data tap mechanism
 //        Check whether bit-wise register access will be permitted, and how
 
+#include "Definitions.hpp"
+
 // Callback function definition for asynchronous updates
 typedef void (* CALLBACK)(ID, REGISTER, VALUE);
 
@@ -29,7 +29,7 @@ typedef void (* CALLBACK)(ID, REGISTER, VALUE);
 //   port  Port number to use
 // Returns:
 //   A board ID in case of success, -1 on failure      
-ID connect(char *IP, int port);
+ID connect(char *IP, unsigned short port);
 
 // Clear up internal network structures for board in question
 // Arguments:
@@ -149,6 +149,11 @@ ERROR stopConditionalRegister(ID id, FPGA fpga, REGISTER reg);
 
 // ======================== FIRMWARE RELATED FUNCTIONS ========================
 
+// NOTE: Currently it is assumed that the memory map will be located in the same
+//       directory as the bitstream, with the same name (except the extention, which
+//       will be .XML. It is also assumed that the file will contain the mapping for
+//       the CPLD, FPGA1 and FPGA2, and that no additional module files are required
+
 // Load firmware to FPGA. This function return immediately. The status of the
 // board can be monitored through the getStatus call
 // Arguments:
@@ -157,11 +162,11 @@ ERROR stopConditionalRegister(ID id, FPGA fpga, REGISTER reg);
 //   bistream array containing data bitfile
 // Returns:
 //   ERROR
-ERROR loadFirmware(ID id, FPGA fpga, char* bistream);
+ERROR loadFirmware(ID id, FPGA fpga, char* bitstream);
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-ERROR loadFirmwareBlocking(ID id, FPGA fpga, char* bistream);
+ERROR loadFirmwareBlocking(ID id, FPGA fpga, char* bitstream);
 
 // Request RF data from the running firmware. This is still TBD
 
