@@ -1,27 +1,25 @@
 #ifndef DEFINITIONS
 #define DEFINITIONS
 
+#include <stdint.h>
+
+// Enable or disable debugging
+#define DEBUG
+
 // ========================== DATA TYPE DEFINITIONS ==========================
 
-// Flags refererring to particular FPGAs
-#define ALL_FPGAS  0xFF  // Refer to all FPGAs
-#define NO_FPGAS   0x00  // Not FPGA-related (board or peripheral)
-#define FPGA_1     0x01  // FPGA 1
-#define FPGA_2     0x02  // FPGA 2
-
 // Representation of board ID
-typedef int ID;
+typedef unsigned int ID;
 
 // Representation of register name
-typedef char* REGISTER;
+typedef const char* REGISTER;
 
-// Board can contain one or more FPGAs on them, each running different firmwamre.
-// A register might therefore reside on a number of FPGAs
-typedef int FPGA;
+// Device types
+typedef enum { BOARD = 1, FPGA_1 = 2, FPGA_2 = 4 } DEVICE;
 
 // Return type for most of the function calls, specifying whether the call
 // succeeded or failed
-typedef enum {SUCCESS, FAILURE, NOT_IMPLEMENTED} ERROR;
+typedef enum {SUCCESS = 0, FAILURE = -1, NOT_IMPLEMENTED = -2} ERROR;
 
 // Define possible board statuses
 typedef enum { OK,                 // Board is functioning properly
@@ -44,18 +42,18 @@ typedef enum {READ, WRITE, READWRITE} PERMISSION;
 // varaibles in the parameter list. This structure can be extended if 
 // additional functionality is required
 typedef struct VALUE {
-    int   value;     // Sensor or register value
-    ERROR error;     // If error is FAILURE, then value is invalid
+    uint32_t  value;     // Sensor or register value
+    ERROR     error;     // If error is FAILURE, then value is invalid
 } VALUE;
 
 // Encapsulate register information
 typedef struct REGISTER_INFO {
     REGISTER      name;  // String representation of register
     REGISTER_TYPE type;  // Sensor, board-register or firmware-register
-    FPGA          fpga;  // Set of FPGAs (if any) to which this is applicable
+    DEVICE        device;  // Set of FPGAs (if any) to which this is applicable
     PERMISSION    permission;   // ### Define register access type
     unsigned int  size;  // ### Memory size in bytes 
-    char          *description; // ### Register string description
+    const char    *description; // ### Register string description
 } REGISTER_INFO;
 
 #endif // DEFINITIONS

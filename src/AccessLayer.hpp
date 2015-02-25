@@ -62,73 +62,72 @@ STATUS getStatus(ID id);
 //   id    Board ID
 // Returns:
 //   Array of REGISTER_INFO
-REGISTER_INFO* getRegisterList(ID id);
+REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers);
 
 // Get a register's value
 // Arguments:
 //   id      Board ID
-//   fpga    Specify to which FPGA (if any) this applies
+//   device  Specify to which DEVICE (if any) this applies
 //   reg     Register to query
 // Returns:
 //    VALUE 
-VALUE getRegisterValue(ID id, FPGA fpga, REGISTER reg);
+VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg);
 
 // Set a register's value
 // Arguments:
 //   id      Board ID
-//   fpga    Specify to which FPGA (if any) this applies
+//   device    Specify to which DEVICE (if any) this applies
 //   reg     Register to write to
 //   value   32-bit value to write to register
 // Returns:
 //    VALUE 
-ERROR setRegisterValue(ID id, FPGA fpga, REGISTER reg, int value);
+ERROR setRegisterValue(ID id, DEVICE device, REGISTER reg, uint32_t value);
 
 // Get a register's value
 // Arguments:
 //   id      Board ID
-//   fpga    Specify to which FPGA (if any) this applies
+//   device  Specify to which DEVICE (if any) this applies
 //   reg     Register to query
 //   N       Number of values to read
 // Returns:
 //    VALUE 
-VALUE* getRegisterValues(ID id, FPGA fpga, REGISTER reg, int N);
+VALUE* getRegisterValues(ID id, DEVICE device, REGISTER reg, int N);
 
 // Set a register's value
 // Arguments:
 //   id      Board ID
-//   fpga    Specify to which FPGA (if any) this applies
+//   device  Specify to which DEVICE (if any) this applies
 //   reg     Register to write to
 //   N       Number of 32-bit values to write
 //   values  Array of 32-bit values to write to register
 // Returns:
 //    VALUE 
-ERROR setRegisterValues(ID id, FPGA fpga, REGISTER reg, int N, int *values);
-
+ERROR setRegisterValues(ID id, DEVICE device, REGISTER reg, int N, uint32_t *values);
 
 // [Optional] Set a periodic register
 // Arguments:
 //   id       Board ID
-//   fpga     Specify to which FPGA (if any) this applies
+//   device   Specify to which DEVICE (if any) this applies
 //   reg      Register to query
 //   period   Register update period in seconds
 //   callback Callback function to send periodic updates
 // Returns:
 //   ERROR
-ERROR setPeriodicRegister(ID id, FPGA fpga, REGISTER reg, int period, CALLBACK callback);
+ERROR setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
 
 // [Optional] Stop periodic register
 // Arguments:
 //   id       Board ID
-//   fpga     Specify to which FPGA (if any) this applies
+//   device   Specify to which DEVICE (if any) this applies
 //   reg      Register to stop querying
 // Returns:
 //   ERROR
-ERROR stopPeriodicRegister(ID id, FPGA fpga, REGISTER reg);
+ERROR stopPeriodicRegister(ID id, DEVICE device, REGISTER reg);
 
 // [Optional] Set a periodic register
 // Arguments:
 //   id       Board ID
-//   fpga     Specify to which FPGA (if any) this applies
+//   device   Specify to which DEVICE (if any) this applies
 //   reg      Register to query
 //   period   Periodicity of checks in seconds
 //   low      Lowest acceptable register value
@@ -136,16 +135,16 @@ ERROR stopPeriodicRegister(ID id, FPGA fpga, REGISTER reg);
 //   callback Callback function to send periodic updates
 // Returns:
 //   ERROR
-ERROR setConditionalRegister(ID id, FPGA fpga, REGISTER reg, int period, CALLBACK callback);
+ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
 
 // [Optional] Stop periodic register
 // Arguments:
 //   id       Board ID
-//   fpga     Specify to which FPGA (if any) this applies
+//   device   Specify to which DEVICE (if any) this applies
 //   reg      Register to stop querying
 // Returns:
 //   ERROR
-ERROR stopConditionalRegister(ID id, FPGA fpga, REGISTER reg);
+ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg);
 
 // ======================== FIRMWARE RELATED FUNCTIONS ========================
 
@@ -154,19 +153,19 @@ ERROR stopConditionalRegister(ID id, FPGA fpga, REGISTER reg);
 //       will be .XML. It is also assumed that the file will contain the mapping for
 //       the CPLD, FPGA1 and FPGA2, and that no additional module files are required
 
-// Load firmware to FPGA. This function return immediately. The status of the
+// Load firmware to DEVICE. This function return immediately. The status of the
 // board can be monitored through the getStatus call
 // Arguments:
 //   id       Board ID
-//   fpga     Specify to which FPGA (if any) this applies
+//   device   Specify to which DEVICE (if any) this applies
 //   bistream array containing data bitfile
 // Returns:
 //   ERROR
-ERROR loadFirmware(ID id, FPGA fpga, char* bitstream);
+ERROR loadFirmware(ID id, DEVICE device, char* bitstream);
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-ERROR loadFirmwareBlocking(ID id, FPGA fpga, char* bitstream);
+ERROR loadFirmwareBlocking(ID id, DEVICE device, char* bitstream);
 
 // Request RF data from the running firmware. This is still TBD
 

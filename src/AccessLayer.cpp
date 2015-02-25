@@ -24,8 +24,12 @@ map<unsigned int, Board *> boards;
 // Arguments:
 ID connect(char* IP, unsigned short port)
 {    
+    DEBUG_PRINT("AccessLayer::connect. Connecting to " << IP);
+
     // Convert IP to an ID
     ID id = convertIPtoID(IP);
+
+    DEBUG_PRINT("AccessLayer::connect. Board " << IP << " has ID " << id);
     
     // If board already exists in map, return ID
     if (boards.size() != 0)
@@ -33,14 +37,17 @@ ID connect(char* IP, unsigned short port)
         map<unsigned int, Board *>::iterator it;
         it = boards.find(id);
         if (it != boards.end())
+        {
+            DEBUG_PRINT("AccessLayer::connect. Board " << IP << " already connected");
             return id;
+        }
     }
 
     // If not, create board instance, store in map
     Board *board = new TPM(IP, port);
     boards[id] = board;
 
-    printf("Board %d connected\n", id);
+    DEBUG_PRINT("AccessLayer::connect. Connected to " << IP);
 
     // Return generated board ID
     return id;
@@ -56,7 +63,10 @@ ERROR disconnect(ID id)
     map<unsigned int, Board *>::iterator it;
     it = boards.find(id);
     if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::disconnect. " << id << " not connected");
         return SUCCESS;    
+    }
 
     // Check if there any any pending requests, if so wait
     // TODO
@@ -65,7 +75,7 @@ ERROR disconnect(ID id)
     delete boards[id];
     boards.erase(it);
 
-    printf("Board %d disconnected\n", id);
+    DEBUG_PRINT("AccessLayer::disconnect. " << id << " disconnected");
 
     return SUCCESS;
 }
@@ -84,92 +94,142 @@ STATUS getStatus(ID id)
 }
 
 // Get list of registers
-REGISTER_INFO* getRegisterList(ID id)
+REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers)
+{    
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::getRegisterList. " << id << " not connected");
+        return NULL;   
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Return register list
+    return board -> getRegisterList(num_registers);
+}
+
+// Get a register's value
+VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg)
+{  
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::getRegisterValue. " << id << " not connected");
+        return {0, FAILURE};
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Get register value from board
+    return board -> getRegisterValue(device, reg);
+}
+
+// Set a register's value
+ERROR setRegisterValue(ID id, DEVICE device, REGISTER reg, uint32_t value)
+{    
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::setRegisterValue. " << id << " not connected");
+        return FAILURE;
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Get register value from board
+    return board -> setRegisterValue(device, reg, value);
+}
+
+// Get a register's value
+VALUE* getRegisterValues(ID id, DEVICE device, REGISTER reg, int N)
 {    
     return NULL;
 }
 
-// Get a register's value
-VALUE getRegisterValue(ID id, FPGA fpga, REGISTER reg)
-{    
-    VALUE val;
-    val.value = -1;
-    val.error = FAILURE;
-    return val;
-}
-
 // Set a register's value
-ERROR setRegisterValue(ID id, FPGA fpga, REGISTER reg, int value)
-{    
-    return FAILURE;
-}
-
-// Get a register's value
-VALUE* getRegisterValues(ID id, FPGA fpga, REGISTER reg, int N)
-{    
-    return NULL;
-}
-
-// Set a register's value
-ERROR setRegisterValues(ID id, FPGA fpga, REGISTER reg, int N, int *values)
+ERROR setRegisterValues(ID id, DEVICE device, REGISTER reg, int N, int *values)
 {    
     return FAILURE;
 }
 
 // Load firmware to FPGA. This function return immediately. The status of the
 // board can be monitored through the getStatus call
-ERROR loadFirmware(ID id, FPGA fpga, char* bitstream)
+ERROR loadFirmware(ID id, DEVICE device, char* bitstream)
 {
+    // Check if device is valid
+    if (!(device == FPGA_1 || device == FPGA_2))
+        return FAILURE;
+
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
     it = boards.find(id);
     if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::loadFirmware. " << id << " not connected");
         return FAILURE;   
+    }
 
     // Get pointer to board
     Board *board = it -> second;
     
     // Call loadFirmware on board instance
-    return board -> loadFirmwareBlocking(id, fpga, bitstream);
+    return board -> loadFirmwareBlocking(device, bitstream);
 }
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-ERROR loadFirmwareBlocking(ID id, FPGA fpga, char* bitstream)
+ERROR loadFirmwareBlocking(ID id, DEVICE device, char* bitstream)
 {    
+    // Check if device is valid
+    if (!(device == FPGA_1 || device == FPGA_2))
+        return FAILURE;
+
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
     it = boards.find(id);
     if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::loadFirmwareBlocking. " << id << " not connected");
         return FAILURE;   
+    }
 
     // Get pointer to board
     Board *board = it -> second;
     
     // Call loadFirmwareBlocking on board instance
-    return board -> loadFirmwareBlocking(id, fpga, bitstream);
+    return board -> loadFirmwareBlocking(device, bitstream);
 }
 
 // [Optional] Set a periodic register
-ERROR setPeriodicRegister(ID id, FPGA fpga, REGISTER reg, int period, CALLBACK callback)
+ERROR setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback)
 {    
     return FAILURE;
 }
 
 // [Optional] Stop periodic register
-ERROR stopPeriodicRegister(ID id, FPGA fpga, REGISTER reg)
+ERROR stopPeriodicRegister(ID id, DEVICE device, REGISTER reg)
 {    
     return FAILURE;
 }
 
 // [Optional] Set a periodic register
-ERROR setConditionalRegister(ID id, FPGA fpga, REGISTER reg, int period, CALLBACK callback)
+ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback)
 {    
     return FAILURE;
 }
 
 // [Optional] Stop periodic register
-ERROR stopConditionalRegister(ID id, FPGA fpga, REGISTER reg)
+ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg)
 {    
     return FAILURE;
 }

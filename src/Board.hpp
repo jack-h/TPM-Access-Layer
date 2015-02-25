@@ -1,13 +1,11 @@
-#ifndef BOARD
-#define BOARD
+#ifndef BOARD_CLASS
+#define BOARD_CLASS
 
 #include "Definitions.hpp"
 #include "MemoryMap.hpp"
 #include "Protocol.hpp"
 #include "Utils.hpp"
 
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include <string.h>
 
 using namespace std;
@@ -27,20 +25,26 @@ class Board
     // ---------- Public class functions --------
     public:
 
-        // Create socket
-        virtual ERROR connect() = 0;
-    
         // Clear everything and remove connection
-        virtual ERROR disconnect() = 0;
+        virtual void disconnect() = 0;
 
         // Get board status
-        virtual STATUS getStatus(ID id) = 0;
+        virtual STATUS getStatus() = 0;
+
+        // Get register list
+        virtual REGISTER_INFO* getRegisterList(unsigned int *num_registers) = 0;
+
+        // Get register value
+        virtual VALUE getRegisterValue(DEVICE device, REGISTER reg) = 0;
+
+        // Set register value
+        virtual ERROR setRegisterValue(DEVICE device, REGISTER reg, uint32_t value) = 0;
 
         // Asynchronously load firmware to FPGA.
-        virtual ERROR loadFirmware(ID id, FPGA fpga, char* bitstream) = 0;
+        virtual ERROR loadFirmware(DEVICE device, char* bitstream) = 0;
 
         // Synchronously load firmware to FPGA
-        virtual ERROR loadFirmwareBlocking(ID id, FPGA fpga, char* bitstream) = 0;
+        virtual ERROR loadFirmwareBlocking(DEVICE device, char* bitstream) = 0;
 
     // ---------- Protected class members ---------- 
     protected:
@@ -48,14 +52,11 @@ class Board
         unsigned int    id;   // Board identifier
         char            *ip;  // Board IP address
         unsigned short  port; // Port to communicate with board
-        unsigned short  num_fpgas;  // Number of FPGAs on board
+        unsigned short  num_fpgas;   // Number of FPGAs on board
 
-        Protocol        *protocol;  // Protocol instance to communicate with board
+        Protocol        *protocol;   // Protocol instance to communicate with board
 
-        struct sockaddr_in board_addr;  // Board address structure
-        int                sockfd;      // Socket
-
-        MemoryMap       *memory_map;
+        MemoryMap       *memory_map; // Memory map instance
 };
 
 // Board derived class representing a Tile Processing Modules
@@ -69,20 +70,26 @@ class TPM: public Board
         ~TPM();
 
     public:
-        // Create socket
-        ERROR connect();
-
         // Clear everything and remove connection
-        ERROR disconnect();
+        void disconnect();
 
         // Get board status
-        STATUS getStatus(ID id);
+        STATUS getStatus();
+
+        // Get register list
+        REGISTER_INFO* getRegisterList(unsigned int *num_registers);
+
+        // Get register value
+        VALUE getRegisterValue(DEVICE device, REGISTER reg);
+
+        // Set register value
+        ERROR setRegisterValue(DEVICE device, REGISTER reg, uint32_t value);
 
         // Asynchronously load firmware to FPGA.
-        ERROR loadFirmware(ID id, FPGA fpga, char* bitstream);
+        ERROR loadFirmware(DEVICE device, char* bitstream);
 
         // Synchronously load firmware to FPGA
-        ERROR loadFirmwareBlocking(ID id, FPGA fpga, char* bitstream);
+        ERROR loadFirmwareBlocking(DEVICE device, char* bitstream);
 };
 
 #endif // BOARD

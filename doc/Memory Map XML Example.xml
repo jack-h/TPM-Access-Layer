@@ -47,6 +47,6 @@
     </node>
 
     <!-- External module files can be imported into a map -->
-    <node id="FPGA2" module="file://subsystem_map.xml" />
+    <node id="FPGA2" address="0x30000000" module="file://subsystem_map.xml" />
 
 </node>
