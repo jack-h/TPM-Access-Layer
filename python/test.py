@@ -14,11 +14,13 @@ if ret == Error.Failure:
     exit(-1)
 
 registers = tpm.getRegisterList(ID)
+curr_key = registers.keys()[0]
+print curr_key
 
-val = tpm.getRegisterValue(ID, registers[0]['device'], registers[0]['name'])
+val = tpm.getRegisterValue(ID, registers[curr_key]['device'], curr_key)
 print val.value, val.error.value
 
-tpm.setRegisterValue(ID, registers[0]['device'], registers[0]['name'], 69)
+tpm.setRegisterValue(ID, registers[curr_key]['device'], curr_key, 69)
 
 
 sleep(220)

@@ -85,17 +85,27 @@ class TPM:
         ip   = kwargs.get('ip', None)
         port = kwargs.get('port', None)
 
+        # Set registerList to None
+        self._registerList = None
+
+        # Set ID to None
+        self.id = None
+
         # If so, the connect immediately
         if not (ip is None and port is None):
             self.connect(ip, port)
 
     def connect(self, ip, port):
         """ Connect to board """
-        return self._tpm.connectBoard(ip, port)
+        self.id = self._tpm.connectBoard(ip, port)
+        return self.id
 
     def disconnect(self, ID):
         """ Disconnect from board """
-        return self._tpm.disconnect(ID)
+        ret = Error(self._tpm.disconnect(ID))
+        if (ret == Error.Success):
+            self.id = None
+        return ret
 
     def loadFirmwareBlocking(self, ID, device, filepath):
         """ Blocking call to load firmware """
@@ -126,7 +136,7 @@ class TPM:
         registers = self._tpm.getRegisterList(ID, ptr)
 
         # Wrap register formats and return
-        registerList = [ ]
+        registerList = {  }
         for i in range(num.value):
             reg = { }
             reg['name']        = registers[i].name
@@ -135,7 +145,10 @@ class TPM:
             reg['permission']  = Permission(registers[i].permission)
             reg['size']        = registers[i].size
             reg['description'] = registers[i].description
-            registerList.append(reg)
+            registerList[reg['name']] = reg
+
+        # Store register list locally for get and set items
+        self._registerList = registerList
 
         return registerList
 
@@ -163,6 +176,22 @@ class TPM:
 
         # Call function
         return Error(self._tpm.setRegisterValue(ID, device.value, register, value))
+
+    def __getitem__(self, key):
+        """ Override __getitem__, return register information """
+
+        if self._registerList is not None:
+            if self._registerList.has_key(key):
+                return self._registerList[key]
+
+    def __setitem__(self, key, value):
+        """ Override __setitem__. RegisterInfo cannot be written to, so return immediately """
+        pass
+
+    def __len__(self):
+        """ Override __len__, return number of registers """
+        if self._registerList is not None:
+            return len(self._registerList.keys())
 
     def _initialiseLibrary(self, filepath = None):
         """ Initialise library """
