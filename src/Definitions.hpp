@@ -22,20 +22,20 @@ typedef enum { BOARD = 1, FPGA_1 = 2, FPGA_2 = 4 } DEVICE;
 typedef enum {SUCCESS = 0, FAILURE = -1, NOT_IMPLEMENTED = -2} ERROR;
 
 // Define possible board statuses
-typedef enum { OK,                 // Board is functioning properly
-               LOADING_FIRMWARE,   // Firmware being laoded on an FPGA
-               CONFIG_ERROR,       // ### Error configuring firmware
-               BOARD_ERROR,        // Board health check failed
-               NOT_CONNECTED,      // Connect wasn't called 
-               NETWORK_ERROR }     // Board cannot be reached
+typedef enum { OK                =  0,  // Board is functioning properly
+               LOADING_FIRMWARE  = -1,  // Firmware being laoded on an FPGA
+               CONFIG_ERROR      = -2,  // ### Error configuring firmware
+               BOARD_ERROR       = -3,  // Board health check failed
+               NOT_CONNECTED     = -4,  // Connect wasn't called 
+               NETWORK_ERROR     = -5}  // Board cannot be reached
 STATUS;
 
 // At least three types of registers can be defined (a sensor, a board/
 // peripheral register and a firmware register).
-typedef enum {SENSOR, BOARD_REGISTER, FIRMWARE_REGISTER} REGISTER_TYPE;
+typedef enum {SENSOR = 1, BOARD_REGISTER = 2, FIRMWARE_REGISTER = 3} REGISTER_TYPE;
 
 // ### Register access permissions 
-typedef enum {READ, WRITE, READWRITE} PERMISSION;
+typedef enum {READ = 1, WRITE = 2, READWRITE = 3} PERMISSION;
 
 // Encapsulate a register or sensor value. This structure is require to avoid
 // assigning a particular value as the error value, or avoid using reference

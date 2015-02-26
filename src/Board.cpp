@@ -112,11 +112,8 @@ ERROR TPM::loadFirmwareBlocking(DEVICE device, char* bitstream)
     // Get XML file and re-create the memory map
     char *xml_file = extractXMLFile(bitstream);
 
-    // Remove any existing memory maps
-    delete memory_map;
-
     // Create new memory map
     memory_map = new MemoryMap(xml_file);    
 
-    return FAILURE;
+    return SUCCESS;
 }

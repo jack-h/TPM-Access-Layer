@@ -22,7 +22,7 @@ map<unsigned int, Board *> boards;
 
 // Set up internal structures to be able to communicate with a processing board
 // Arguments:
-ID connect(char* IP, unsigned short port)
+ID connectBoard(char* IP, unsigned short port)
 {    
     DEBUG_PRINT("AccessLayer::connect. Connecting to " << IP);
 
@@ -54,7 +54,7 @@ ID connect(char* IP, unsigned short port)
 }
 
 // Clear up internal network structures for board in question
-ERROR disconnect(ID id)
+ERROR disconnectBoard(ID id)
 {    
     // Check if board exists, and if not, return
     if (boards.size() == 0)
@@ -205,7 +205,7 @@ ERROR loadFirmwareBlocking(ID id, DEVICE device, char* bitstream)
 
     // Get pointer to board
     Board *board = it -> second;
-    
+
     // Call loadFirmwareBlocking on board instance
     return board -> loadFirmwareBlocking(device, bitstream);
 }

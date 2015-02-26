@@ -29,14 +29,14 @@ typedef void (* CALLBACK)(ID, REGISTER, VALUE);
 //   port  Port number to use
 // Returns:
 //   A board ID in case of success, -1 on failure      
-ID connect(char *IP, unsigned short port);
+extern "C" ID connectBoard(char* IP, unsigned short port);
 
 // Clear up internal network structures for board in question
 // Arguments:
 //   id    Board ID
 // Returns:
 //   ERROR
-ERROR disconnect(ID id);
+extern "C" ERROR disconnectBoard(ID id);
 
 // ========================= BOARD RELATED FUNCTIONS =========================
 
@@ -46,14 +46,14 @@ ERROR disconnect(ID id);
 //   id    Board ID
 // Returns:
 //   ERROR
-ERROR resetBoard(ID id);
+extern "C" ERROR resetBoard(ID id);
 
 // Get board status
 // Arguments:
 //   id    Board ID
 // Returns:
 //   Board status
-STATUS getStatus(ID id);
+extern "C" STATUS getStatus(ID id);
 
 // ========================= REGISTER RELATED FUNCTIONS =========================
 
@@ -62,7 +62,7 @@ STATUS getStatus(ID id);
 //   id    Board ID
 // Returns:
 //   Array of REGISTER_INFO
-REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers);
+extern "C" REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers);
 
 // Get a register's value
 // Arguments:
@@ -71,7 +71,7 @@ REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers);
 //   reg     Register to query
 // Returns:
 //    VALUE 
-VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg);
+extern "C" VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg);
 
 // Set a register's value
 // Arguments:
@@ -81,7 +81,7 @@ VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg);
 //   value   32-bit value to write to register
 // Returns:
 //    VALUE 
-ERROR setRegisterValue(ID id, DEVICE device, REGISTER reg, uint32_t value);
+extern "C" ERROR setRegisterValue(ID id, DEVICE device, REGISTER reg, uint32_t value);
 
 // Get a register's value
 // Arguments:
@@ -91,7 +91,7 @@ ERROR setRegisterValue(ID id, DEVICE device, REGISTER reg, uint32_t value);
 //   N       Number of values to read
 // Returns:
 //    VALUE 
-VALUE* getRegisterValues(ID id, DEVICE device, REGISTER reg, int N);
+extern "C" VALUE* getRegisterValues(ID id, DEVICE device, REGISTER reg, int N);
 
 // Set a register's value
 // Arguments:
@@ -102,7 +102,7 @@ VALUE* getRegisterValues(ID id, DEVICE device, REGISTER reg, int N);
 //   values  Array of 32-bit values to write to register
 // Returns:
 //    VALUE 
-ERROR setRegisterValues(ID id, DEVICE device, REGISTER reg, int N, uint32_t *values);
+extern "C" ERROR setRegisterValues(ID id, DEVICE device, REGISTER reg, int N, uint32_t *values);
 
 // [Optional] Set a periodic register
 // Arguments:
@@ -113,7 +113,7 @@ ERROR setRegisterValues(ID id, DEVICE device, REGISTER reg, int N, uint32_t *val
 //   callback Callback function to send periodic updates
 // Returns:
 //   ERROR
-ERROR setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
+extern "C" ERROR setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
 
 // [Optional] Stop periodic register
 // Arguments:
@@ -122,7 +122,7 @@ ERROR setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBA
 //   reg      Register to stop querying
 // Returns:
 //   ERROR
-ERROR stopPeriodicRegister(ID id, DEVICE device, REGISTER reg);
+extern "C" ERROR stopPeriodicRegister(ID id, DEVICE device, REGISTER reg);
 
 // [Optional] Set a periodic register
 // Arguments:
@@ -135,7 +135,7 @@ ERROR stopPeriodicRegister(ID id, DEVICE device, REGISTER reg);
 //   callback Callback function to send periodic updates
 // Returns:
 //   ERROR
-ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
+extern "C" ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
 
 // [Optional] Stop periodic register
 // Arguments:
@@ -144,7 +144,7 @@ ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CAL
 //   reg      Register to stop querying
 // Returns:
 //   ERROR
-ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg);
+extern "C" ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg);
 
 // ======================== FIRMWARE RELATED FUNCTIONS ========================
 
@@ -161,11 +161,11 @@ ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg);
 //   bistream array containing data bitfile
 // Returns:
 //   ERROR
-ERROR loadFirmware(ID id, DEVICE device, char* bitstream);
+extern "C" ERROR loadFirmware(ID id, DEVICE device, char* bitstream);
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-ERROR loadFirmwareBlocking(ID id, DEVICE device, char* bitstream);
+extern "C" ERROR loadFirmwareBlocking(ID id, DEVICE device, char* bitstream);
 
 // Request RF data from the running firmware. This is still TBD
 
