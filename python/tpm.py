@@ -178,15 +178,20 @@ class TPM:
         return Error(self._tpm.setRegisterValue(ID, device.value, register, value))
 
     def __getitem__(self, key):
-        """ Override __getitem__, return register information """
+        """ Override __getitem__, return value from board information """
 
         if self._registerList is not None:
             if self._registerList.has_key(key):
-                return self._registerList[key]
+                reg = self._registerList[key]
+                return self.getRegisterValue(self.id, reg['device'], key)
+                
 
     def __setitem__(self, key, value):
-        """ Override __setitem__. RegisterInfo cannot be written to, so return immediately """
-        pass
+        """ Override __setitem__, set value on board"""
+        if self._registerList is not None:
+            if self._registerList.has_key(key):
+                reg = self._registerList[key]
+                return self.setRegisterValue(self.id, reg['device'], key, value)
 
     def __len__(self):
         """ Override __len__, return number of registers """
