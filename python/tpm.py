@@ -195,7 +195,7 @@ class TPM:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
                 val = self.getRegisterValue(self.id, reg['device'], key)
-                if val.error = Error.Success:
+                if val.error == Error.Success:
                     return val.value
                 else:
                     return None
@@ -206,7 +206,7 @@ class TPM:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
                 return self.setRegisterValue(self.id, reg['device'], key, value)
-                
+        print "Register '%s' not found" % key       
 
     def __len__(self):
         """ Override __len__, return number of registers """
