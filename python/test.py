@@ -1,12 +1,8 @@
 from time import sleep
 from tpm import *
 
-tpm = TPM()
-
-ID = tpm.connect("10.62.14.234", 15000)
-if ID == Error.Failure:
-    print "Connect failed"
-    exit(-1)
+tpm = TPM(ip="10.62.14.234", port=15000)
+ID = tpm.id
 
 ret = tpm.loadFirmwareBlocking(ID, Device.FPGA_1, "/home/lessju/MemoryMap.xml")
 if ret == Error.Failure:

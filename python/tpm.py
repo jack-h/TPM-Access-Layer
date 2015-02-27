@@ -105,6 +105,7 @@ class TPM:
         ret = Error(self._tpm.disconnect(ID))
         if (ret == Error.Success):
             self.id = None
+            self._registerList = None
         return ret
 
     def loadFirmwareBlocking(self, ID, device, filepath):
@@ -121,10 +122,21 @@ class TPM:
             return
 
         # All OK, call function
-        return Error(self._tpm.loadFirmwareBlocking(ID, device.value, filepath))
+        err = Error(self._tpm.loadFirmwareBlocking(ID, device.value, filepath))
+
+        # If call succeeded, get register list
+        if err == Error.Success:
+            self.getRegisterList(self.id)
+
+        # Return 
+        return err
 
     def getRegisterList(self, ID):
         """ Get list of registers """
+
+        # Check if register list has already been acquired, and if so return it
+        if self._registerList is not None:
+            return self._registerList
 
         # Create an integer and extract it's address
         INTP = ctypes.POINTER(ctypes.c_int)
@@ -178,13 +190,15 @@ class TPM:
         return Error(self._tpm.setRegisterValue(ID, device.value, register, value))
 
     def __getitem__(self, key):
-        """ Override __getitem__, return value from board information """
-
+        """ Override __getitem__, return value from board """
         if self._registerList is not None:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
-                return self.getRegisterValue(self.id, reg['device'], key)
-                
+                val = self.getRegisterValue(self.id, reg['device'], key)
+                if val.error = Error.Success:
+                    return val.value
+                else:
+                    return None
 
     def __setitem__(self, key, value):
         """ Override __setitem__, set value on board"""
@@ -192,6 +206,7 @@ class TPM:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
                 return self.setRegisterValue(self.id, reg['device'], key, value)
+                
 
     def __len__(self):
         """ Override __len__, return number of registers """
