@@ -97,18 +97,28 @@ class TPM:
 
     def connect(self, ip, port):
         """ Connect to board """
-        self.id = self._tpm.connectBoard(ip, port)
-        return self.id
+        boardId = self._tpm.connectBoard(ip, port)
+        if boardId < 1:
+            return Error.Failure
+        else:
+            self.id = boardId
+            return Error.Success
 
-    def disconnect(self, ID):
+    def disconnect(self):
         """ Disconnect from board """
-        ret = Error(self._tpm.disconnect(ID))
+
+        # Check if board is connected
+        if self.id is None:
+            print "Board not connected"
+            return Error.Failure
+
+        ret = Error(self._tpm.disconnect(self.id))
         if (ret == Error.Success):
             self.id = None
             self._registerList = None
         return ret
 
-    def loadFirmwareBlocking(self, ID, device, filepath):
+    def loadFirmwareBlocking(self, device, filepath):
         """ Blocking call to load firmware """
         
         # Check if device argument is of type Device
@@ -122,16 +132,16 @@ class TPM:
             return
 
         # All OK, call function
-        err = Error(self._tpm.loadFirmwareBlocking(ID, device.value, filepath))
+        err = Error(self._tpm.loadFirmwareBlocking(self.id, device.value, filepath))
 
         # If call succeeded, get register list
         if err == Error.Success:
-            self.getRegisterList(self.id)
+            self.getRegisterList()
 
         # Return 
         return err
 
-    def getRegisterList(self, ID):
+    def getRegisterList(self):
         """ Get list of registers """
 
         # Check if register list has already been acquired, and if so return it
@@ -145,7 +155,7 @@ class TPM:
         ptr  = ctypes.cast(addr, INTP)
 
         # Call function
-        registers = self._tpm.getRegisterList(ID, ptr)
+        registers = self._tpm.getRegisterList(self.id, ptr)
 
         # Wrap register formats and return
         registerList = {  }
@@ -164,7 +174,7 @@ class TPM:
 
         return registerList
 
-    def getRegisterValue(self, ID, device, register):
+    def getRegisterValue(self, device, register):
         """" Get register value """
     
         # Check if device argument is of type Device
@@ -173,12 +183,12 @@ class TPM:
             return
 
         # Call function
-        value = self._tpm.getRegisterValue(ID, device.value, register)
+        value = self._tpm.getRegisterValue(self.id, device.value, register)
 
         # Wrap result and return
         return  Value(value.value, Error(value.error))
 
-    def setRegisterValue(self, ID, device, register, value):
+    def setRegisterValue(self, device, register, value):
         """ Set register value """
 
         # Check if device argument is of type Device
@@ -187,14 +197,28 @@ class TPM:
             return
 
         # Call function
-        return Error(self._tpm.setRegisterValue(ID, device.value, register, value))
+        return Error(self._tpm.setRegisterValue(self.id, device.value, register, value))
+
+    def listRegisterNames(self):
+        """ Print list of register names """
+        
+        # Check if board is connected
+        if self.id is None:
+            print "Board not connected"
+            return
+
+        # Check if register list has been populated
+        if self._registerList is None:
+            self.getRegisterList(self.id)
+
+        print '\n'.join([str(k) for k in self._registerList.keys()])
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
         if self._registerList is not None:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
-                val = self.getRegisterValue(self.id, reg['device'], key)
+                val = self.getRegisterValue(reg['device'], key)
                 if val.error == Error.Success:
                     return val.value
                 else:
@@ -205,7 +229,7 @@ class TPM:
         if self._registerList is not None:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
-                return self.setRegisterValue(self.id, reg['device'], key, value)
+                return self.setRegisterValue(reg['device'], key, value)
         print "Register '%s' not found" % key       
 
     def __len__(self):

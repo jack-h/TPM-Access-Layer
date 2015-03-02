@@ -25,13 +25,13 @@
              single - a single 32-bit register
              block  - a memory area with the specified size
              incremental - a FIFO with the specified size -->
-        <node id="register4" address="0x00000010" mode="single" />
-        <node id="register5" address="0x00000020" mode="block" size="16" />
-        <node id="register6" address="0x00000030" mode="incremental" size="16" />
+        <node id="register7" address="0x00000010" mode="single" />
+        <node id="register8" address="0x00000020" mode="block" size="16" />
+        <node id="register9" address="0x00000030" mode="incremental" size="16" />
 
         <!-- A bit mask can be defined on a register. For eac bit, or set of bits, 
              and ID and a mask must be specified -->
-        <node id="register7" address="0x00000040">
+        <node id="register10" address="0x00000040">
             <node id="G0" mask="0x01" />
             <node id="G1" mask="0x02" />
             <node id="G2" mask="0x03" />
@@ -39,11 +39,11 @@
         </node>
 
         <!-- Each node can have a descriptor tag associated with it -->
-        <node id="register8" address="0x00000050" description="LED control register" />
+        <node id="register11" address="0x00000050" description="LED control register" />
 
         <!-- Tags can be used for user-defined behaviour. For example, registers which
              contain sensor values can be tagged as "sensor" -->
-        <node id="register9" address="0x00000070" tags="sensor" />
+        <node id="register12" address="0x00000070" tags="sensor" />
     </node>
 
     <!-- External module files can be imported into a map -->
