@@ -113,7 +113,7 @@ REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers)
 }
 
 // Get a register's value
-VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg)
+VALUES readRegister(ID id, DEVICE device, REGISTER reg, uint32_t n)
 {  
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -128,11 +128,11 @@ VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg)
     Board *board = it -> second;
 
     // Get register value from board
-    return board -> getRegisterValue(device, reg);
+    return board -> readRegister(device, reg, n);
 }
 
 // Set a register's value
-ERROR setRegisterValue(ID id, DEVICE device, REGISTER reg, uint32_t value)
+ERROR writeRegister(ID id, DEVICE device, REGISTER reg, uint32_t n, uint32_t *values)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -147,19 +147,7 @@ ERROR setRegisterValue(ID id, DEVICE device, REGISTER reg, uint32_t value)
     Board *board = it -> second;
 
     // Get register value from board
-    return board -> setRegisterValue(device, reg, value);
-}
-
-// Get a register's value
-VALUE* getRegisterValues(ID id, DEVICE device, REGISTER reg, int N)
-{    
-    return NULL;
-}
-
-// Set a register's value
-ERROR setRegisterValues(ID id, DEVICE device, REGISTER reg, int N, int *values)
-{    
-    return FAILURE;
+    return board -> writeRegister(device, reg, n, values);
 }
 
 // Load firmware to FPGA. This function return immediately. The status of the

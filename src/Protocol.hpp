@@ -12,6 +12,9 @@
 
 #include "Definitions.hpp"
 
+// Define maximum payload size in words (4-bytes)
+#define MAX_PAYLOAD_SIZE 350
+
 // Create protocol abstract class
 class Protocol
 {
@@ -34,12 +37,12 @@ class Protocol
         // Read register/memory area capability
         // This will take care of issuing multiple requests if 
         // the amount of data to read is larger than one UDP packet
-        virtual VALUE readRegister(uint32_t address) = 0;
+        virtual VALUES readRegister(uint32_t address, uint32_t n) = 0;
 
         // Write register/memory area capability
         // This will take care of issuing multiple requests if the 
         // amount of data to write is larger than one UDP packet    
-        virtual ERROR writeRegister(uint32_t address, uint32_t value) = 0;
+        virtual ERROR writeRegister(uint32_t address, uint32_t n, uint32_t *values) = 0;
 
         // Accessors
         char *getIP() { return this -> ip; }
@@ -65,8 +68,8 @@ class UCP: public Protocol
     public:
         ERROR createSocket(char *IP, int port);
         ERROR closeSocket();
-        VALUE readRegister(uint32_t address);
-        ERROR writeRegister(uint32_t address, uint32_t value);
+        VALUES readRegister(uint32_t address, uint32_t n);
+        ERROR writeRegister(uint32_t address, uint32_t n, uint32_t *values);
 
     private:
         // Send packet
@@ -116,7 +119,7 @@ class UCP: public Protocol
         struct ucp_command_packet
         {
             struct ucp_command_header header;
-            uint32_t data;
+            uint32_t data[MAX_PAYLOAD_SIZE];
         } __attribute__ ((__packed__));
 
 
@@ -127,17 +130,17 @@ class UCP: public Protocol
             uint32_t addr;
         } __attribute__ ((__packed__));
 
-        // UCP write reply (N = 1)
+        // UCP write reply
         struct ucp_write_reply
         {
             struct ucp_reply_header header;
         } __attribute__ ((__packed__));
 
-        // UCP read reply (N = 1)
+        // UCP read reply
         struct ucp_read_reply
         {
             struct ucp_reply_header header;
-            uint32_t data;
+            uint32_t data[MAX_PAYLOAD_SIZE];
         } __attribute__ ((__packed__));
 };
 

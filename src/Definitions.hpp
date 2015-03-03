@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 // Enable or disable debugging
-#define DEBUG
+#define DEBUG 0
 
 // ========================== DATA TYPE DEFINITIONS ==========================
 
@@ -41,10 +41,10 @@ typedef enum {READ = 1, WRITE = 2, READWRITE = 3} PERMISSION;
 // assigning a particular value as the error value, or avoid using reference
 // varaibles in the parameter list. This structure can be extended if 
 // additional functionality is required
-typedef struct VALUE {
-    uint32_t  value;     // Sensor or register value
+typedef struct VALUES {
+    uint32_t  *values;     // Sensor or register value
     ERROR     error;     // If error is FAILURE, then value is invalid
-} VALUE;
+} VALUES;
 
 // Encapsulate register information
 typedef struct REGISTER_INFO {

@@ -3,7 +3,7 @@
 import socket
 import struct
 
-UDP_PORT = 15000
+UDP_PORT = 10000
 
 # Unpack string for UCP packet header
 # 1st byte:  PSN
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # Bind socket
-    sock.bind(("", UDP_PORT))
+    sock.bind(("10.62.14.234", UDP_PORT))
 
     # Continuously wait for packets
     while True:

@@ -26,7 +26,7 @@ class MemoryMap
 
                     // Assign default values
                     this -> permission  = READ;
-                    this -> size        = 4;
+                    this -> size        = 1;
                     this -> description = "";
                     this -> address     = 0x0;
                 }

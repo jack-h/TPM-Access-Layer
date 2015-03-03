@@ -3,7 +3,7 @@
 import socket
 import struct
 
-UDP_PORT = 15000
+UDP_PORT = 10000
 
 # Unpack string for UCP packet header
 # 1st byte:  PSN
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # Bind socket
-    sock.bind(("", UDP_PORT))
+    sock.bind(("10.62.14.234", UDP_PORT))
 
     # Continuously wait for packets
     while True:
@@ -31,6 +31,7 @@ if __name__ == "__main__":
         # Receive packet (blocking)
         print "Waiting for packet"
         data, addr = sock.recvfrom(512)
+        print "Packet received"
         
         # Received packet, extract and convert data
         psn, opcode, n, address = struct.unpack(UCP_header_fmt, data[:16])
@@ -49,7 +50,7 @@ if __name__ == "__main__":
                                  socket.htonl(address), 
                                  socket.htonl(value))
             sock.sendto(packet, addr)
-            print "Request to read addr %d, provided value %d" % (address, value)
+            print "Request to read addr %#08X, provided value %d" % (address, value)
 
         elif (opcode == OPCODE_WRITE):
 
@@ -61,7 +62,7 @@ if __name__ == "__main__":
                                  socket.htonl(psn), 
                                  socket.htonl(address))
             sock.sendto(packet, addr)
-            print "Request to write value %d to address %d" % (value, address)
+            print "Request to write value %d to address %#08X" % (value, address)
         else:
             print "Unsupported opcode %d" % opcode
             continue

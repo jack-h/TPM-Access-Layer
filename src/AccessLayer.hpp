@@ -19,7 +19,7 @@
 #include "Definitions.hpp"
 
 // Callback function definition for asynchronous updates
-typedef void (* CALLBACK)(ID, REGISTER, VALUE);
+typedef void (* CALLBACK)(ID, REGISTER, VALUES);
 
 // ======================= CONNECTION RELATED FUNCTIONS =======================
 
@@ -71,9 +71,8 @@ extern "C" REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers);
 //   reg     Register to query
 // Returns:
 //    VALUE 
-extern "C" VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg);
+extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, uint32_t n);
 
-// Set a register's value
 // Arguments:
 //   id      Board ID
 //   device    Specify to which DEVICE (if any) this applies
@@ -81,28 +80,7 @@ extern "C" VALUE getRegisterValue(ID id, DEVICE device, REGISTER reg);
 //   value   32-bit value to write to register
 // Returns:
 //    VALUE 
-extern "C" ERROR setRegisterValue(ID id, DEVICE device, REGISTER reg, uint32_t value);
-
-// Get a register's value
-// Arguments:
-//   id      Board ID
-//   device  Specify to which DEVICE (if any) this applies
-//   reg     Register to query
-//   N       Number of values to read
-// Returns:
-//    VALUE 
-extern "C" VALUE* getRegisterValues(ID id, DEVICE device, REGISTER reg, int N);
-
-// Set a register's value
-// Arguments:
-//   id      Board ID
-//   device  Specify to which DEVICE (if any) this applies
-//   reg     Register to write to
-//   N       Number of 32-bit values to write
-//   values  Array of 32-bit values to write to register
-// Returns:
-//    VALUE 
-extern "C" ERROR setRegisterValues(ID id, DEVICE device, REGISTER reg, int N, uint32_t *values);
+extern "C" ERROR writeRegister(ID id, DEVICE device, REGISTER reg, uint32_t n, uint32_t *values);
 
 // [Optional] Set a periodic register
 // Arguments:

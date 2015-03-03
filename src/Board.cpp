@@ -62,7 +62,7 @@ REGISTER_INFO* TPM::getRegisterList(unsigned int *num_registers)
 }
 
 // Get register value
-VALUE TPM::getRegisterValue(DEVICE device, REGISTER reg)
+VALUES TPM::readRegister(DEVICE device, REGISTER reg, uint32_t n)
 {  
     // Get register address from 
     int address = memory_map -> getRegisterAddress(device, reg);
@@ -70,16 +70,16 @@ VALUE TPM::getRegisterValue(DEVICE device, REGISTER reg)
     // If register was not found, return error
     if (address == -1)
     {
-        DEBUG_PRINT("TPM::getRegisterValue. Register" << reg << " on device " << device << " not found in memory map");
+        DEBUG_PRINT("TPM::readRegister. Register" << reg << " on device " << device << " not found in memory map");
         return {0, FAILURE};
     }
 
     // Otherwise, send request through protocol
-    return protocol -> readRegister(address);
+    return protocol -> readRegister(address, n);
 }
 
 // Get register value
-ERROR TPM::setRegisterValue(DEVICE device, REGISTER reg, uint32_t value)
+ERROR TPM::writeRegister(DEVICE device, REGISTER reg, uint32_t n, uint32_t *values)
 {  
     // Get register address from 
     int address = memory_map -> getRegisterAddress(device, reg);
@@ -87,12 +87,12 @@ ERROR TPM::setRegisterValue(DEVICE device, REGISTER reg, uint32_t value)
     // If register was not found, return error
     if (address == -1)
     {
-        DEBUG_PRINT("TPM::setRegisterValue. Register" << reg << " on device " << device << " not found in memory map");
+        DEBUG_PRINT("TPM::writeRegister. Register" << reg << " on device " << device << " not found in memory map");
         return FAILURE;
     }
 
     // Otherwise, send request through protocol
-    return protocol -> writeRegister(address, value);
+    return protocol -> writeRegister(address, n, values);
 }
 
 // Asynchronously load firmware to FPGA.

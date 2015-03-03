@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<node> 
+   <node id="fpga0">
+      <node id="regfile"  address="0x00000000">   
+         <node id="date_code"             address="0x0"  mask="0xFFFFFFFF"  permission="r"  rst="no"          description="Compile date"/>
+         <node id="jesd_ctrl"             address="0x4"                                                       description="JESD control">
+            <node id="debug_en"                          mask="0x000000001" permission="rw" rst="0"           description="Enable test pattern"/>
+            <node id="ext_trig_en"                       mask="0x000000002" permission="rw" rst="0"           description="Enable external trigger, not used"/>
+            <node id="bit_per_sample"                    mask="0x0000000F0" permission="rw" rst="no"          description="Bit per sample"/> </node>
+         <node id="reset"                 address="0x8"                                     rst="0x00000000">
+            <node id="jesd_master_rstn"                  mask="0x00000001"  permission="rw"                  />
+            <node id="global_rst"                        mask="0x00000002"  permission="rw"                  /> </node>
+         <node id="jesd_channel_disable"  address="0xC"  mask="0x0000FFFF"  permission="rw"                   description="Disable unused channel download"/>
+         <node id="debug"                 address="0x10" mask="0xFFFFFFFF"  permission="rw"                   description="Debug register"/>
+      </node>
+      <node id="jesd" address="0x10000"description="See Xilinx UG">   
+      </node>
+   </node>
+   
+   <node id="cpld">
+      <node id="regfile" address="0x30000000" description="Register File">   
+         <node id="date_code"             address="0x0"  mask="0xFFFFFFFF" permission="r"  rst="no"          description="Compile date"/>
+         <node id="empty"                 address="0x4"  mask="0xFFFFFFFF" permission="r"  rst="no"          description="Empty"/>
+         <node id="ctrl0"                 address="0x8"                                                       description="General control register">
+            <node id="dut_rst_ad9528"                    mask="0x00000001" permission="rw" rst="0"           description=""/>
+            <node id="dut_spi_ad9528"                    mask="0x00000002" permission="rw" rst="0"           description=""/>
+            <node id="dut_refb_en_ad9528"                mask="0x00000004" permission="rw" rst="0"           description=""/>
+            <node id="dut_ref_sel_ad9528"                mask="0x00000008" permission="rw" rst="0"           description=""/>
+            <node id="xil_program"                       mask="0x00000030" permission="rw" rst="0"           description=""/>
+            <node id="xil_reset"                         mask="0x00000040" permission="rw" rst="0"           description=""/>
+            <node id="ad_pdwn"                           mask="0x00000080" permission="rw" rst="0"           description=""/>
+            <node id="en_ddr_vdd"                        mask="0x00000100" permission="rw" rst="0"           description=""/>
+            <node id="en_sw_ada_vdd"                     mask="0x00000200" permission="rw" rst="0"           description=""/></node>
+         <node id="ethernet_pause"        address="0xC"  mask="0x0000FFFF" permission="rw" rst="0"           description="Compile date"/>
+         <node id="ada_ctrl"              address="0x10"                                                     description="ADA control ">
+            <node id="ada_pwup_ada4961"                  mask="0x00000001" permission="rw" rst="0"           description=""/>
+            <node id="ada_lp_ada4961"                    mask="0x00000002" permission="rw" rst="0"           description=""/>
+            <node id="ada_mode_ada4961"                  mask="0x00000004" permission="rw" rst="0"           description=""/>
+            <node id="ada_latch_ada4961"                 mask="0x00000008" permission="rw" rst="0"           description=""/>
+            <node id="ada_a_ada4961"                     mask="0x00000008" permission="rw" rst="0"           description=""/>
+            <node id="ada_fa_ada4961"                    mask="0x00000008" permission="rw" rst="0"           description=""/></node>
+      </node>
+      <node id="spi" address="0x30000000" description="SPI interface">
+         <node id="address"               address="0x0"  mask="0x0000FFFF" permission="rw"  rst="0"          description=""/>
+         <node id="write_data"            address="0x4"  mask="0x0000FFFF" permission="rw"  rst="0"          description=""/>
+         <node id="read_data"             address="0x8"  mask="0x0000FFFF" permission="rw"  rst="0"          description=""/>
+         <node id="chip_select"           address="0xC"  mask="0x0000FFFF" permission="rw"  rst="0"          description=""/>
+         <node id="sclk"                  address="0x10" mask="0x0000FFFF" permission="rw"  rst="0"          description=""/>
+         <node id="cmd"                   address="0x14"                                                     description="">
+            <node id="start"                             mask="0x00000001" permission="rw" rst="0"           description=""/>
+            <node id="rnw"                               mask="0x00000002" permission="rw" rst="0"           description=""/>
+      </node>
+   </node>
+</node>
+<!--
+ comment!
+/!-->

@@ -132,7 +132,7 @@ MemoryMap::MemoryMap(char *path)
                 std::string name = registerAttr -> name();
 
                 // Extract attribute values
-                if (!(name.compare("id") == 0 || name.compare("address") == 0))
+                if (name.compare("id") == 0 || name.compare("address") == 0)
                     ; // Skip, already processed
                 else if (name.compare("mode") == 0)
                 {

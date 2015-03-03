@@ -1,4 +1,5 @@
 from enum import Enum
+import numpy as np
 import ctypes, os
 
 # --------------- Enumerations --------------------------
@@ -37,9 +38,9 @@ class Permission(Enum):
     ReadWrite = 3
 
 # --------------- Structures --------------------------
-class Value:
-    def __init__(self, value, error):
-        self.value = value
+class Values:
+    def __init__(self, values, error):
+        self.values = values
         self.error = error
 
 class RegisterInfo:
@@ -55,9 +56,9 @@ class RegisterInfo:
 class TPM:
 
     # Define ctype wrapper to library structures
-    class ValueStruct(ctypes.Structure):
+    class ValuesStruct(ctypes.Structure):
         _fields_ = [
-            ('value', ctypes.c_uint32),
+            ('values', ctypes.POINTER(ctypes.c_uint32)),
             ('error', ctypes.c_int)
         ]
 
@@ -174,7 +175,7 @@ class TPM:
 
         return registerList
 
-    def getRegisterValue(self, device, register):
+    def readRegister(self, device, register, n):
         """" Get register value """
     
         # Check if device argument is of type Device
@@ -183,12 +184,21 @@ class TPM:
             return
 
         # Call function
-        value = self._tpm.getRegisterValue(self.id, device.value, register)
+        values = self._tpm.readRegister(self.id, device.value, register, n)
 
-        # Wrap result and return
-        return  Value(value.value, Error(value.error))
+        # Check if value succeeded, otherwise reture
+        if values.error == Error.Failure.value:
+            return Values(None, Error.Failure)
 
-    def setRegisterValue(self, device, register, value):
+        # Read succeeded, wrap data and return
+        valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
+
+        if n == 1:
+            return Values(valPtr[0], Error.Success)
+        else:
+            return Values([valPtr[i] for i in range(n)], Error.Success)
+
+    def writeRegister(self, device, register, n, values):
         """ Set register value """
 
         # Check if device argument is of type Device
@@ -196,8 +206,25 @@ class TPM:
             print "device argument should be of type Device"
             return
 
-        # Call function
-        return Error(self._tpm.setRegisterValue(self.id, device.value, register, value))
+        # Check if number of values mathces n
+        if n == 1 and type(values) is not list:
+
+            # Create an integer and extract it's address
+            INTP = ctypes.POINTER(ctypes.c_uint32)
+            num  = ctypes.c_uint32(values)
+            addr = ctypes.addressof(num)
+            ptr  = ctypes.cast(addr, INTP)
+
+            return Error(self._tpm.writeRegister(self.id, device.value,
+                                                 register, n, ptr))
+
+        elif n == len(values):
+            vals = (ctypes.c_uint32 * n) (*values)
+            return Error(self._tpm.writeRegister(self.id, device.value,
+                                                 register, n, vals))
+        else:
+            print "Something not quite right in writeRegister"
+
 
     def listRegisterNames(self):
         """ Print list of register names """
@@ -218,9 +245,9 @@ class TPM:
         if self._registerList is not None:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
-                val = self.getRegisterValue(reg['device'], key)
+                val = self.readRegister(reg['device'], key, reg['size'])
                 if val.error == Error.Success:
-                    return val.value
+                    return val.values
                 else:
                     return None
 
@@ -229,7 +256,10 @@ class TPM:
         if self._registerList is not None:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
-                return self.setRegisterValue(reg['device'], key, value)
+                if type(value) is list:
+                    return self.writeRegister(reg['device'], key, len(value), value)
+                else:
+                    return self.writeRegister(reg['device'], key, 1, value)
         print "Register '%s' not found" % key       
 
     def __len__(self):
@@ -269,11 +299,11 @@ class TPM:
         self._tpm.getRegisterList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_int)]
         self._tpm.getRegisterList.restype = ctypes.POINTER(self.RegisterInfoStruct)
 
-        # Define getRegisterValue function
-        self._tpm.getRegisterValue.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
-        self._tpm.getRegisterValue.restype = self.ValueStruct
+        # Define readRegister function
+        self._tpm.readRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
+        self._tpm.readRegister.restype = self.ValuesStruct
 
-        # Define setRegisterValue function
-        self._tpm.setRegisterValue.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32]
-        self._tpm.setRegisterValue.restype = ctypes.c_int
+        # Define writeRegister function
+        self._tpm.writeRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
+        self._tpm.writeRegister.restype = ctypes.c_int
 
