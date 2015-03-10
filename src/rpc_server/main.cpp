@@ -304,7 +304,8 @@ int main(int argc, char *argv[])
                 std::cout << "ID: " << message.id() << ", file: " << message.file() << std::endl;
 
                 ERROR err = loadFirmwareBlocking(message.id(), dev,
-                                                 message.file().c_str());
+                                                "/home/lessju/MemoryMap.xml");
+//                                                 message.file().c_str());
 
                 // Check if call failed and send result
                 if (err == SUCCESS)
@@ -333,7 +334,8 @@ int main(int argc, char *argv[])
                 std::cout << "ID: " << message.id() << ", file: " << message.file() << std::endl;
 
                 ERROR err = loadFirmwareBlocking(message.id(), dev,
-                                                 message.file().c_str());
+                                                 "/home/lessju/MemoryMap.xml");
+//                                                 message.file().c_str());
 
                 // Check if call failed and send result
                 if (err == SUCCESS)

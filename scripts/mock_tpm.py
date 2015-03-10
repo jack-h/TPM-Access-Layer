@@ -49,7 +49,7 @@ if __name__ == "__main__":
                                  address, 
                                  *values)
             sock.sendto(packet, addr)
-            print "Request to read addr %#08X, provided value %d" % (address, values[0])
+            print "Request to read addr %#08X, provided value %d (x %d)" % (address, values[0], n)
 
         elif (opcode == OPCODE_WRITE):
 
