@@ -1,0 +1,105 @@
+message Request
+{
+    enum CommandType
+    {
+        CONNECT = 1;
+        DISCONNECT = 2;
+        RESET_BOARD = 3;
+        GET_STATUS = 4;
+        GET_REGISTER_LIST = 5;
+        GET_REGISTER_VALUE = 6;
+        SET_REGISTER_VALUE = 7;
+        GET_REGISTER_VALUES = 8;
+        SET_REGISTER_VALUES = 9;
+        LOAD_FIRMWARE = 10;
+        LOAD_FIRMWARE_BLOCKING = 11;
+    }
+
+    enum DeviceType
+    {
+        BOARD = 1;
+        FPGA_1 = 2;
+        FPGA_2 = 3;
+    }
+
+    enum RegisterType
+    {
+        SENSOR = 1;
+        BOARD_REGISTER = 2;
+        FIRMWARE_REGISTER = 3;
+    }
+
+    required CommandType command = 1;
+    optional string ip = 2;
+    optional int32 port = 3;
+    optional uint32 id = 4;
+
+    optional string registerName = 6;
+    optional RegisterType registerFamily = 7;
+    optional DeviceType device = 8;
+    optional uint32 n = 9;
+    optional string file = 10;
+    optional uint32 value = 11;
+    repeated uint32 values = 12;
+}
+
+message Reply
+{
+    enum ResultType
+    {
+        SUCCESS = 0;
+        FAILURE = -1;
+        NOT_IMPLEMENTED = -2;
+    }
+
+    enum TpmStatus
+    {
+        OK = 0;
+        LOADING_FIRMWARE = -1;
+        CONFIG_ERROR = -2;
+        BOARD_ERROR = -3;
+        NOT_CONNECTED = -4;
+        NETWORK_ERROR = -5;
+    }
+
+    enum PermissionType
+    {
+        READ = 1;
+        WRITE = 2;
+        READWRITE = 3;
+    }
+
+    message RegisterInfoType
+    {
+        required string name = 1;
+        required RegisterType type = 2;
+        required DeviceType device = 3;
+        required PermissionType permission = 4;
+        required uint32 size = 5;
+        required string description = 6;
+    }
+
+    enum DeviceType
+    {
+        BOARD = 1;
+        FPGA_1 = 2;
+        FPGA_2 = 3;
+    }
+
+    enum RegisterType
+    {
+        SENSOR = 1;
+        BOARD_REGISTER = 2;
+        FIRMWARE_REGISTER = 3;
+    }
+
+    required ResultType result = 1;
+    optional PermissionType permission = 2;
+    optional TpmStatus status = 3;
+    optional uint32 value = 4;
+    repeated uint32 values = 5;
+    repeated RegisterInfoType registerList = 6;
+    optional string message = 7;
+    optional uint32 id = 8;
+
+}

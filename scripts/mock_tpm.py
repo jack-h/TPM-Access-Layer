@@ -23,7 +23,7 @@ if __name__ == "__main__":
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # Bind socket
-    sock.bind(("10.62.14.234", UDP_PORT))
+    sock.bind(("", UDP_PORT))
 
     # Continuously wait for packets
     while True:
@@ -34,34 +34,34 @@ if __name__ == "__main__":
         
         # Received packet, extract and convert data
         psn, opcode, n, address = struct.unpack(UCP_header_fmt, data[:16])
-        psn     = socket.ntohl(psn)
-        opcode  = socket.ntohl(opcode)
-        n       = socket.ntohl(n)
-        address = socket.ntohl(address)
+        psn     = psn
+        opcode  = opcode
+        n       = n
+        address = address
 
         # Switch on opcode
         if (opcode == OPCODE_READ):
          
             # Read operation, return packet with data
-            value = 69
-            packet = struct.pack("III", 
-                                 socket.htonl(psn), 
-                                 socket.htonl(address), 
-                                 socket.htonl(value))
+            values = [69] * n
+            packet = struct.pack("II" + "I" * n, 
+                                 psn, 
+                                 address, 
+                                 *values)
             sock.sendto(packet, addr)
-            print "Request to read addr %#08X, provided value %d" % (address, value)
+            print "Request to read addr %#08X, provided value %d" % (address, values[0])
 
         elif (opcode == OPCODE_WRITE):
 
             # Write opreation, extract value
-            value = socket.ntohl(struct.unpack('I', data[16:])[0])        
+            values = struct.unpack('I' * n, data[16:])        
 
             # Return reply packet
             packet = struct.pack("II", 
-                                 socket.htonl(psn), 
-                                 socket.htonl(address))
+                                 psn, 
+                                 address)
             sock.sendto(packet, addr)
-            print "Request to write value %d to address %#08X" % (value, address)
+            print "Request to write value %d to address %#08X" % (values[0], address)
         else:
             print "Unsupported opcode %d" % opcode
             continue

@@ -16,7 +16,7 @@ void testPerformance(ID id, REGISTER_INFO *registers)
     // Repeatedly read from register
     for(unsigned i = 0; i < times; i++)
     {  
-        readRegister(id, registers[0].device, registers[0].name, 32);
+        readRegister(id, registers[2].device, registers[2].name, 32);
     }
 
     gettimeofday(&end, NULL);
@@ -30,10 +30,10 @@ void testPerformance(ID id, REGISTER_INFO *registers)
 int main(void)
 {
     // Connect to board
-    ID id = connectBoard("10.62.14.249", 10000);
+    ID id = connectBoard("10.62.14.251", 10000);
 
     // Program board
-    loadFirmwareBlocking(id, FPGA_1, "/home/lessju/XilinxBoardMap.xml");
+    loadFirmwareBlocking(id, FPGA_1, "/home/lessju/XilinxBoard.xml");
 
     // Get register list
     unsigned int num_registers;
