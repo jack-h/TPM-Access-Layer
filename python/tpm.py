@@ -68,6 +68,7 @@ class TPM:
             ('type',        ctypes.c_int),
             ('device',      ctypes.c_int),
             ('permission',  ctypes.c_int),
+            ('bitmask',     ctypes.c_uint32),
             ('size',        ctypes.c_uint32),
             ('description', ctypes.c_char_p)
         ]
@@ -167,6 +168,7 @@ class TPM:
             reg['device']      = Device(registers[i].device)
             reg['permission']  = Permission(registers[i].permission)
             reg['size']        = registers[i].size
+            reg['bitmask']     = registers[i].bitmask
             reg['description'] = registers[i].description
             registerList[reg['name']] = reg
 
@@ -236,7 +238,7 @@ class TPM:
 
         # Check if register list has been populated
         if self._registerList is None:
-            self.getRegisterList(self.id)
+            self.getRegisterList()
 
         print '\n'.join([str(k) for k in self._registerList.keys()])
 
@@ -250,6 +252,8 @@ class TPM:
                     return val.values
                 else:
                     return None
+            else:
+                print "Register '%s' not found" % key
 
     def __setitem__(self, key, value):
         """ Override __setitem__, set value on board"""
@@ -267,12 +271,38 @@ class TPM:
         if self._registerList is not None:
             return len(self._registerList.keys())
 
+    def __str__(self):
+        """ Override __str__ to print register information in a human readable format """
+        
+        # Check if board is connected:
+        if self.id is None:
+            print "Board not connected"
+            return
+    
+        # Check if register list has been populated
+        if self._registerList is None:
+            self.getRegisterList()
+
+        string = ""
+        for k, v in self._registerList.iteritems():
+            string += '%s:\n%s\n'            % (v['name'], '-' * len(v['name']))
+            string += 'Type:\t\t%s\n'        % str(v['type'])
+            string += 'Device:\t\t%s\n'      % str(v['device'])
+            string += 'Permission:\t%s\n'    % str(v['permission'])
+            string += 'Bitmask:\t0x%X\n'     % v['bitmask']
+            string += 'Size:\t\t%d\n'        % v['size']
+            string += 'Description:\t%s\n\n' % v['description']
+
+        # Return string representation
+        return string
+
+
     def _initialiseLibrary(self, filepath = None):
         """ Initialise library """
        
         # Load access layer shared library
         if filepath is None:
-            self._library = "/home/lessju/Code/TPM-Access-Layer/src/libboard.so"
+            self._library = "/home/lessju/Code/TPM-Access-Layer/src/library/libboard.so"
         else:
             self._library = filepath
 

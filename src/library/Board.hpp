@@ -32,13 +32,13 @@ class Board
         virtual STATUS getStatus() = 0;
 
         // Get register list
-        virtual REGISTER_INFO* getRegisterList(unsigned int *num_registers) = 0;
+        virtual REGISTER_INFO* getRegisterList(UINT *num_registers) = 0;
 
         // Get register value
-        virtual VALUES readRegister(DEVICE device, REGISTER reg, uint32_t n) = 0;
+        virtual VALUES readRegister(DEVICE device, REGISTER reg, UINT n) = 0;
 
         // Set register value
-        virtual ERROR writeRegister(DEVICE device, REGISTER reg, uint32_t n, uint32_t *value) = 0;
+        virtual ERROR writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value) = 0;
 
         // Asynchronously load firmware to FPGA.
         virtual ERROR loadFirmware(DEVICE device, const char* bitstream) = 0;
@@ -82,13 +82,13 @@ class TPM: public Board
         STATUS getStatus();
 
         // Get register list
-        REGISTER_INFO* getRegisterList(unsigned int *num_registers);
+        REGISTER_INFO* getRegisterList(UINT *num_registers);
 
         // Get register value
-        VALUES readRegister(DEVICE device, REGISTER reg, uint32_t n);
+        VALUES readRegister(DEVICE device, REGISTER reg, UINT n);
 
         // Set register value
-        ERROR writeRegister(DEVICE device, REGISTER reg, uint32_t n, uint32_t *value);
+        ERROR writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value);
 
         // Asynchronously load firmware to FPGA.
         ERROR loadFirmware(DEVICE device, const char* bitstream);

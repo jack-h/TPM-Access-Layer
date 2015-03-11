@@ -113,7 +113,7 @@ REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers)
 }
 
 // Get a register's value
-VALUES readRegister(ID id, DEVICE device, REGISTER reg, uint32_t n)
+VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n)
 {  
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -132,7 +132,7 @@ VALUES readRegister(ID id, DEVICE device, REGISTER reg, uint32_t n)
 }
 
 // Set a register's value
-ERROR writeRegister(ID id, DEVICE device, REGISTER reg, uint32_t n, uint32_t *values)
+ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;

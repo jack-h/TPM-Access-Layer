@@ -8,6 +8,12 @@ UCP::UCP() : Protocol()
 {
     // Initialise sequence number
     sequence_number = rand() % 100000;
+
+    // Allocate packet once and re-use
+    header      = (ucp_command_header *) malloc(sizeof(ucp_command_header));
+    packet      = (ucp_command_packet *) malloc(sizeof(ucp_command_packet));
+    read_reply  = (ucp_read_reply *) malloc(sizeof(ucp_read_reply));
+    write_reply = (ucp_write_reply *) malloc(sizeof(ucp_write_reply));
 }
 
 // Create and initialise socket
@@ -88,20 +94,16 @@ ssize_t UCP::receivePacket(char *buffer, size_t max_length)
 }
 
 // Issue a read register request, and return reply
-VALUES UCP::readRegister(uint32_t address, uint32_t n)
+VALUES UCP::readRegister(UINT address, UINT n)
 {
-    // Create UCP header
-    ucp_command_header *header = (ucp_command_header *) malloc(sizeof(ucp_command_header));
-
     // Increment sequence number
-    uint32_t seqno = sequence_number++;
+    UINT seqno = sequence_number++;
 
     // Fill out request
-    // TODO: Explicitly change to little endian
-    header -> psn     = seqno;
-    header -> opcode  = OPCODE_READ;
-    header -> nvalues = n;
-    header -> address = address;
+    header -> psn     = lendian(seqno);
+    header -> opcode  = lendian(OPCODE_READ);
+    header -> nvalues = lendian(n);
+    header -> address = lendian(address);
     
     // Send out packet  
     DEBUG_PRINT("UCP::readRegister. Sending packet");
@@ -116,34 +118,30 @@ VALUES UCP::readRegister(uint32_t address, uint32_t n)
     free(header);
 
     // Sucessfully sent out packet, calculate responce size
-    size_t reply_size = sizeof(ucp_reply_header) + n * sizeof(uint32_t);
+    size_t reply_size = sizeof(ucp_reply_header) + n * sizeof(UINT);
 
     // Allocate buffer for reply
-    ucp_read_reply *reply = (ucp_read_reply *) malloc(sizeof(ucp_read_reply));
-    memset(reply, 0, sizeof(ucp_read_reply));
+    memset(read_reply, 0, sizeof(ucp_read_reply));
 
     // Wait for packet
     DEBUG_PRINT("UCP::readRegister. Receiving reply");
-    ssize_t ret = receivePacket((char *) reply, reply_size);
+    ssize_t ret = receivePacket((char *) read_reply, reply_size);
 
     // Convert reply data to host endiannes
-    // TODO: Check endiannes
-    (reply -> header).addr = (reply -> header).addr;
-    (reply -> header).psn = (reply -> header).psn;
+    (read_reply -> header).addr = lendian((read_reply -> header).addr);
+    (read_reply -> header).psn = lendian((read_reply -> header).psn);
 
     // Check number of bytes read
     if (ret < 0 || (size_t) ret < reply_size)
     {
         // Something wrong, return error
-        free(reply);
         DEBUG_PRINT("UCP::readRegister. Failed to receive reply");
         return {NULL, FAILURE};
     }
     // Check if request was succesful on board
-    else if ((reply -> header).psn != seqno || (reply -> header).addr != address)
+    else if ((read_reply -> header).psn != seqno || (read_reply -> header).addr != address)
     {   
         // Something wrong, return error
-        free(reply);
         DEBUG_PRINT("UCP::readRegister. Command failed on board");
         return {NULL, FAILURE};
     }
@@ -152,37 +150,30 @@ VALUES UCP::readRegister(uint32_t address, uint32_t n)
     // TODO: Check endiannes
     
     // Create array containing required values
-    uint32_t *values = (uint32_t *) malloc(n * sizeof(uint32_t));
-    memcpy(values, reply -> data, n * sizeof(uint32_t));
-
-    // We do not need the reply packet anymore
-    free(reply);
+    UINT *values = (UINT *) malloc(n * sizeof(UINT));
+    memcpy(values, read_reply -> data, n * sizeof(UINT));
 
     return {values, SUCCESS};
 }
 
 // Issue a write register request, and return reply
-ERROR UCP::writeRegister(uint32_t address, uint32_t n, uint32_t *values)
+ERROR UCP::writeRegister(UINT address, UINT n, UINT *values)
 {
-    // Create UCP header
-    ucp_command_packet *packet = (ucp_command_packet *) malloc(sizeof(ucp_command_packet));
-
     // Increment sequence number
-    uint32_t seqno = sequence_number++;
+    UINT seqno = sequence_number++;
 
     // Fill out request
-    // TODO: explicitly change to little endian
-    (packet -> header).psn     = seqno;
-    (packet -> header).opcode  = OPCODE_WRITE;
-    (packet -> header).nvalues = n;
-    (packet -> header).address = address;
+    (packet -> header).psn     = lendian(seqno);
+    (packet -> header).opcode  = lendian(OPCODE_WRITE);
+    (packet -> header).nvalues = lendian(n);
+    (packet -> header).address = lendian(address);
 
     // Place data in packet
-    memcpy(&(packet -> data), values, n * sizeof(uint32_t));
+    memcpy(&(packet -> data), values, n * sizeof(UINT));
     
     // Send out packet  
     DEBUG_PRINT("UCP::writeRegister. Sending packet");
-    if (sendPacket((char *) packet, sizeof(ucp_command_header) + n * sizeof(uint32_t)) == FAILURE)
+    if (sendPacket((char *) packet, sizeof(ucp_command_header) + n * sizeof(UINT)) == FAILURE)
     {
         DEBUG_PRINT("UCP::writeRegister. Failed to send packet");
         free(packet);
@@ -196,37 +187,30 @@ ERROR UCP::writeRegister(uint32_t address, uint32_t n, uint32_t *values)
     size_t reply_size = sizeof(ucp_write_reply);
 
     // Allocate buffer for reply
-    ucp_write_reply *reply = (ucp_write_reply *) malloc(sizeof(ucp_write_reply));
-    memset(reply, 0, sizeof(ucp_write_reply));
+    memset(write_reply, 0, sizeof(ucp_write_reply));
 
     // Wait for packet
     DEBUG_PRINT("UCP::writeRegister. Receiving reply");
-    ssize_t ret = receivePacket((char *) reply, reply_size);
+    ssize_t ret = receivePacket((char *) write_reply, reply_size);
 
     // Convert reply data to host endiannes
-    // TODO: Check endiannes
-    (reply -> header).addr = (reply -> header).addr;
-    (reply -> header).psn = (reply -> header).psn;
+    (write_reply -> header).addr = lendian((write_reply -> header).addr);
+    (write_reply -> header).psn = lendian((write_reply -> header).psn);
 
     // Check number of bytes read
     if (ret < 0 || (size_t) ret < reply_size)
     {
         // Something wrong, return error
-        free(reply);
         DEBUG_PRINT("UCP::writeRegister. Failed to receive reply");
         return FAILURE;
     }
     // Check if request was succesful on board
-    else if ((reply -> header).psn != seqno || (reply -> header).addr != address)
+    else if ((write_reply -> header).psn != seqno || (write_reply -> header).addr != address)
     {   
         // Something wrong, return error
-        free(reply);
         DEBUG_PRINT("UCP::readRegister. Command failed on board");
         return FAILURE;
     }
-
-    // Free resources and return
-    free(reply);
 
     return SUCCESS;
 }

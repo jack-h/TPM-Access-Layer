@@ -31,3 +31,14 @@ char *extractXMLFile(const char *filepath)
 
     return xml_file;
 }
+
+// Check if architecture is big endian
+UINT lendian(UINT value)
+{
+    #if __ENDIANNESS__ == __BIG_ENDIAN
+        value = (value & 0x0000FFFF) << 16 | (value & 0xFFFF0000) >> 16;
+        value = (value & 0x00FF00FF) << 8  | (value & 0xFF00FF00) >> 8;
+    #endif
+
+    return value;
+}

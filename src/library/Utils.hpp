@@ -18,4 +18,7 @@ ID convertIPtoID(const char *IP);
 // Extract XML mapping file from filepath
 char *extractXMLFile(const char *filepath);
 
+// Convert to little endian if required
+UINT lendian(UINT value);
+
 #endif // UTILS

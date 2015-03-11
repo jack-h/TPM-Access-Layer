@@ -37,12 +37,12 @@ class Protocol
         // Read register/memory area capability
         // This will take care of issuing multiple requests if 
         // the amount of data to read is larger than one UDP packet
-        virtual VALUES readRegister(uint32_t address, uint32_t n) = 0;
+        virtual VALUES readRegister(UINT address, UINT n) = 0;
 
         // Write register/memory area capability
         // This will take care of issuing multiple requests if the 
         // amount of data to write is larger than one UDP packet    
-        virtual ERROR writeRegister(uint32_t address, uint32_t n, uint32_t *values) = 0;
+        virtual ERROR writeRegister(UINT address, UINT n, UINT *values) = 0;
 
         // Accessors
         char *getIP() { return this -> ip; }
@@ -68,8 +68,8 @@ class UCP: public Protocol
     public:
         ERROR createSocket(const char *IP, int port);
         ERROR closeSocket();
-        VALUES readRegister(uint32_t address, uint32_t n);
-        ERROR writeRegister(uint32_t address, uint32_t n, uint32_t *values);
+        VALUES readRegister(UINT address, UINT n);
+        ERROR writeRegister(UINT address, UINT n, UINT *values);
 
     private:
         // Send packet
@@ -80,7 +80,7 @@ class UCP: public Protocol
 
     private:
         // Sequence number
-        uint32_t  sequence_number;
+        UINT  sequence_number;
 
     private:
     
@@ -109,25 +109,25 @@ class UCP: public Protocol
         // Generic UCP command header
         struct ucp_command_header
         {
-            uint32_t psn;
-            uint32_t opcode;
-            uint32_t nvalues;
-            uint32_t address;
+            UINT psn;
+            UINT opcode;
+            UINT nvalues;
+            UINT address;
         } __attribute__ ((__packed__));
 
         // UCP command packet 
         struct ucp_command_packet
         {
             struct ucp_command_header header;
-            uint32_t data[MAX_PAYLOAD_SIZE];
+            UINT data[MAX_PAYLOAD_SIZE];
         } __attribute__ ((__packed__));
 
 
         // Generic UCP reply header
         struct ucp_reply_header 
         {
-            uint32_t psn;
-            uint32_t addr;
+            UINT psn;
+            UINT addr;
         } __attribute__ ((__packed__));
 
         // UCP write reply
@@ -140,8 +140,14 @@ class UCP: public Protocol
         struct ucp_read_reply
         {
             struct ucp_reply_header header;
-            uint32_t data[MAX_PAYLOAD_SIZE];
+            UINT data[MAX_PAYLOAD_SIZE];
         } __attribute__ ((__packed__));
+
+        // Declare and initiaslie packet once (hopefully for speed)
+        ucp_command_header *header;
+        ucp_command_packet *packet;
+        ucp_read_reply     *read_reply;
+        ucp_write_reply    *write_reply;
 };
 
 #endif  // PROTOCOL

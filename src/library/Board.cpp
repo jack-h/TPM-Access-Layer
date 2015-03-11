@@ -56,13 +56,13 @@ STATUS TPM::getStatus()
 }
 
 // Get register list from memory map
-REGISTER_INFO* TPM::getRegisterList(unsigned int *num_registers)
+REGISTER_INFO* TPM::getRegisterList(UINT *num_registers)
 {
     return memory_map -> getRegisterList(num_registers);
 }
 
 // Get register value
-VALUES TPM::readRegister(DEVICE device, REGISTER reg, uint32_t n)
+VALUES TPM::readRegister(DEVICE device, REGISTER reg, UINT n)
 {  
     // Get register address from 
     int address = memory_map -> getRegisterAddress(device, reg);
@@ -79,7 +79,7 @@ VALUES TPM::readRegister(DEVICE device, REGISTER reg, uint32_t n)
 }
 
 // Get register value
-ERROR TPM::writeRegister(DEVICE device, REGISTER reg, uint32_t n, uint32_t *values)
+ERROR TPM::writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *values)
 {  
     // Get register address from 
     int address = memory_map -> getRegisterAddress(device, reg);
@@ -91,7 +91,14 @@ ERROR TPM::writeRegister(DEVICE device, REGISTER reg, uint32_t n, uint32_t *valu
         return FAILURE;
     }
 
-    // Otherwise, send request through protocol
+    // Get register bitmask
+    UINT bitmask = memory_map -> getRegisterBitMask(device, reg);
+
+    // Loop over all values and apply bitmask
+    for(unsigned i = 0; i < n; i++)
+        values[i] = values[i] & bitmask;
+
+    // Finished pre-processing, write values to register
     return protocol -> writeRegister(address, n, values);
 }
 

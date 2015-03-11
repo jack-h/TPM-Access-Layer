@@ -14,6 +14,9 @@ typedef unsigned int ID;
 // Representation of register name
 typedef const char* REGISTER;
 
+// Representation of basic datatype
+typedef uint32_t UINT;
+
 // Device types
 typedef enum { BOARD = 1, FPGA_1 = 2, FPGA_2 = 4 } DEVICE;
 
@@ -42,18 +45,19 @@ typedef enum {READ = 1, WRITE = 2, READWRITE = 3} PERMISSION;
 // varaibles in the parameter list. This structure can be extended if 
 // additional functionality is required
 typedef struct VALUES {
-    uint32_t  *values;     // Sensor or register value
+    UINT      *values;     // Sensor or register value
     ERROR     error;     // If error is FAILURE, then value is invalid
 } VALUES;
 
 // Encapsulate register information
 typedef struct REGISTER_INFO {
-    REGISTER      name;  // String representation of register
-    REGISTER_TYPE type;  // Sensor, board-register or firmware-register
-    DEVICE        device;  // Set of FPGAs (if any) to which this is applicable
-    PERMISSION    permission;   // ### Define register access type
-    unsigned int  size;  // ### Memory size in bytes 
-    const char    *description; // ### Register string description
+    REGISTER      name;         // String representation of register
+    REGISTER_TYPE type;         // Sensor, board-register or firmware-register
+    DEVICE        device;       // Set of FPGAs (if any) to which this is applicable
+    PERMISSION    permission;   // Define register access type
+    UINT          bitmask;      // Register bitmask
+    unsigned int  size;         // Memory size in bytes 
+    const char    *description; // Register string description
 } REGISTER_INFO;
 
 #endif // DEFINITIONS

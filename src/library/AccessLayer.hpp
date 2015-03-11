@@ -62,7 +62,7 @@ extern "C" STATUS getStatus(ID id);
 //   id    Board ID
 // Returns:
 //   Array of REGISTER_INFO
-extern "C" REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers);
+extern "C" REGISTER_INFO* getRegisterList(ID id, UINT *num_registers);
 
 // Get a register's value
 // Arguments:
@@ -71,7 +71,7 @@ extern "C" REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers);
 //   reg     Register to query
 // Returns:
 //    VALUE 
-extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, uint32_t n);
+extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n);
 
 // Arguments:
 //   id      Board ID
@@ -80,7 +80,7 @@ extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, uint32_t n);
 //   value   32-bit value to write to register
 // Returns:
 //    VALUE 
-extern "C" ERROR writeRegister(ID id, DEVICE device, REGISTER reg, uint32_t n, uint32_t *values);
+extern "C" ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values);
 
 // [Optional] Set a periodic register
 // Arguments:

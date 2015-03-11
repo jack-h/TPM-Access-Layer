@@ -9,6 +9,10 @@ using namespace std;
 // Class representing a memory map
 class MemoryMap
 {
+    // Make TPM a friend class so that it can access private methods 
+    // within the memory map (to access RegisterInfo items)
+    friend class TPM;
+
     public:
         // MemoryMap constructor accepting filepath
         MemoryMap(char *filepath);
@@ -29,6 +33,7 @@ class MemoryMap
                     this -> size        = 1;
                     this -> description = "";
                     this -> address     = 0x0;
+                    this -> bitmask     = 0xFFFFFFFF;
                 }
 
             public:
@@ -38,15 +43,20 @@ class MemoryMap
                 PERMISSION     permission;   // Define register access type
                 unsigned int   size;         // Memory size in bytes 
                 string         description;  // Register string description
-                uint32_t       address;      // Memory-mapped address 
+                UINT           address;      // Memory-mapped address 
+                UINT           bitmask;      // Register bitmask
         };
 
     public:
         // Get register list
-        REGISTER_INFO* getRegisterList(unsigned int *num_registers);
+        REGISTER_INFO* getRegisterList(UINT *num_registers);
 
         // Get register address
-        uint32_t getRegisterAddress(DEVICE device, REGISTER reg);
+        int getRegisterAddress(DEVICE device, REGISTER reg);
+
+    private:
+        // Get bitmask for register
+        UINT getRegisterBitMask(DEVICE device, REGISTER reg);
 
     private:
         char        *filepath;  // Store filepath to memory map XML file
