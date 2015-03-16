@@ -13,57 +13,57 @@
 // --------------------- REQUEST HANDLING FUNCTIONS ------------------------
 
 // Process connect to board request
-void processConnectBoard(Request message, Reply replyMessage)
+void processConnectBoard(Request *message, Reply *replyMessage)
 {
     std::cout << "Received connect request" << std::endl;
 
     // Call library connectBoard
-    ID id = connectBoard(message.ip().c_str(), message.port());
+    ID id = connectBoard(message -> ip().c_str(), message -> port());
 
     // Check if call failed
     if (id > 0)
     {
-        replyMessage.set_result(Reply::SUCCESS);
-        replyMessage.set_id(id);
+        replyMessage -> set_result(Reply::SUCCESS);
+        replyMessage -> set_id(id);
     }
     else
-        replyMessage.set_result(Reply::FAILURE);
+        replyMessage -> set_result(Reply::FAILURE);
 }
 
 // Process disconnect from board request
-void processDisconnectBoard(Request message, Reply replyMessage)
+void processDisconnectBoard(Request *message, Reply *replyMessage)
 {
     std::cout << "Received disconnect request" << std::endl;
 
     // Call library disconnectBoard
-    ERROR err = disconnectBoard(message.id());
+    ERROR err = disconnectBoard(message -> id());
 
     // Check if call failed and send result
-    replyMessage.set_result(convertErrorEnum(err));
+    replyMessage -> set_result(convertErrorEnum(err));
 }
 
 // Process get register list request
-void processGetRegisterList(Request message, Reply replyMessage)
+void processGetRegisterList(Request *message, Reply *replyMessage)
 {
     std::cout << "Received get register list request" << std::endl;
 
     // Call library function
     unsigned int num_registers;
-    REGISTER_INFO *list = getRegisterList(message.id(), &num_registers);
+    REGISTER_INFO *list = getRegisterList(message -> id(), &num_registers);
 
     // Check if any registers available (or call failed)
     if (num_registers == 0 || list == NULL)
-        replyMessage.set_result(Reply::FAILURE);
+        replyMessage -> set_result(Reply::FAILURE);
     else
     {                       
         // Set result type
-        replyMessage.set_result(Reply::SUCCESS);
+        replyMessage -> set_result(Reply::SUCCESS);
 
         // Register found, create register list
         for(unsigned i = 0; i < num_registers; i++)
         {
             // Create new RegisterInfoType instance and populate
-            Reply::RegisterInfoType *regInfo = replyMessage.add_registerlist();
+            Reply::RegisterInfoType *regInfo = replyMessage -> add_registerlist();
             regInfo -> set_name(list[i].name);               
             regInfo -> set_size(list[i].size);
             regInfo -> set_description(list[i].description);
@@ -78,117 +78,119 @@ void processGetRegisterList(Request message, Reply replyMessage)
 }
 
 // Process get register value request
-void processGetRegisterValue(Request message, Reply replyMessage)
+void processGetRegisterValue(Request *message, Reply *replyMessage)
 {
     std::cout << "Received get register value request" << std::endl;
 
     // Extract enums
-    DEVICE dev = convertDeviceEnum(message.device());
+    DEVICE dev = convertDeviceEnum(message -> device());
 
     // Call library function
-    REGISTER regName = message.registername().c_str();
-    VALUES vals = readRegister(message.id(), dev, regName, 1);
+    REGISTER regName = message -> registername().c_str();
+    VALUES vals = readRegister(message -> id(), dev, regName, 1);
 
     // Check if call succeeded
     if (vals.error == FAILURE)
-        replyMessage.set_result(Reply::FAILURE);
+        replyMessage -> set_result(Reply::FAILURE);
     else
     {
-        replyMessage.set_result(Reply::SUCCESS);
-        replyMessage.set_value(vals.values[0]);
+        replyMessage -> set_result(Reply::SUCCESS);
+        replyMessage -> set_value(vals.values[0]);
     }
 }
 
 // Process get register values request
-void processGetRegisterValues(Request message, Reply replyMessage)
+void processGetRegisterValues(Request *message, Reply *replyMessage)
 {
     std::cout << "Received get register values request" << std::endl;
 
     // Extract enum
-    DEVICE dev = convertDeviceEnum(message.device());
+    DEVICE dev = convertDeviceEnum(message -> device());
 
     // Call library function
-    REGISTER regName = message.registername().c_str();
-    VALUES vals = readRegister(message.id(), dev, regName, message.n());
+    REGISTER regName = message -> registername().c_str();
+    VALUES vals = readRegister(message -> id(), dev, regName, message -> n());
 
     // Check if call succeeded
     if (vals.error == FAILURE)
-        replyMessage.set_result(Reply::FAILURE);
+        replyMessage -> set_result(Reply::FAILURE);
     else
     {
         // Set values and success
-        for(unsigned i = 0; i < message.n(); i++)
-            replyMessage.add_values(vals.values[i]);
-        replyMessage.set_result(Reply::SUCCESS);
+        for(unsigned i = 0; i < message -> n(); i++)
+            replyMessage -> add_values(vals.values[i]);
+        replyMessage -> set_result(Reply::SUCCESS);
     }
 }
 
 // Process set register value request
-void processSetRegisterValue(Request message, Reply replyMessage)
+void processSetRegisterValue(Request *message, Reply *replyMessage)
 {
     std::cout << "Received set register value request" << std::endl;
 
     // Extract enums
-    DEVICE dev = convertDeviceEnum(message.device());
+    DEVICE dev = convertDeviceEnum(message -> device());
 
     // Call library function
-    REGISTER regName = message.registername().c_str();
-    uint32_t value = message.value();
-    ERROR err = writeRegister(message.id(), dev, regName, 1, &value);
+    REGISTER regName = message -> registername().c_str();
+    uint32_t value = message -> value();
+    ERROR err = writeRegister(message -> id(), dev, regName, 1, &value);
 
     // Check if call succeeded
-    replyMessage.set_result(convertErrorEnum(err));
+    replyMessage -> set_result(convertErrorEnum(err));
 }
 
 // Process set register values request
-void processSetRegisterValues(Request message, Reply replyMessage)
+void processSetRegisterValues(Request *message, Reply *replyMessage)
 {
     std::cout << "Received set register values request" << std::endl;
 
     // Extract enums
-    DEVICE dev = convertDeviceEnum(message.device());
+    DEVICE dev = convertDeviceEnum(message -> device());
 
     // Call library function
-    REGISTER regName = message.registername().c_str();
-    ERROR err = writeRegister(message.id(), dev, regName, message.n(), 
-                              message.mutable_values() -> mutable_data());
+    REGISTER regName = message -> registername().c_str();
+    ERROR err = writeRegister(message -> id(), dev, regName, message -> n(), 
+                              message -> mutable_values() -> mutable_data());
 
     // Check if call succeeded
-    replyMessage.set_result(convertErrorEnum(err));
+    replyMessage -> set_result(convertErrorEnum(err));
 }
 
 // Process load firmware blocking
-void processLoadFirmwareBlocking(Request message, Reply replyMessage)
+void processLoadFirmwareBlocking(Request *message, Reply *replyMessage)
 {
     std::cout << "Received load firmware blocking request" << std::endl;
 
     // Convert device type
-    DEVICE dev = convertDeviceEnum(message.device());
+    DEVICE dev = convertDeviceEnum(message -> device());
 
-    std::cout << "ID: " << message.id() << ", file: " << message.file() << std::endl;
+    std::cout << "ID: " << message -> id() << ", file: " << message -> file() << std::endl;
 
-    ERROR err = loadFirmwareBlocking(message.id(), dev,
-                                     message.file().c_str());
+    ERROR err = loadFirmwareBlocking(message -> id(), dev,
+                                     "/home/lessju/map.xml");
+                                    // message -> file().c_str());
 
     // Check if call failed and send result
-    replyMessage.set_result(convertErrorEnum(err));
+    replyMessage -> set_result(convertErrorEnum(err));
 }
 
 // Process load firmware
-void processLoadFirmware(Request message, Reply replyMessage)
+void processLoadFirmware(Request *message, Reply *replyMessage)
 {
     std::cout << "Received load firmware request" << std::endl;
 
     // Convert device type
-    DEVICE dev = convertDeviceEnum(message.device());
+    DEVICE dev = convertDeviceEnum(message -> device());
 
-    std::cout << "ID: " << message.id() << ", file: " << message.file() << std::endl;
+    std::cout << "ID: " << message -> id() << ", file: " << message -> file() << std::endl;
 
-    ERROR err = loadFirmwareBlocking(message.id(), dev,
-                                     message.file().c_str());
+    ERROR err = loadFirmwareBlocking(message -> id(), dev,
+                                     "/home/lessju/map.xml");
+//                                     message -> file().c_str());
 
     // Check if call failed and send result
-    replyMessage.set_result(convertErrorEnum(err));
+    replyMessage -> set_result(convertErrorEnum(err));
 }
 
 // ------------------------------------------------------------------------
@@ -231,14 +233,14 @@ int main(int argc, char *argv[])
             // Connect to board
             case Request::CONNECT:
             {
-                processConnectBoard(message, replyMessage);
+                processConnectBoard(&message, &replyMessage);
                 break;
             }
 
             // Disconnect from board
             case Request::DISCONNECT:
             {
-                processDisconnectBoard(message, replyMessage);
+                processDisconnectBoard(&message, &replyMessage);
                 break;
             }
 
@@ -270,49 +272,49 @@ int main(int argc, char *argv[])
             // Get register list
             case Request::GET_REGISTER_LIST:
             {
-                processGetRegisterList(message, replyMessage);
+                processGetRegisterList(&message, &replyMessage);
                 break;
             }
 
             // Get register value
             case Request::GET_REGISTER_VALUE:
             {
-                processGetRegisterValue(message, replyMessage);
+                processGetRegisterValue(&message, &replyMessage);
                 break;
             }
 
             // Get register values
             case Request::GET_REGISTER_VALUES:
             {
-                processGetRegisterValues(message, replyMessage);
+                processGetRegisterValues(&message, &replyMessage);
                 break;
             }
 
             // Set reigtser value
             case Request::SET_REGISTER_VALUE:
             {
-                processSetRegisterValue(message, replyMessage);
+                processSetRegisterValue(&message, &replyMessage);
                 break;
             }
 
             // Set register values
             case Request::SET_REGISTER_VALUES:
             {
-                processSetRegisterValues(message, replyMessage);
+                processSetRegisterValues(&message, &replyMessage);
                 break;
             }
 
             // Load firmware blocking
             case Request::LOAD_FIRMWARE_BLOCKING:
             {
-                processLoadFirmwareBlocking(message, replyMessage);
+                processLoadFirmwareBlocking(&message, &replyMessage);
                 break;
             }
 
             // Load firmware
             case Request::LOAD_FIRMWARE:
             {
-                processLoadFirmware(message, replyMessage);
+                processLoadFirmware(&message, &replyMessage);
                 break;
             }
 

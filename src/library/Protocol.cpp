@@ -110,12 +110,8 @@ VALUES UCP::readRegister(UINT address, UINT n)
     if (sendPacket((char *) header, sizeof(ucp_command_header)) == FAILURE)
     {
         DEBUG_PRINT("UCP::readRegister. Failed to send packet");
-        free(header);
         return {0, FAILURE};
     }
-
-    // Send packet no longer required, free memory
-    free(header);
 
     // Sucessfully sent out packet, calculate responce size
     size_t reply_size = sizeof(ucp_reply_header) + n * sizeof(UINT);
@@ -176,12 +172,8 @@ ERROR UCP::writeRegister(UINT address, UINT n, UINT *values)
     if (sendPacket((char *) packet, sizeof(ucp_command_header) + n * sizeof(UINT)) == FAILURE)
     {
         DEBUG_PRINT("UCP::writeRegister. Failed to send packet");
-        free(packet);
         return FAILURE;
     }
-
-    // Send packet no longer required, free memory
-    free(packet);
 
     // Sucessfully sent out packet, calculate responce size
     size_t reply_size = sizeof(ucp_write_reply);
