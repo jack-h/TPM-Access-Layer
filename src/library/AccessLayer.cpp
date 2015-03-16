@@ -71,8 +71,11 @@ ERROR disconnectBoard(ID id)
     // Check if there any any pending requests, if so wait
     // TODO
 
-    // Once everything is done, destory Board object and return
-    delete boards[id];
+    // Call board disconnect
+    Board *board = it -> second;
+    board -> disconnect();
+
+    // Once everything is done, erase Board object and return
     boards.erase(it);
 
     DEBUG_PRINT("AccessLayer::disconnect. " << id << " disconnected");

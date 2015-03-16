@@ -51,12 +51,9 @@ class MemoryMap
         // Get register list
         REGISTER_INFO* getRegisterList(UINT *num_registers);
 
-        // Get register address
-        int getRegisterAddress(DEVICE device, REGISTER reg);
-
     private:
         // Get bitmask for register
-        UINT getRegisterBitMask(DEVICE device, REGISTER reg);
+        RegisterInfo *getRegisterInfo(DEVICE device, REGISTER reg);
 
     private:
         char        *filepath;  // Store filepath to memory map XML file

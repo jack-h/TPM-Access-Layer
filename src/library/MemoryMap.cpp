@@ -351,7 +351,7 @@ REGISTER_INFO* MemoryMap::getRegisterList(UINT *num_registers)
 }
 
 // Get register address from map
-int MemoryMap::getRegisterAddress(DEVICE device, REGISTER reg)
+MemoryMap::RegisterInfo *MemoryMap::getRegisterInfo(DEVICE device, REGISTER reg)
 {
     // Check if device is in map
     map<DEVICE, map<string, RegisterInfo *> >::iterator it;
@@ -361,7 +361,7 @@ int MemoryMap::getRegisterAddress(DEVICE device, REGISTER reg)
     if (it == memory_map.end())
     {
         DEBUG_PRINT("MemoryMap::getRegisterAddress. Device " << device << " not found in memory map");
-        return -1;
+        return NULL;
     }
 
     // Check if device contain the register
@@ -373,28 +373,13 @@ int MemoryMap::getRegisterAddress(DEVICE device, REGISTER reg)
     if (reg_it == memory_map[device].end())
     {
         DEBUG_PRINT("MemoryMap::getRegisterAddress. Register " << reg << " on device " << device << " not found in memory map");
-        return -1;
+        return NULL;
     }
 
     DEBUG_PRINT("TPM::getRegisterValue. Register " << reg << " on device " 
                  << device << " has address 0x" << hex << uppercase 
                  << (reg_it -> second) -> address << dec);
 
-    // Register found, return register address
-    return (reg_it -> second) -> address;
-}
-
-// Get register bitmask from map
-UINT MemoryMap::getRegisterBitMask(DEVICE device, REGISTER reg)
-{
-    // We can assume that the device and register exist because
-    // this function should be called after getRegisterAddress
-    map<DEVICE, map<string, RegisterInfo *> >::iterator it;
-    it = memory_map.find(device);
-
-    map<string, RegisterInfo *>::iterator reg_it;
-    string register_name(reg);
-    reg_it = memory_map[device].find(register_name);
-
-    return (reg_it -> second) -> bitmask;
+    // Register found, return RegisterInfo reference
+    return reg_it -> second;
 }

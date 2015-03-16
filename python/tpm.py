@@ -114,7 +114,7 @@ class TPM:
             print "Board not connected"
             return Error.Failure
 
-        ret = Error(self._tpm.disconnect(self.id))
+        ret = Error(self._tpm.disconnectBoard(self.id))
         if (ret == Error.Success):
             self.id = None
             self._registerList = None
@@ -190,15 +190,15 @@ class TPM:
 
         # Check if value succeeded, otherwise reture
         if values.error == Error.Failure.value:
-            return Values(None, Error.Failure)
+            return Error.Failure
 
         # Read succeeded, wrap data and return
         valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
 
         if n == 1:
-            return Values(valPtr[0], Error.Success)
+            return valPtr[0]
         else:
-            return Values([valPtr[i] for i in range(n)], Error.Success)
+            return [valPtr[i] for i in range(n)]
 
     def writeRegister(self, device, register, n, values):
         """ Set register value """
@@ -336,4 +336,3 @@ class TPM:
         # Define writeRegister function
         self._tpm.writeRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
         self._tpm.writeRegister.restype = ctypes.c_int
-

@@ -14,13 +14,6 @@ Board::Board(const char *ip, unsigned short port)
     this -> num_fpgas = 1;
 }
 
-// Board destructor
-Board::~Board()
-{
-    // Free up ip
-    free(this -> ip);
-}
-
 // ------------------------ TPM class implementation -----------------------
 
 // TPM constructor
@@ -34,12 +27,6 @@ TPM::TPM(const char *ip, unsigned short port) : Board(ip, port)
 
     // Create socket and set up TPM address structure
     protocol -> createSocket(ip, port);
-}
-
-// TPM destructor
-TPM::~TPM()
-{
-    protocol -> closeSocket();
 }
 
 // Disconnect from board
@@ -65,41 +52,49 @@ REGISTER_INFO* TPM::getRegisterList(UINT *num_registers)
 VALUES TPM::readRegister(DEVICE device, REGISTER reg, UINT n)
 {  
     // Get register address from 
-    int address = memory_map -> getRegisterAddress(device, reg);
+    MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(device, reg);
 
     // If register was not found, return error
-    if (address == -1)
+    if (info == NULL)
     {
         DEBUG_PRINT("TPM::readRegister. Register" << reg << " on device " << device << " not found in memory map");
         return {0, FAILURE};
     }
 
     // Otherwise, send request through protocol
-    return protocol -> readRegister(address, n);
+    VALUES vals = protocol -> readRegister(info -> address, n);
+
+    // If failed, return
+    if (vals.error == FAILURE)
+        return vals;
+
+    // Otherwise, loop through all values and apply bitmaks
+    for(unsigned i = 0; i < n; i++)
+        vals.values[i] = vals.values[i] & info -> bitmask;
+
+    return vals;
 }
 
 // Get register value
 ERROR TPM::writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *values)
 {  
     // Get register address from 
-    int address = memory_map -> getRegisterAddress(device, reg);
+    MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(device, reg);
 
     // If register was not found, return error
-    if (address == -1)
+    if (info == NULL)
     {
         DEBUG_PRINT("TPM::writeRegister. Register" << reg << " on device " << device << " not found in memory map");
         return FAILURE;
     }
 
-    // Get register bitmask
-    UINT bitmask = memory_map -> getRegisterBitMask(device, reg);
-
     // Loop over all values and apply bitmask
+    // TODO: Decide on bitmask behaviour
     for(unsigned i = 0; i < n; i++)
-        values[i] = values[i] & bitmask;
+        values[i] = values[i] & info -> bitmask;
 
     // Finished pre-processing, write values to register
-    return protocol -> writeRegister(address, n, values);
+    return protocol -> writeRegister(info -> address, n, values);
 }
 
 // Asynchronously load firmware to FPGA.

@@ -19,9 +19,6 @@ class Board
         // Board constructor
         Board(const char *ip, unsigned short port);
 
-        // Board destructor
-        virtual ~Board() = 0;
-
     // ---------- Public class functions --------
     public:
 
@@ -46,10 +43,11 @@ class Board
         // Synchronously load firmware to FPGA
         virtual ERROR loadFirmwareBlocking(DEVICE device, const char* bitstream) = 0;
 
+        // Functions dealing with on-board devices (such as SPI devices)
+        // virtual 
+
     // ---------- Protected class functions ---------- 
     protected:
-        // Initialise board
-     //   virtual ERROR initialiseBoard();
 
     // ---------- Protected class members ---------- 
     protected:
@@ -70,9 +68,6 @@ class TPM: public Board
     public:
         // TPM constructor
         TPM(const char *ip, unsigned short port);
-
-        // TPM destructor
-        ~TPM();
 
     public:
         // Clear everything and remove connection
@@ -97,8 +92,6 @@ class TPM: public Board
         ERROR loadFirmwareBlocking(DEVICE device, const char* bitstream);
 
     protected:
-        // Initialise board
-     //  ERROR initialiseBoard() { return SUCCESS; }
 };
 
 #endif // BOARD
