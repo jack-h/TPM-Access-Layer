@@ -196,9 +196,9 @@ class TPM:
         valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
 
         if n == 1:
-            return valPtr[0]
+            return hex(valPtr[0])
         else:
-            return [valPtr[i] for i in range(n)]
+            return [hex(valPtr[i]) for i in range(n)]
 
     def writeRegister(self, device, register, n, values):
         """ Set register value """
@@ -247,11 +247,7 @@ class TPM:
         if self._registerList is not None:
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
-                val = self.readRegister(reg['device'], key, reg['size'])
-                if val.error == Error.Success:
-                    return val.values
-                else:
-                    return None
+                return self.readRegister(reg['device'], key, reg['size'])
             else:
                 print "Register '%s' not found" % key
 
