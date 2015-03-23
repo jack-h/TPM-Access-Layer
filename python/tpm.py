@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 import ctypes, os
+import re
 
 # --------------- Enumerations --------------------------
 
@@ -240,7 +241,31 @@ class TPM:
         if self._registerList is None:
             self.getRegisterList()
 
+        # Make pretty and print
         print '\n'.join([str(k) for k in self._registerList.keys()])
+
+    def findRegister(self, string):
+        """ Return all register names which return a match for 
+            a given string """
+
+        # Check if board is connected
+        if self.id is None:
+            print "Board not connected"
+            return
+
+        # Check if register list has been populated
+        if self._registerList is None:
+            self.getRegisterList()
+
+        # Go through all registers and store the name of registers
+        # which generate a match
+        matches = []
+        for k in self._registerList.keys():
+            if re.search(string, k) is not None:
+                matches.append(k)
+
+        # Return matches, if any
+        return matches
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """

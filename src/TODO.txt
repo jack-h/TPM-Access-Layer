@@ -1,5 +1,5 @@
-- Split requests for large memory areas into multiple request packets
-- Implement register name search feature in python wrapper
+- [Done] Split requests for large memory areas into multiple request packets
+- [Done] Implement register name search feature in python wrapper
 - How do we know the datatype of the register (eg. temp and voltage)?
 - Free register list struct array in python wrapper (implement in C)
 - Remove temporary hard-coded loadFirmwareBlocking in server connect call
