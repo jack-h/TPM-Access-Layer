@@ -193,7 +193,7 @@ ERROR UCP::writeRegister(UINT address, UINT n, UINT *values)
         (packet -> header).psn     = lendian(seqno);
         (packet -> header).opcode  = lendian(OPCODE_WRITE);
         (packet -> header).nvalues = lendian(num_values);
-        (packet -> header).address = lendian(address + i * num_values * sizeof(UINT));
+        (packet -> header).address = lendian(address + i * values_per_payload * sizeof(UINT));
 
         // Place data in packet
         memcpy(&(packet -> data), values + i * values_per_payload, num_values * sizeof(UINT));
@@ -228,7 +228,8 @@ ERROR UCP::writeRegister(UINT address, UINT n, UINT *values)
             return FAILURE;
         }
         // Check if request was succesful on board
-        else if ((write_reply -> header).psn != seqno || (write_reply -> header).addr != address + i * num_values * sizeof(UINT))
+        else if ((write_reply -> header).psn != seqno || 
+                 (write_reply -> header).addr != address + i * values_per_payload * sizeof(UINT))
         {   
             // Something wrong, return error
             DEBUG_PRINT("UCP::readRegister. Command failed on board");

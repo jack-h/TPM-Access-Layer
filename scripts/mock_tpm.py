@@ -16,6 +16,37 @@ UCP_header_fmt = 'IIII'
 OPCODE_READ  = 0x01
 OPCODE_WRITE = 0x02
 
+# Mock TPM memory
+# An entry per memory location is created
+memory = { }
+
+def readMemory(address, n):
+    """ Mock reading from TPM memory """
+
+    # Read values
+    values = []
+
+    # For each memory address, check if it is alread in memory
+    # if not, create a value and store in memory
+    for i in range(n):
+        addr = address + i * 4
+        if addr in memory.keys():
+            values.append(memory[addr])
+        else:
+            memory[addr] = 45
+            values.append(45)
+
+    # Return values
+    return values
+
+def writeMemory(address, n, values):
+    """ Mock writing to TPM memory """
+
+    # Blindly store all value to memory
+    for i in range(n):
+        addr = address + i * 4
+        memory[addr] = values[i]
+
 # Script entry point
 if __name__ == "__main__":
     
@@ -43,13 +74,12 @@ if __name__ == "__main__":
         if (opcode == OPCODE_READ):
          
             # Read operation, return packet with data
-            values = [69] * n
+            values = readMemory(address, n)
             packet = struct.pack("II" + "I" * n, 
                                  psn, 
                                  address, 
                                  *values)
             sock.sendto(packet, addr)
-            print addr
             print "Request to read addr %#08X, provided value %d (x %d)" % (address, values[0], n)
 
         elif (opcode == OPCODE_WRITE):
@@ -58,12 +88,11 @@ if __name__ == "__main__":
             values = struct.unpack('I' * n, data[16:])        
 
             # Return reply packet
-
+            writeMemory(address, n, values)
             packet = struct.pack("II", 
                                  psn, 
                                  address)
             sock.sendto(packet, addr)
-            print addr
             print "Request to write value %d to address %#08X" % (values[0], address)
         else:
             print "Unsupported opcode %d" % opcode
