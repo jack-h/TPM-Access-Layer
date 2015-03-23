@@ -196,9 +196,9 @@ class TPM:
         valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
 
         if n == 1:
-            return hex(valPtr[0])
+            return valPtr[0]
         else:
-            return [hex(valPtr[i]) for i in range(n)]
+            return [valPtr[i] for i in range(n)]
 
     def writeRegister(self, device, register, n, values):
         """ Set register value """

@@ -6,13 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 // Convert string IP address to a 32-bit number
 ID convertIPtoID(const char *IP)
 {
     struct sockaddr_in sa;
     inet_pton(AF_INET, IP, &(sa.sin_addr));
-    return (ID) sa.sin_addr.s_addr;
+    return (ID) abs(sa.sin_addr.s_addr);
 }
 
 // Extract XML mapping file from filepath

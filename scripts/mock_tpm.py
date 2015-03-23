@@ -58,6 +58,7 @@ if __name__ == "__main__":
             values = struct.unpack('I' * n, data[16:])        
 
             # Return reply packet
+
             packet = struct.pack("II", 
                                  psn, 
                                  address)
