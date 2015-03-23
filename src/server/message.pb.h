@@ -372,12 +372,12 @@ class Request : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 port() const;
   inline void set_port(::google::protobuf::int32 value);
 
-  // optional uint32 id = 4;
+  // optional int32 id = 4;
   inline bool has_id() const;
   inline void clear_id();
   static const int kIdFieldNumber = 4;
-  inline ::google::protobuf::uint32 id() const;
-  inline void set_id(::google::protobuf::uint32 value);
+  inline ::google::protobuf::int32 id() const;
+  inline void set_id(::google::protobuf::int32 value);
 
   // optional string registerName = 6;
   inline bool has_registername() const;
@@ -472,7 +472,7 @@ class Request : public ::google::protobuf::Message {
   int command_;
   ::google::protobuf::int32 port_;
   ::std::string* registername_;
-  ::google::protobuf::uint32 id_;
+  ::google::protobuf::int32 id_;
   int registerfamily_;
   int device_;
   ::google::protobuf::uint32 n_;
@@ -882,12 +882,12 @@ class Reply : public ::google::protobuf::Message {
   inline ::std::string* release_message();
   inline void set_allocated_message(::std::string* message);
 
-  // optional uint32 id = 8;
+  // optional int32 id = 8;
   inline bool has_id() const;
   inline void clear_id();
   static const int kIdFieldNumber = 8;
-  inline ::google::protobuf::uint32 id() const;
-  inline void set_id(::google::protobuf::uint32 value);
+  inline ::google::protobuf::int32 id() const;
+  inline void set_id(::google::protobuf::int32 value);
 
   // @@protoc_insertion_point(class_scope:Reply)
  private:
@@ -913,7 +913,7 @@ class Reply : public ::google::protobuf::Message {
   ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > values_;
   ::google::protobuf::RepeatedPtrField< ::Reply_RegisterInfoType > registerlist_;
   ::std::string* message_;
-  ::google::protobuf::uint32 id_;
+  ::google::protobuf::int32 id_;
 
   mutable int _cached_size_;
   ::google::protobuf::uint32 _has_bits_[(8 + 31) / 32];
@@ -1047,7 +1047,7 @@ inline void Request::set_port(::google::protobuf::int32 value) {
   port_ = value;
 }
 
-// optional uint32 id = 4;
+// optional int32 id = 4;
 inline bool Request::has_id() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
@@ -1058,13 +1058,13 @@ inline void Request::clear_has_id() {
   _has_bits_[0] &= ~0x00000008u;
 }
 inline void Request::clear_id() {
-  id_ = 0u;
+  id_ = 0;
   clear_has_id();
 }
-inline ::google::protobuf::uint32 Request::id() const {
+inline ::google::protobuf::int32 Request::id() const {
   return id_;
 }
-inline void Request::set_id(::google::protobuf::uint32 value) {
+inline void Request::set_id(::google::protobuf::int32 value) {
   set_has_id();
   id_ = value;
 }
@@ -1774,7 +1774,7 @@ inline void Reply::set_allocated_message(::std::string* message) {
   }
 }
 
-// optional uint32 id = 8;
+// optional int32 id = 8;
 inline bool Reply::has_id() const {
   return (_has_bits_[0] & 0x00000080u) != 0;
 }
@@ -1785,13 +1785,13 @@ inline void Reply::clear_has_id() {
   _has_bits_[0] &= ~0x00000080u;
 }
 inline void Reply::clear_id() {
-  id_ = 0u;
+  id_ = 0;
   clear_has_id();
 }
-inline ::google::protobuf::uint32 Reply::id() const {
+inline ::google::protobuf::int32 Reply::id() const {
   return id_;
 }
-inline void Reply::set_id(::google::protobuf::uint32 value) {
+inline void Reply::set_id(::google::protobuf::int32 value) {
   set_has_id();
   id_ = value;
 }

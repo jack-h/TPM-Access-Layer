@@ -160,7 +160,7 @@ void protobuf_AddDesc_message_2eproto() {
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\rmessage.proto\"\346\004\n\007Request\022%\n\007command\030\001"
     " \002(\0162\024.Request.CommandType\022\n\n\002ip\030\002 \001(\t\022\014"
-    "\n\004port\030\003 \001(\005\022\n\n\002id\030\004 \001(\r\022\024\n\014registerName"
+    "\n\004port\030\003 \001(\005\022\n\n\002id\030\004 \001(\005\022\024\n\014registerName"
     "\030\006 \001(\t\022-\n\016registerFamily\030\007 \001(\0162\025.Request"
     ".RegisterType\022#\n\006device\030\010 \001(\0162\023.Request."
     "DeviceType\022\t\n\001n\030\t \001(\r\022\014\n\004file\030\n \001(\t\022\r\n\005v"
@@ -179,7 +179,7 @@ void protobuf_AddDesc_message_2eproto() {
     "\022 \n\006status\030\003 \001(\0162\020.Reply.TpmStatus\022\r\n\005va"
     "lue\030\004 \001(\r\022\016\n\006values\030\005 \003(\r\022-\n\014registerLis"
     "t\030\006 \003(\0132\027.Reply.RegisterInfoType\022\017\n\007mess"
-    "age\030\007 \001(\t\022\n\n\002id\030\010 \001(\r\032\264\001\n\020RegisterInfoTy"
+    "age\030\007 \001(\t\022\n\n\002id\030\010 \001(\005\032\264\001\n\020RegisterInfoTy"
     "pe\022\014\n\004name\030\001 \002(\t\022!\n\004type\030\002 \002(\0162\023.Reply.R"
     "egisterType\022!\n\006device\030\003 \002(\0162\021.Reply.Devi"
     "ceType\022)\n\npermission\030\004 \002(\0162\025.Reply.Permi"
@@ -333,7 +333,7 @@ void Request::SharedCtor() {
   command_ = 1;
   ip_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   port_ = 0;
-  id_ = 0u;
+  id_ = 0;
   registername_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   registerfamily_ = 1;
   device_ = 1;
@@ -391,7 +391,7 @@ void Request::Clear() {
       }
     }
     port_ = 0;
-    id_ = 0u;
+    id_ = 0;
     if (has_registername()) {
       if (registername_ != &::google::protobuf::internal::kEmptyString) {
         registername_->clear();
@@ -473,13 +473,13 @@ bool Request::MergePartialFromCodedStream(
         break;
       }
 
-      // optional uint32 id = 4;
+      // optional int32 id = 4;
       case 4: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_id:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &id_)));
           set_has_id();
         } else {
@@ -657,9 +657,9 @@ void Request::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(3, this->port(), output);
   }
 
-  // optional uint32 id = 4;
+  // optional int32 id = 4;
   if (has_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->id(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(4, this->id(), output);
   }
 
   // optional string registerName = 6;
@@ -737,9 +737,9 @@ void Request::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(3, this->port(), target);
   }
 
-  // optional uint32 id = 4;
+  // optional int32 id = 4;
   if (has_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->id(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(4, this->id(), target);
   }
 
   // optional string registerName = 6;
@@ -821,10 +821,10 @@ int Request::ByteSize() const {
           this->port());
     }
 
-    // optional uint32 id = 4;
+    // optional int32 id = 4;
     if (has_id()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->id());
     }
 
@@ -1606,7 +1606,7 @@ void Reply::SharedCtor() {
   status_ = 0;
   value_ = 0u;
   message_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  id_ = 0u;
+  id_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -1654,7 +1654,7 @@ void Reply::Clear() {
         message_->clear();
       }
     }
-    id_ = 0u;
+    id_ = 0;
   }
   values_.Clear();
   registerlist_.Clear();
@@ -1800,13 +1800,13 @@ bool Reply::MergePartialFromCodedStream(
         break;
       }
 
-      // optional uint32 id = 8;
+      // optional int32 id = 8;
       case 8: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_id:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &id_)));
           set_has_id();
         } else {
@@ -1878,9 +1878,9 @@ void Reply::SerializeWithCachedSizes(
       7, this->message(), output);
   }
 
-  // optional uint32 id = 8;
+  // optional int32 id = 8;
   if (has_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(8, this->id(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(8, this->id(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -1937,9 +1937,9 @@ void Reply::SerializeWithCachedSizes(
         7, this->message(), target);
   }
 
-  // optional uint32 id = 8;
+  // optional int32 id = 8;
   if (has_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(8, this->id(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(8, this->id(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -1985,10 +1985,10 @@ int Reply::ByteSize() const {
           this->message());
     }
 
-    // optional uint32 id = 8;
+    // optional int32 id = 8;
     if (has_id()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->id());
     }
 

@@ -52,22 +52,23 @@ MemoryMap::MemoryMap(char *path)
         DEVICE currDevice;
         REGISTER_TYPE currType;
 
-        std::cout << "Found device " << device_id << std::endl;
-
         if (device_id.compare("FPGA1") == 0)
         {
             currDevice = FPGA_1;
             currType   = FIRMWARE_REGISTER;
+            std::cout << "Found FPGA1 device " << device_id << std::endl;
         }
         else if (device_id.compare("FPGA2") == 0)
         {
             currDevice = FPGA_2;
             currType   = FIRMWARE_REGISTER;
+            std::cout << "Found FPGA2 device " << device_id << std::endl;
         }
         else
         {
             currDevice = BOARD;
             currType   = BOARD_REGISTER;
+            std::cout << "Found Board device " << device_id << std::endl;
         }
 
         // Create new device entry in register map

@@ -15,10 +15,13 @@
 // Process connect to board request
 void processConnectBoard(Request *message, Reply *replyMessage)
 {
-    std::cout << "Received connect request" << std::endl;
+    std::cout << "Received connect request to " << message -> ip()  << std::endl;
 
     // Call library connectBoard
     ID id = connectBoard(message -> ip().c_str(), message -> port());
+
+    // TEMPORARY: Load firmware
+    loadFirmwareBlocking(id, FPGA_1, "/home/lessju/map.xml");
 
     // Check if call failed
     if (id > 0)

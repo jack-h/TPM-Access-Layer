@@ -130,6 +130,7 @@ VALUES UCP::readRegister(UINT address, UINT n)
     // Check number of bytes read
     if (ret < 0 || (size_t) ret < reply_size)
     {
+        perror("Packet not received");
         // Something wrong, return error
         DEBUG_PRINT("UCP::readRegister. Failed to receive reply");
         return {NULL, FAILURE};

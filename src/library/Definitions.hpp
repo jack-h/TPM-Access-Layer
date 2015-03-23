@@ -9,7 +9,7 @@
 // ========================== DATA TYPE DEFINITIONS ==========================
 
 // Representation of board ID
-typedef unsigned int ID;
+typedef int ID;
 
 // Representation of register name
 typedef const char* REGISTER;

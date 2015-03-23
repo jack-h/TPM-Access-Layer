@@ -49,6 +49,7 @@ if __name__ == "__main__":
                                  address, 
                                  *values)
             sock.sendto(packet, addr)
+            print addr
             print "Request to read addr %#08X, provided value %d (x %d)" % (address, values[0], n)
 
         elif (opcode == OPCODE_WRITE):
@@ -61,6 +62,7 @@ if __name__ == "__main__":
                                  psn, 
                                  address)
             sock.sendto(packet, addr)
+            print addr
             print "Request to write value %d to address %#08X" % (values[0], address)
         else:
             print "Unsupported opcode %d" % opcode
