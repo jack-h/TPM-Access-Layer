@@ -23,6 +23,8 @@ Reply::DeviceType convertDeviceEnum(DEVICE dev)
          return Reply::FPGA_1;
     else if (dev == FPGA_2)
         return Reply::FPGA_2; 
+
+    return Reply::BOARD;
 }
 
 // Convert Device enum (overload 2)
@@ -34,6 +36,8 @@ DEVICE convertDeviceEnum(Reply::DeviceType dev)
         return FPGA_1;
     else if (dev == Reply::FPGA_2)
         return FPGA_2;
+
+    return BOARD;
 }
 
 // Convert Device enum (overload 3)
@@ -45,6 +49,8 @@ DEVICE convertDeviceEnum(Request::DeviceType dev)
         return FPGA_1;
     else if (dev == Request::FPGA_2)
         return FPGA_2;
+
+    return BOARD;
 }
 
 // Convert Register Type enum

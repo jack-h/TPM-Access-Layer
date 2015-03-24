@@ -3,3 +3,8 @@
 - How do we know the datatype of the register (eg. temp and voltage)?
 - Free register list struct array in python wrapper (implement in C)
 - Remove temporary hard-coded loadFirmwareBlocking in server connect call
+- Write to a shifted address
+- Write/read directly to/from an addrees
+- Implement SPI devices: Use a single packet for all operations
+- Implement bitwise writes properly (read, bit-wise and, write)
+- Board memory map static somewhere, bitfile maps stored in bitstream
