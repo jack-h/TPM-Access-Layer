@@ -32,7 +32,10 @@ Requirements: - zeromq   (4.1.0)
 
 cd src/server
 protoc --cpp_out=. message.proto (Only needs to be performed once, or when message.proto changes)
+If required, change the LIBRARY_DIR variable in the makefile to point to the source folder of the library
 make
+
+To use, you need to export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path_to_project/src/library
 
 Using the Python wrapper
 ------------------------
