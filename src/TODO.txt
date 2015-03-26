@@ -8,3 +8,4 @@
 - Implement SPI devices: Use a single packet for all operations
 - Implement bitwise writes properly (read, bit-wise and, write)
 - Board memory map static somewhere, bitfile maps stored in bitstream
+- Make this Windows friendly

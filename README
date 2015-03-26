@@ -1,1 +1,46 @@
-LFAA TPM Access Layer
+Low Level Access Layer
+----------------------
+
+Provides a C++ library which can communicate with FPGA boards. Currently
+it only implements the UCP protocol, such that it can communicate with
+UniBoards and Tile Processing Modules
+
+A python wrapper is also included for scripting and interactive managements
+of the boards
+
+Directory structures
+--------------------
+
+\- doc      Contains any documentation
+ - python   Python wrapper
+ - scripts  Helper scripts, including a mock_tpm script to debug communication
+ - src\
+       - library  The C++ library implementation
+       - server   A protobuf/zermoq wrapper for RPC calls (required for current user interface)
+
+Comiling the library
+--------------------
+
+cd src/library
+make
+
+Compiling the server
+--------------------
+
+Requirements: - zeromq   (4.1.0)
+              - protobuf (2.6.0) Note: Read make file in case of different version
+
+cd src/server
+protoc --cpp_out=. message.proto (Only needs to be performed once, or when message.proto changes)
+make
+
+Using the Python wrapper
+------------------------
+
+No setup file exists yet, so the following needs to be added:
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path_to_project/src/library
+
+Requirements: enum34 (pip should install it)
+
+cd python
+

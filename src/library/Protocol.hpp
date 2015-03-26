@@ -4,8 +4,14 @@
 #ifndef PROTOCOL_CLASS
 #define PROTOCOL_CLASS
 
-#include <sys/socket.h>
-#include <arpa/inet.h>
+// Include OS-specific socket library
+#ifdef __unix__ 
+    #include <sys/socket.h>
+    #include <arpa/inet.h>  
+#elif defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
+    #include <winsock.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
