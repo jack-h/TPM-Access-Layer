@@ -94,7 +94,7 @@ ssize_t UCP::receivePacket(char *buffer, size_t max_length)
 }
 
 // Issue a read register request, and return reply
-VALUES UCP::readRegister(UINT address, UINT n)
+VALUES UCP::readRegister(UINT address, UINT n, UINT offset)
 {
     // Value per payload
     unsigned values_per_payload = MAX_PAYLOAD_SIZE / sizeof(UINT);
@@ -114,11 +114,14 @@ VALUES UCP::readRegister(UINT address, UINT n)
         // Number of words for current request
         unsigned num_values = (i == num_packets - 1) ? n - i * values_per_payload: values_per_payload;
 
+        // New address
+        UINT currentAddress = address + (offset + i * values_per_payload) * sizeof(UINT);
+
         // Fill out request
         header -> psn     = lendian(seqno);
         header -> opcode  = lendian(OPCODE_READ);
         header -> nvalues = lendian(num_values);
-        header -> address = lendian(address + i * values_per_payload * sizeof(UINT)); 
+        header -> address = lendian(currentAddress); 
 
         // Send out packet  
         DEBUG_PRINT("UCP::readRegister. Sending packet");
@@ -153,7 +156,7 @@ VALUES UCP::readRegister(UINT address, UINT n)
         }
 
         // Check if request was succesful on board
-        else if ((read_reply -> header).psn != seqno || (read_reply -> header).addr != address + i * values_per_payload * sizeof(UINT))
+        else if ((read_reply -> header).psn != seqno || (read_reply -> header).addr != currentAddress)
         {   
             // Something wrong, return error
             DEBUG_PRINT("UCP::readRegister. Command failed on board");
@@ -172,7 +175,7 @@ VALUES UCP::readRegister(UINT address, UINT n)
 }
 
 // Issue a write register request, and return reply
-ERROR UCP::writeRegister(UINT address, UINT n, UINT *values)
+ERROR UCP::writeRegister(UINT address, UINT n, UINT *values, UINT offset)
 {
     // Value per payload
     unsigned values_per_payload = MAX_PAYLOAD_SIZE / sizeof(UINT);
@@ -189,11 +192,14 @@ ERROR UCP::writeRegister(UINT address, UINT n, UINT *values)
         // Number of words for current request
         unsigned num_values = (i == num_packets - 1) ? n - i * values_per_payload: values_per_payload;
 
+        // New address
+        UINT currentAddress = address + (offset + i * values_per_payload) * sizeof(UINT);
+
         // Fill out request
         (packet -> header).psn     = lendian(seqno);
         (packet -> header).opcode  = lendian(OPCODE_WRITE);
         (packet -> header).nvalues = lendian(num_values);
-        (packet -> header).address = lendian(address + i * values_per_payload * sizeof(UINT));
+        (packet -> header).address = lendian(currentAddress);
 
         // Place data in packet
         memcpy(&(packet -> data), values + i * values_per_payload, num_values * sizeof(UINT));
@@ -228,8 +234,7 @@ ERROR UCP::writeRegister(UINT address, UINT n, UINT *values)
             return FAILURE;
         }
         // Check if request was succesful on board
-        else if ((write_reply -> header).psn != seqno || 
-                 (write_reply -> header).addr != address + i * values_per_payload * sizeof(UINT))
+        else if ((write_reply -> header).psn != seqno || (write_reply -> header).addr != currentAddress)
         {   
             // Something wrong, return error
             DEBUG_PRINT("UCP::readRegister. Command failed on board");

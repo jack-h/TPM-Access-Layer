@@ -34,6 +34,8 @@ class MemoryMap
                     this -> description = "";
                     this -> address     = 0x0;
                     this -> bitmask     = 0xFFFFFFFF;
+                    this -> bits        = 32;
+                    this -> shift       = 0;
                 }
 
             public:
@@ -45,6 +47,8 @@ class MemoryMap
                 string         description;  // Register string description
                 UINT           address;      // Memory-mapped address 
                 UINT           bitmask;      // Register bitmask
+                UINT           bits;         // Number of bits
+                UINT           shift;        // Bit shift
         };
 
     public:

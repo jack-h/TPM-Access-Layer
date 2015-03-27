@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 // Enable or disable debugging
-#define DEBUG 1
+#define DEBUG 0
 
 // ========================== DATA TYPE DEFINITIONS ==========================
 
@@ -27,7 +27,7 @@ typedef enum {SUCCESS = 0, FAILURE = -1, NOT_IMPLEMENTED = -2} ERROR;
 // Define possible board statuses
 typedef enum { OK                =  0,  // Board is functioning properly
                LOADING_FIRMWARE  = -1,  // Firmware being laoded on an FPGA
-               CONFIG_ERROR      = -2,  // ### Error configuring firmware
+               CONFIG_ERROR      = -2,  // Error configuring firmware
                BOARD_ERROR       = -3,  // Board health check failed
                NOT_CONNECTED     = -4,  // Connect wasn't called 
                NETWORK_ERROR     = -5}  // Board cannot be reached
@@ -52,10 +52,12 @@ typedef struct VALUES {
 // Encapsulate register information
 typedef struct REGISTER_INFO {
     REGISTER      name;         // String representation of register
+    UINT          address;      // Register memory-mapped address
     REGISTER_TYPE type;         // Sensor, board-register or firmware-register
     DEVICE        device;       // Set of FPGAs (if any) to which this is applicable
     PERMISSION    permission;   // Define register access type
     UINT          bitmask;      // Register bitmask
+    UINT          bits;         // Number of bits
     unsigned int  size;         // Memory size in bytes 
     const char    *description; // Register string description
 } REGISTER_INFO;

@@ -71,7 +71,7 @@ extern "C" REGISTER_INFO* getRegisterList(ID id, UINT *num_registers);
 //   reg     Register to query
 // Returns:
 //    VALUE 
-extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n);
+extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset = 0);
 
 // Arguments:
 //   id      Board ID
@@ -80,7 +80,25 @@ extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n);
 //   value   32-bit value to write to register
 // Returns:
 //    VALUE 
-extern "C" ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values);
+extern "C" ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset = 0);
+
+// Get address content
+// Arguments:
+//   id       Board ID
+//   address  Address to read from
+//   n        Number of values to read
+// Returns:
+//    VALUE 
+extern "C" VALUES readAddress(ID id, UINT address, UINT n);
+
+// Arguments:
+//   id      Board ID
+//   reg     Address to write to
+//   n       Number of value to write
+//   values  32-bit values to write to address
+// Returns:
+//    VALUE 
+extern "C" ERROR writeAddress(ID id, UINT address, UINT n, UINT *values);
 
 // [Optional] Set a periodic register
 // Arguments:
@@ -147,4 +165,12 @@ extern "C" ERROR loadFirmwareBlocking(ID id, DEVICE device, const char* bitstrea
 
 // Request RF data from the running firmware. This is still TBD
 
+
+// ============================ HELPER FUNCTIONS ============================
+
+// Free up memory
+extern "C" void freeMemory(void *ptr);
+
 #endif  // TPM_ACCESS_LAYER
+
+

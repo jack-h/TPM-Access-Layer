@@ -1,0 +1,18 @@
+
+Version 0.2
+-----------
+
+- Added functionality to be able to read from or write to a register offset (library, python)
+- Added functionality to directly read from and write to an address (library, python)
+- Read-modify-write for bitfields implemented in layer
+- Bitfields values are displayed and set independently from where they reside within the word 
+- Python layer has access to register addresses
+- Python wrapper accessor can recognised specified devices and distinguish between address and register names
+- Helper function in access layer to free memory from python interface
+- Basic test to check whether board IP and port are reachable
+- Updates register info output in python wrapper
+
+Version 0.1
+-----------
+
+- First stable release

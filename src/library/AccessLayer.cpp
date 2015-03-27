@@ -45,11 +45,14 @@ ID connectBoard(const char* IP, unsigned short port)
 
     // If not, create board instance, store in map
     Board *board = new TPM(IP, port);
-    boards[id] = board;
 
-    DEBUG_PRINT("AccessLayer::connect. Connected to " << IP);
+    // Check if board connected succesfully
+    if (board -> getStatus() == NETWORK_ERROR)
+        return 0;
 
     // Return generated board ID
+    boards[id] = board;
+    DEBUG_PRINT("AccessLayer::connect. Connected to " << IP);
     return id;
 }
 
@@ -116,14 +119,14 @@ REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers)
 }
 
 // Get a register's value
-VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n)
+VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset)
 {  
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
     it = boards.find(id);
     if (it == boards.end()) 
     {
-        DEBUG_PRINT("AccessLayer::getRegisterValue. " << id << " not connected");
+        DEBUG_PRINT("AccessLayer::readAddress. " << id << " not connected");
         return {0, FAILURE};
     }
 
@@ -131,18 +134,18 @@ VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n)
     Board *board = it -> second;
 
     // Get register value from board
-    return board -> readRegister(device, reg, n);
+    return board -> readRegister(device, reg, n, offset);
 }
 
 // Set a register's value
-ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values)
+ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
     it = boards.find(id);
     if (it == boards.end()) 
     {
-        DEBUG_PRINT("AccessLayer::setRegisterValue. " << id << " not connected");
+        DEBUG_PRINT("AccessLayer::writeAddress. " << id << " not connected");
         return FAILURE;
     }
 
@@ -150,7 +153,46 @@ ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values)
     Board *board = it -> second;
 
     // Get register value from board
-    return board -> writeRegister(device, reg, n, values);
+    return board -> writeRegister(device, reg, n, values, offset);
+}
+
+// Read from address
+VALUES readAddress(ID id, UINT address, UINT n)
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::readAddress. " << id << " not connected");
+        return {0, FAILURE};
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Get address value from board
+    return board -> readAddress(address, n);
+}
+
+
+// Write from address
+ERROR writeAddress(ID id, UINT address, UINT n, UINT *values)
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::writeAddress. " << id << " not connected");
+        return FAILURE;
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Write value to address on board
+    return board -> writeAddress(address, n, values);
 }
 
 // Load firmware to FPGA. This function return immediately. The status of the
@@ -226,4 +268,10 @@ ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CAL
 ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg)
 {    
     return FAILURE;
+}
+
+// Helper function to free up memory
+void freeMemory(void *ptr)
+{
+    free(ptr);
 }

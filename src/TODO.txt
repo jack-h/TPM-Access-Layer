@@ -1,11 +1,12 @@
-- [Done] Split requests for large memory areas into multiple request packets
-- [Done] Implement register name search feature in python wrapper
-- How do we know the datatype of the register (eg. temp and voltage)?
-- Free register list struct array in python wrapper (implement in C)
 - Remove temporary hard-coded loadFirmwareBlocking in server connect call
-- Write to a shifted address
-- Write/read directly to/from an addrees
 - Implement SPI devices: Use a single packet for all operations
-- Implement bitwise writes properly (read, bit-wise and, write)
 - Board memory map static somewhere, bitfile maps stored in bitstream
 - Make this Windows friendly
+
+- [DONE] Check if IP and port are recheable
+- [DONE] Split requests for large memory areas into multiple request packets
+- [DONE] Implement register name search feature in python wrapper
+- [DONE] Write to an offset address
+- [DONE] Write/read directly to/from an addrees
+- [DONE] Implement bitwise writes properly (read, bit-wise and, write)
+- [DONE] Free register list struct array in python wrapper

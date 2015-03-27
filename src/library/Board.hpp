@@ -32,10 +32,16 @@ class Board
         virtual REGISTER_INFO* getRegisterList(UINT *num_registers) = 0;
 
         // Get register value
-        virtual VALUES readRegister(DEVICE device, REGISTER reg, UINT n) = 0;
+        virtual VALUES readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset = 0) = 0;
 
         // Set register value
-        virtual ERROR writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value) = 0;
+        virtual ERROR writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value, UINT offset = 0) = 0;
+
+        // Get address value
+        virtual VALUES readAddress(UINT address, UINT n) = 0;
+
+        // Set address value
+        virtual ERROR writeAddress(UINT address, UINT n, UINT *values) = 0;
 
         // Asynchronously load firmware to FPGA.
         virtual ERROR loadFirmware(DEVICE device, const char* bitstream) = 0;
@@ -56,10 +62,12 @@ class Board
         char            *ip;  // Board IP address
         unsigned short  port; // Port to communicate with board
         unsigned short  num_fpgas;   // Number of FPGAs on board
+        STATUS          status; // Board status
 
         Protocol        *protocol;   // Protocol instance to communicate with board
 
         MemoryMap       *memory_map; // Memory map instance
+
 };
 
 // Board derived class representing a Tile Processing Modules
@@ -80,10 +88,16 @@ class TPM: public Board
         REGISTER_INFO* getRegisterList(UINT *num_registers);
 
         // Get register value
-        VALUES readRegister(DEVICE device, REGISTER reg, UINT n);
+        VALUES readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset = 0);
 
         // Set register value
-        ERROR writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value);
+        ERROR writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value, UINT offset = 0);
+
+        // Get address value
+        VALUES readAddress(UINT address, UINT n);
+
+        // Set address value
+        ERROR writeAddress(UINT address, UINT n, UINT *values);
 
         // Asynchronously load firmware to FPGA.
         ERROR loadFirmware(DEVICE device, const char* bitstream);

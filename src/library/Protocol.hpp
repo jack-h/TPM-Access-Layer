@@ -43,12 +43,12 @@ class Protocol
         // Read register/memory area capability
         // This will take care of issuing multiple requests if 
         // the amount of data to read is larger than one UDP packet
-        virtual VALUES readRegister(UINT address, UINT n) = 0;
+        virtual VALUES readRegister(UINT address, UINT n, UINT offset = 0) = 0;
 
         // Write register/memory area capability
         // This will take care of issuing multiple requests if the 
         // amount of data to write is larger than one UDP packet    
-        virtual ERROR writeRegister(UINT address, UINT n, UINT *values) = 0;
+        virtual ERROR writeRegister(UINT address, UINT n, UINT *values, UINT offset = 0) = 0;
 
         // Accessors
         char *getIP() { return this -> ip; }
@@ -74,8 +74,8 @@ class UCP: public Protocol
     public:
         ERROR createSocket(const char *IP, int port);
         ERROR closeSocket();
-        VALUES readRegister(UINT address, UINT n);
-        ERROR writeRegister(UINT address, UINT n, UINT *values);
+        VALUES readRegister(UINT address, UINT n, UINT offset = 0);
+        ERROR writeRegister(UINT address, UINT n, UINT *values, UINT offset = 0);
 
     private:
         // Send packet
