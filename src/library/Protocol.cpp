@@ -140,14 +140,14 @@ VALUES UCP::readRegister(UINT address, UINT n, UINT offset)
 
         // Wait for packet
         DEBUG_PRINT("UCP::readRegister. Receiving reply");
-        ssize_t ret = receivePacket((char *) read_reply, reply_size);
+        size_t ret = receivePacket((char *) read_reply, reply_size);
 
         // Convert reply data to host endiannes
         (read_reply -> header).addr = lendian((read_reply -> header).addr);
         (read_reply -> header).psn = lendian((read_reply -> header).psn);
 
         // Check number of bytes read
-        if (ret < 0 || (size_t) ret < reply_size)
+        if (ret < 0 || ret < reply_size)
         {
             // Something wrong, return error
             DEBUG_PRINT("UCP::readRegister. Failed to receive reply");
@@ -220,14 +220,14 @@ RETURN UCP::writeRegister(UINT address, UINT n, UINT *values, UINT offset)
 
         // Wait for packet
         DEBUG_PRINT("UCP::writeRegister. Receiving reply");
-        ssize_t ret = receivePacket((char *) write_reply, reply_size);
+        size_t ret = receivePacket((char *) write_reply, reply_size);
 
         // Convert reply data to host endiannes
         (write_reply -> header).addr = lendian((write_reply -> header).addr);
         (write_reply -> header).psn = lendian((write_reply -> header).psn);
 
         // Check number of bytes read
-        if (ret < 0 || (size_t) ret < reply_size)
+        if (ret < 0 || ret < reply_size)
         {
             // Something wrong, return error
             DEBUG_PRINT("UCP::writeRegister. Failed to receive reply");

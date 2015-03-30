@@ -74,7 +74,7 @@ MemoryMap::MemoryMap(char *path)
 
         // Create new device entry in register map
         map<string, RegisterInfo *> reg_map;
-        memory_map.emplace(currDevice, reg_map);
+        memory_map[currDevice] = reg_map;
 
         // Get base address for device (if any)
         deviceAttr = deviceNode -> first_attribute("address");
@@ -151,7 +151,7 @@ MemoryMap::MemoryMap(char *path)
                     reg_info -> address = register_address;
 
                     // Create new entry in map
-                    memory_map[currDevice].emplace(full_id, reg_info);
+                    memory_map[currDevice][full_id] = reg_info;
 
                     // Loop over device registers and update register info struct
                     for(registerAttr = registerNode -> first_attribute();
@@ -241,7 +241,7 @@ MemoryMap::MemoryMap(char *path)
                         reg_info -> address = register_address;
 
                         // Create new entry in map
-                        memory_map[currDevice].emplace(full_id, reg_info);
+                        memory_map[currDevice][full_id] = reg_info;
 
                         // Loop over bitfields and update register info struct
                         for(bitAttr = bitNode -> first_attribute();

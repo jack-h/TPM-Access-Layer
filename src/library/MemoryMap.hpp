@@ -2,6 +2,7 @@
 #define MEMORY_MAP
 
 #include "Definitions.hpp"
+#include <string>
 #include <map>
 
 using namespace std;
