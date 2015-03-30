@@ -11,6 +11,7 @@ Version 0.2
 - Helper function in access layer to free memory from python interface
 - Basic test to check whether board IP and port are reachable
 - Updates register info output in python wrapper
+- Created simple install scripts for library and python wrapper
 
 Version 0.1
 -----------
