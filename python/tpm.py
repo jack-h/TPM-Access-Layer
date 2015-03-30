@@ -60,6 +60,8 @@ class RegisterInfo:
 # --------------- Helpers ------------------------------
 DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2" }
 
+# ------------------------------------------------------
+
 # Wrap functionality for a TPM board
 class TPM:
 
@@ -176,7 +178,7 @@ class TPM:
         registers = self._tpm.getRegisterList(self.id, ptr)
 
         # Wrap register formats and return
-        registerList = {  }
+        registerList = { }
         for i in range(num.value):
             reg = { }
             reg['name']        = registers[i].name
@@ -251,7 +253,7 @@ class TPM:
 
     def readAddress(self, address, n = 1):
         """" Get register value """
-    
+
         # Call function
         values = self._tpm.readAddress(self.id, address, n)
 
@@ -292,14 +294,9 @@ class TPM:
     def listRegisterNames(self):
         """ Print list of register names """
         
-        # Check if board is connected
-        if self.id is None:
-            print "Board not connected"
+        # Run checks
+        if not self._checks():
             return
-
-        # Check if register list has been populated
-        if self._registerList is None:
-            self.getRegisterList()
 
         # Split register list into devices
         registers = { }
@@ -315,90 +312,102 @@ class TPM:
             for regname in sorted(v):
                 print '\t' + str(regname)
 
-    def findRegister(self, string):
-        """ Return all register names which return a match for 
-            a given string """
-
-        # Check if board is connected
-        if self.id is None:
-            print "Board not connected"
+    def findRegister(self, string, display = False):
+        """ Return register information for provided register """
+        
+        # Run checks
+        if not self._checks():
             return
-
-        # Check if register list has been populated
-        if self._registerList is None:
-            self.getRegisterList()
 
         # Go through all registers and store the name of registers
         # which generate a match
         matches = []
-        for k in self._registerList.keys():
+        for k, v in self._registerList.iteritems():
             if re.search(string, k) is not None:
-                matches.append(k)
+                matches.append(v)
 
-        # Return matches, if any
+        # Display to screen if required
+        if display:
+            string = "\n"
+            for v in sorted(matches, key = lambda k : k['name']):
+                string += '%s:\n%s\n'            % (v['name'], '-' * len(v['name']))
+                string += 'Address:\t%s\n'       % (hex(v['address']))
+                string += 'Type:\t\t%s\n'        % str(v['type'])
+                string += 'Device:\t\t%s\n'      % str(v['device'])
+                string += 'Permission:\t%s\n'    % str(v['permission'])
+                string += 'Bitmask:\t0x%X\n'     % v['bitmask']
+                string += 'Bits:\t\t%d\n'        % v['bits']
+                string += 'Size:\t\t%d\n'        % v['size']
+                string += 'Description:\t%s\n\n' % v['description']
+
+            print string
+
+        # Return matches
         return matches
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
 
-        # Check if register list is available
-        if self._registerList is not None:
+        # Run checks
+        if not self._checks():
+            return
 
-            # Check if the specified key is a memory address or register name
-            if type(key) is int:
-                return self.readAddress(key)
+        # Check if the specified key is a memory address or register name
+        if type(key) is int:
+            return self.readAddress(key)
 
-            elif type(key) is str:
-                # Check if a device is specified in the register name
-                device = self._getDevice(key)
-                if device:
-                    # Device found, extract register name
-                    key = '.'.join(key.split('.')[1:])
-                    # Check if register list contains this register
-                    if self._registerList.has_key(key):
-                        # Get register value
-                        reg = self._registerList[key]
-                        return self.readRegister(device, key, reg['size'])
-                # No device specified, get register value
-                else:            
-                    if self._registerList.has_key(key):
-                        reg = self._registerList[key]
-                        return self.readRegister(reg['device'], key, reg['size'])
-            else:
-                print "Unrecognised key type. Use register name or memory address"
-                return
+        elif type(key) is str:
+            # Check if a device is specified in the register name
+            device = self._getDevice(key)
+            if device:
+                # Device found, extract register name
+                key = '.'.join(key.split('.')[1:])
+                # Check if register list contains this register
+                if self._registerList.has_key(key):
+                    # Get register value
+                    reg = self._registerList[key]
+                    return self.readRegister(device, key, reg['size'])
+            # No device specified, get register value
+            else:            
+                if self._registerList.has_key(key):
+                    reg = self._registerList[key]
+                    return self.readRegister(reg['device'], key, reg['size'])
+        else:
+            print "Unrecognised key type. Use register name or memory address"
+            return
 
-            # Register not found
-            print "Register '%s' not found" % key
+        # Register not found
+        print "Register '%s' not found" % key
 
     def __setitem__(self, key, value):
         """ Override __setitem__, set value on board"""
 
-        # Check if register list is available
-        if self._registerList is not None:
+        # Run checks
+        if not self._checks():
+            return
 
-            # Check is the specified key is a memory address or register name
-            if type(key) is int:
-                return self.writeAddress(key, value)
+        # Check is the specified key is a memory address or register name
+        if type(key) is int:
+            return self.writeAddress(key, value)
 
-            elif type(key) is str:      
-                # Check if device is specified in the register name
-                device = self._getDevice(key)
-                if device:
-                    # Device found, extract register name
-                    key = key = '.'.join(key.split('.')[1:])
-                    # Check if register list contains the register
-                    if self._registerList.has_key(key):
-                        reg = self._registerList[key]
-                        return self.writeRegister(device, key, value)
-                # No device found, get register value
-                else:
-                    if self._registerList.has_key(key): 
-                        reg = self._registerList[key]
-                        return self.writeRegister(reg['device'], key, value)
+        elif type(key) is str:      
+            # Check if device is specified in the register name
+            device = self._getDevice(key)
+            if device:
+                # Device found, extract register name
+                key = key = '.'.join(key.split('.')[1:])
+                # Check if register list contains the register
+                if self._registerList.has_key(key):
+                    reg = self._registerList[key]
+                    return self.writeRegister(device, key, value)
+            # No device found, get register value
             else:
-                print "Unrecognised key type. Use register name or memory address"
-                return
+                if self._registerList.has_key(key): 
+                    reg = self._registerList[key]
+                    return self.writeRegister(reg['device'], key, value)
+        else:
+            print "Unrecognised key type. Use register name or memory address"
+            return
 
         # Register not found
         print "Register '%s' not found" % key       
@@ -411,14 +420,9 @@ class TPM:
     def __str__(self):
         """ Override __str__ to print register information in a human readable format """
         
-        # Check if board is connected:
-        if self.id is None:
-            print "Board not connected"
+        # Run checks
+        if not self._checks():
             return
-    
-        # Check if register list has been populated
-        if self._registerList is None:
-            self.getRegisterList()
 
         # Split register list into devices
         registers = { }
@@ -432,25 +436,28 @@ class TPM:
         string += "------%s--------%s-------%s-------\n" % (' ' * 2, ' ' * 27, ' ' * 8)
     
         for k, v in registers.iteritems():
-            for reg in v:
+            for reg in sorted(v, key = lambda k : k['name']):
                 regspace = ' ' * (35 - len(reg['name']))
                 adspace  = ' ' * (15 - len(hex(reg['address'])))
                 string += '%s\t%s%s%s%s0x%08X\n' % (DeviceNames[k], reg['name'], regspace, hex(reg['address']), adspace, reg['bitmask'])
 
-#        string = ""
-#        for k, v in self._registerList.iteritems():
-#            string += '%s:\n%s\n'            % (v['name'], '-' * len(v['name']))
-#            string += 'Address:\t%s\n'       % (hex(v['address']))
-#            string += 'Type:\t\t%s\n'        % str(v['type'])
-#            string += 'Device:\t\t%s\n'      % str(v['device'])
-#            string += 'Permission:\t%s\n'    % str(v['permission'])
-#            string += 'Bitmask:\t0x%X\n'     % v['bitmask']
-#            string += 'Bits:\t\t%d\n'        % v['bits']
-#            string += 'Size:\t\t%d\n'        % v['size']
-#            string += 'Description:\t%s\n\n' % v['description']
-
         # Return string representation
         return string
+
+    def _checks(self):
+        """ Check prior to function calls """
+
+        # Check if board is connected
+        if self.id is None:
+            print "Board not connected"
+            return False
+
+        # Check if register list has been populated
+        if self._registerList is None:
+            #TODO: Check if board has been programmed
+            self.getRegisterList()
+
+        return True
 
     def _getDevice(self, name):
         """ Extract device name from provided register name, if present """
