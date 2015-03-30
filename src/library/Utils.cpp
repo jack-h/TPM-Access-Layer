@@ -17,9 +17,14 @@
 // Convert string IP address to a 32-bit number
 ID convertIPtoID(const char *IP)
 {
-    struct sockaddr_in sa;
-    inet_pton(AF_INET, IP, &(sa.sin_addr));
-    return (ID) abs(sa.sin_addr.s_addr);
+    #ifdef __unix__
+        struct sockaddr_in sa;
+        inet_pton(AF_INET, IP, &(sa.sin_addr));
+        return (ID) abs(sa.sin_addr.s_addr);
+    #else
+        // TODO: Write this up
+        return 1010;
+    #endif
 }
 
 // Extract XML mapping file from filepath

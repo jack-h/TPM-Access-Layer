@@ -57,7 +57,7 @@ ID connectBoard(const char* IP, unsigned short port)
 }
 
 // Clear up internal network structures for board in question
-ERROR disconnectBoard(ID id)
+RETURN disconnectBoard(ID id)
 {    
     // Check if board exists, and if not, return
     if (boards.size() == 0)
@@ -88,7 +88,7 @@ ERROR disconnectBoard(ID id)
 
 // Rest board. Note that return from this function is not determined, due to
 // the board being reset
-ERROR resetBoard(ID id)
+RETURN resetBoard(ID id)
 {    
     return FAILURE;
 }
@@ -138,7 +138,7 @@ VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset)
 }
 
 // Set a register's value
-ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset)
+RETURN writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -177,7 +177,7 @@ VALUES readAddress(ID id, UINT address, UINT n)
 
 
 // Write from address
-ERROR writeAddress(ID id, UINT address, UINT n, UINT *values)
+RETURN writeAddress(ID id, UINT address, UINT n, UINT *values)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -197,7 +197,7 @@ ERROR writeAddress(ID id, UINT address, UINT n, UINT *values)
 
 // Load firmware to FPGA. This function return immediately. The status of the
 // board can be monitored through the getStatus call
-ERROR loadFirmware(ID id, DEVICE device, const char* bitstream)
+RETURN loadFirmware(ID id, DEVICE device, const char* bitstream)
 {
     // Check if device is valid
     if (!(device == FPGA_1 || device == FPGA_2))
@@ -221,7 +221,7 @@ ERROR loadFirmware(ID id, DEVICE device, const char* bitstream)
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-ERROR loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
+RETURN loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
 {
     // Check if device is valid
     if (!(device == FPGA_1 || device == FPGA_2))
@@ -245,31 +245,31 @@ ERROR loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
     // Call loadFirmwareBlocking on board instance
     return board -> loadFirmwareBlocking(device, bitstream);
 }
-
+/*
 // [Optional] Set a periodic register
-ERROR setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback)
+RETURN setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback)
 {    
     return FAILURE;
 }
 
 // [Optional] Stop periodic register
-ERROR stopPeriodicRegister(ID id, DEVICE device, REGISTER reg)
+RETURN stopPeriodicRegister(ID id, DEVICE device, REGISTER reg)
 {    
     return FAILURE;
 }
 
 // [Optional] Set a periodic register
-ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback)
+RETURN setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback)
 {    
     return FAILURE;
 }
 
 // [Optional] Stop periodic register
-ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg)
+RETURN stopConditionalRegister(ID id, DEVICE device, REGISTER reg)
 {    
     return FAILURE;
 }
-
+*/ 
 // Helper function to free up memory
 void freeMemory(void *ptr)
 {

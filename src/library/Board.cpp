@@ -95,7 +95,7 @@ VALUES TPM::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
 }
 
 // Get register value
-ERROR TPM::writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset)
+RETURN TPM::writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset)
 {  
     // Get register address from 
     MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(device, reg);
@@ -146,19 +146,19 @@ VALUES TPM::readAddress(UINT address, UINT n)
 }
 
 // Set address value
-ERROR TPM::writeAddress(UINT address, UINT n, UINT *values)
+RETURN TPM::writeAddress(UINT address, UINT n, UINT *values)
 {
     return protocol -> writeRegister(address, n, values);
 }
 
 // Asynchronously load firmware to FPGA.
-ERROR TPM::loadFirmware(DEVICE device, const char* bitstream)
+RETURN TPM::loadFirmware(DEVICE device, const char* bitstream)
 {
     return FAILURE;
 }
 
 // Synchronously load firmware to FPGA
-ERROR TPM::loadFirmwareBlocking(DEVICE device, const char* bitstream)
+RETURN TPM::loadFirmwareBlocking(DEVICE device, const char* bitstream)
 {
     // A new firmware needs to be loaded onto one of the FPGAs
     // NOTE: It is assumed that the new XML mapping contains all the

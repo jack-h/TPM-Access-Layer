@@ -19,7 +19,7 @@
 #include "Definitions.hpp"
 
 // Callback function definition for asynchronous updates
-typedef void (* CALLBACK)(ID, REGISTER, VALUES);
+// typedef void (* CALLBACK)(ID, REGISTER, VALUES);
 
 // ======================= CONNECTION RELATED FUNCTIONS =======================
 
@@ -35,8 +35,8 @@ extern "C" ID connectBoard(const char* IP, unsigned short port);
 // Arguments:
 //   id    Board ID
 // Returns:
-//   ERROR
-extern "C" ERROR disconnectBoard(ID id);
+//   RETURN
+extern "C" RETURN disconnectBoard(ID id);
 
 // ========================= BOARD RELATED FUNCTIONS =========================
 
@@ -45,8 +45,8 @@ extern "C" ERROR disconnectBoard(ID id);
 // Arguments:
 //   id    Board ID
 // Returns:
-//   ERROR
-extern "C" ERROR resetBoard(ID id);
+//   RETURN
+extern "C" RETURN resetBoard(ID id);
 
 // Get board status
 // Arguments:
@@ -80,7 +80,7 @@ extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT 
 //   value   32-bit value to write to register
 // Returns:
 //    VALUE 
-extern "C" ERROR writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset = 0);
+extern "C" RETURN writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset = 0);
 
 // Get address content
 // Arguments:
@@ -98,7 +98,7 @@ extern "C" VALUES readAddress(ID id, UINT address, UINT n);
 //   values  32-bit values to write to address
 // Returns:
 //    VALUE 
-extern "C" ERROR writeAddress(ID id, UINT address, UINT n, UINT *values);
+extern "C" RETURN writeAddress(ID id, UINT address, UINT n, UINT *values);
 
 // [Optional] Set a periodic register
 // Arguments:
@@ -108,8 +108,8 @@ extern "C" ERROR writeAddress(ID id, UINT address, UINT n, UINT *values);
 //   period   Register update period in seconds
 //   callback Callback function to send periodic updates
 // Returns:
-//   ERROR
-extern "C" ERROR setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
+//   RETURN
+// extern "C" RETURN setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
 
 // [Optional] Stop periodic register
 // Arguments:
@@ -117,8 +117,8 @@ extern "C" ERROR setPeriodicRegister(ID id, DEVICE device, REGISTER reg, int per
 //   device   Specify to which DEVICE (if any) this applies
 //   reg      Register to stop querying
 // Returns:
-//   ERROR
-extern "C" ERROR stopPeriodicRegister(ID id, DEVICE device, REGISTER reg);
+//   RETURN
+// extern "C" RETURN stopPeriodicRegister(ID id, DEVICE device, REGISTER reg);
 
 // [Optional] Set a periodic register
 // Arguments:
@@ -130,8 +130,8 @@ extern "C" ERROR stopPeriodicRegister(ID id, DEVICE device, REGISTER reg);
 //   high     Highst acceptable register value
 //   callback Callback function to send periodic updates
 // Returns:
-//   ERROR
-extern "C" ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
+//   RETURN
+// extern "C" RETURN setConditionalRegister(ID id, DEVICE device, REGISTER reg, int period, CALLBACK callback);
 
 // [Optional] Stop periodic register
 // Arguments:
@@ -139,8 +139,8 @@ extern "C" ERROR setConditionalRegister(ID id, DEVICE device, REGISTER reg, int 
 //   device   Specify to which DEVICE (if any) this applies
 //   reg      Register to stop querying
 // Returns:
-//   ERROR
-extern "C" ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg);
+//   RETURN
+// extern "C" RETURN stopConditionalRegister(ID id, DEVICE device, REGISTER reg);
 
 // ======================== FIRMWARE RELATED FUNCTIONS ========================
 
@@ -156,12 +156,12 @@ extern "C" ERROR stopConditionalRegister(ID id, DEVICE device, REGISTER reg);
 //   device   Specify to which DEVICE (if any) this applies
 //   bistream array containing data bitfile
 // Returns:
-//   ERROR
-extern "C" ERROR loadFirmware(ID id, DEVICE device, const char* bitstream);
+//   RETURN
+extern "C" RETURN loadFirmware(ID id, DEVICE device, const char* bitstream);
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-extern "C" ERROR loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream);
+extern "C" RETURN loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream);
 
 // Request RF data from the running firmware. This is still TBD
 

@@ -35,19 +35,19 @@ class Board
         virtual VALUES readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset = 0) = 0;
 
         // Set register value
-        virtual ERROR writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value, UINT offset = 0) = 0;
+        virtual RETURN writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value, UINT offset = 0) = 0;
 
         // Get address value
         virtual VALUES readAddress(UINT address, UINT n) = 0;
 
         // Set address value
-        virtual ERROR writeAddress(UINT address, UINT n, UINT *values) = 0;
+        virtual RETURN writeAddress(UINT address, UINT n, UINT *values) = 0;
 
         // Asynchronously load firmware to FPGA.
-        virtual ERROR loadFirmware(DEVICE device, const char* bitstream) = 0;
+        virtual RETURN loadFirmware(DEVICE device, const char* bitstream) = 0;
 
         // Synchronously load firmware to FPGA
-        virtual ERROR loadFirmwareBlocking(DEVICE device, const char* bitstream) = 0;
+        virtual RETURN loadFirmwareBlocking(DEVICE device, const char* bitstream) = 0;
 
         // Functions dealing with on-board devices (such as SPI devices)
         // virtual 
@@ -91,19 +91,19 @@ class TPM: public Board
         VALUES readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset = 0);
 
         // Set register value
-        ERROR writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value, UINT offset = 0);
+        RETURN writeRegister(DEVICE device, REGISTER reg, UINT n, UINT *value, UINT offset = 0);
 
         // Get address value
         VALUES readAddress(UINT address, UINT n);
 
         // Set address value
-        ERROR writeAddress(UINT address, UINT n, UINT *values);
+        RETURN writeAddress(UINT address, UINT n, UINT *values);
 
         // Asynchronously load firmware to FPGA.
-        ERROR loadFirmware(DEVICE device, const char* bitstream);
+        RETURN loadFirmware(DEVICE device, const char* bitstream);
 
         // Synchronously load firmware to FPGA
-        ERROR loadFirmwareBlocking(DEVICE device, const char* bitstream);
+        RETURN loadFirmwareBlocking(DEVICE device, const char* bitstream);
 
     protected:
 };

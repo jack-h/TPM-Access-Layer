@@ -17,7 +17,7 @@ UCP::UCP() : Protocol()
 }
 
 // Create and initialise socket
-ERROR UCP::createSocket(const char *IP, int port)
+RETURN UCP::createSocket(const char *IP, int port)
 {
     // TODO: Check if IP is valid
 
@@ -36,7 +36,7 @@ ERROR UCP::createSocket(const char *IP, int port)
     }
 
     // Configure socket
-    bzero(&board_addr, sizeof(board_addr));
+    memset(&board_addr, 0, sizeof(board_addr));
     board_addr.sin_family = AF_INET;
     board_addr.sin_addr.s_addr = inet_addr(ip);
     board_addr.sin_port = htons(port);
@@ -54,14 +54,14 @@ ERROR UCP::createSocket(const char *IP, int port)
 }
 
 // Close network socket
-ERROR UCP::closeSocket()
+RETURN UCP::closeSocket()
 {
     return FAILURE;
 }
 
 
 // Send packet to board
-ERROR UCP::sendPacket(char *message, size_t length)
+RETURN UCP::sendPacket(char *message, size_t length)
 {
     int ret;
 
@@ -175,7 +175,7 @@ VALUES UCP::readRegister(UINT address, UINT n, UINT offset)
 }
 
 // Issue a write register request, and return reply
-ERROR UCP::writeRegister(UINT address, UINT n, UINT *values, UINT offset)
+RETURN UCP::writeRegister(UINT address, UINT n, UINT *values, UINT offset)
 {
     // Value per payload
     unsigned values_per_payload = MAX_PAYLOAD_SIZE / sizeof(UINT);

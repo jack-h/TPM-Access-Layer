@@ -35,10 +35,10 @@ class Protocol
     // Define functions to be implemented by derived classes
     public:
         // Create socket
-        virtual ERROR createSocket(const char *IP, int port) = 0;
+        virtual RETURN createSocket(const char *IP, int port) = 0;
 
         // Close socket
-        virtual ERROR closeSocket() = 0;
+        virtual RETURN closeSocket() = 0;
 
         // Read register/memory area capability
         // This will take care of issuing multiple requests if 
@@ -48,7 +48,7 @@ class Protocol
         // Write register/memory area capability
         // This will take care of issuing multiple requests if the 
         // amount of data to write is larger than one UDP packet    
-        virtual ERROR writeRegister(UINT address, UINT n, UINT *values, UINT offset = 0) = 0;
+        virtual RETURN writeRegister(UINT address, UINT n, UINT *values, UINT offset = 0) = 0;
 
         // Accessors
         char *getIP() { return this -> ip; }
@@ -72,14 +72,14 @@ class UCP: public Protocol
 
     // Implement virtual functions
     public:
-        ERROR createSocket(const char *IP, int port);
-        ERROR closeSocket();
+        RETURN createSocket(const char *IP, int port);
+        RETURN closeSocket();
         VALUES readRegister(UINT address, UINT n, UINT offset = 0);
-        ERROR writeRegister(UINT address, UINT n, UINT *values, UINT offset = 0);
+        RETURN writeRegister(UINT address, UINT n, UINT *values, UINT offset = 0);
 
     private:
         // Send packet
-        ERROR sendPacket(char *message, size_t length);
+        RETURN sendPacket(char *message, size_t length);
 
         // Receive packet
         ssize_t receivePacket(char *buffer, size_t max_length);

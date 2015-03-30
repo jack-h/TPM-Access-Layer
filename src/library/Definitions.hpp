@@ -22,7 +22,7 @@ typedef enum { BOARD = 1, FPGA_1 = 2, FPGA_2 = 4 } DEVICE;
 
 // Return type for most of the function calls, specifying whether the call
 // succeeded or failed
-typedef enum {SUCCESS = 0, FAILURE = -1, NOT_IMPLEMENTED = -2} ERROR;
+typedef enum {SUCCESS = 0, FAILURE = -1, NOT_IMPLEMENTED = -2} RETURN;
 
 // Define possible board statuses
 typedef enum { OK                =  0,  // Board is functioning properly
@@ -46,7 +46,7 @@ typedef enum {READ = 1, WRITE = 2, READWRITE = 3} PERMISSION;
 // additional functionality is required
 typedef struct VALUES {
     UINT      *values;     // Sensor or register value
-    ERROR     error;     // If error is FAILURE, then value is invalid
+    RETURN    error;       // If error is FAILURE, then value is invalid
 } VALUES;
 
 // Encapsulate register information
