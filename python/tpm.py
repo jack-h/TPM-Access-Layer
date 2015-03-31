@@ -1,3 +1,4 @@
+from sys import platform
 from math import ceil
 from enum import Enum
 import numpy as np
@@ -481,16 +482,18 @@ class TPM:
        
         # Load access layer shared library
         if filepath is None:
-            self._library = "/home/lessju/Code/TPM-Access-Layer/src/library/libboard.so"
+            self._library = "libboard"
         else:
             self._library = filepath
 
-        if not os.path.isfile(self._library):
-            print "Library (%s) not found" % self._library
-            return 
-
-        # Library found, load it
-        self._tpm = ctypes.CDLL(self._library)
+        # Library found, load it (OS-specific)
+        if platform.find('linux') >= 0:
+            self._tpm = ctypes.CDLL(self._library + ".so")
+        elif platform in ['win32', 'cygwin']:
+            self._tpm = ctypes.WinDLL(self._library)
+        else:
+            print "Unsupported operating system"
+            return            
 
         # Define connect function
         self._tpm.connectBoard.argtypes = [ctypes.c_char_p, ctypes.c_uint16]
