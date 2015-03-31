@@ -39,7 +39,7 @@ void processDisconnectBoard(Request *message, Reply *replyMessage)
     std::cout << "Received disconnect request" << std::endl;
 
     // Call library disconnectBoard
-    ERROR err = disconnectBoard(message -> id());
+    RETURN err = disconnectBoard(message -> id());
 
     // Check if call failed and send result
     replyMessage -> set_result(convertErrorEnum(err));
@@ -137,7 +137,7 @@ void processSetRegisterValue(Request *message, Reply *replyMessage)
     // Call library function
     REGISTER regName = message -> registername().c_str();
     uint32_t value = message -> value();
-    ERROR err = writeRegister(message -> id(), dev, regName, 1, &value);
+    RETURN err = writeRegister(message -> id(), dev, regName, 1, &value);
 
     // Check if call succeeded
     replyMessage -> set_result(convertErrorEnum(err));
@@ -153,7 +153,7 @@ void processSetRegisterValues(Request *message, Reply *replyMessage)
 
     // Call library function
     REGISTER regName = message -> registername().c_str();
-    ERROR err = writeRegister(message -> id(), dev, regName, message -> n(), 
+    RETURN err = writeRegister(message -> id(), dev, regName, message -> n(), 
                               message -> mutable_values() -> mutable_data());
 
     // Check if call succeeded
@@ -170,7 +170,7 @@ void processLoadFirmwareBlocking(Request *message, Reply *replyMessage)
 
     std::cout << "ID: " << message -> id() << ", file: " << message -> file() << std::endl;
 
-    ERROR err = loadFirmwareBlocking(message -> id(), dev,
+    RETURN err = loadFirmwareBlocking(message -> id(), dev,
                                      "/home/lessju/map.xml");
                                     // message -> file().c_str());
 
@@ -188,7 +188,7 @@ void processLoadFirmware(Request *message, Reply *replyMessage)
 
     std::cout << "ID: " << message -> id() << ", file: " << message -> file() << std::endl;
 
-    ERROR err = loadFirmwareBlocking(message -> id(), dev,
+    RETURN err = loadFirmwareBlocking(message -> id(), dev,
                                      "/home/lessju/map.xml");
 //                                     message -> file().c_str());
 

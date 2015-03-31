@@ -5,7 +5,7 @@
 #include "message.pb.h"
 
 // Convert Error enum
-Reply::ResultType convertErrorEnum(ERROR err);
+Reply::ResultType convertErrorEnum(RETURN err);
 
 // Convert Device enum (overload 1)
 Reply::DeviceType convertDeviceEnum(DEVICE dev);

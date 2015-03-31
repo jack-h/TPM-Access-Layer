@@ -6,7 +6,7 @@
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
 // Convert Error enum
-Reply::ResultType convertErrorEnum(ERROR err)
+Reply::ResultType convertErrorEnum(RETURN err)
 {
     if (err == SUCCESS)
         return Reply::SUCCESS;
