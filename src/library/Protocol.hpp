@@ -9,7 +9,7 @@
     #include <sys/socket.h>
     #include <arpa/inet.h>  
 #elif defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
-    #include <winsock.h>
+    #include <winsock2.h>
 #endif
 
 #include <stdlib.h>
@@ -82,7 +82,7 @@ class UCP: public Protocol
         RETURN sendPacket(char *message, size_t length);
 
         // Receive packet
-        ssize_t receivePacket(char *buffer, size_t max_length);
+        size_t receivePacket(char *buffer, size_t max_length);
 
     private:
         // Sequence number

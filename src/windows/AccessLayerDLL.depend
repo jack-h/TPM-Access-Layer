@@ -1,0 +1,87 @@
+# depslib dependency file v1.0
+1428308281 source:c:\users\lessju\documents\github\tpm-access-layer\src\library\accesslayer.cpp
+	<string>
+	<map>
+	"AccessLayer.hpp"
+	"Board.hpp"
+	"Utils.hpp"
+
+1428308238 c:\users\lessju\documents\github\tpm-access-layer\src\library\accesslayer.hpp
+	"Definitions.hpp"
+
+1428307226 c:\users\lessju\documents\github\tpm-access-layer\src\library\definitions.hpp
+	<stdint.h>
+
+1427984381 c:\users\lessju\documents\github\tpm-access-layer\src\library\board.hpp
+	"Definitions.hpp"
+	"MemoryMap.hpp"
+	"Protocol.hpp"
+	"Utils.hpp"
+	<string.h>
+
+1427984381 c:\users\lessju\documents\github\tpm-access-layer\src\library\memorymap.hpp
+	"Definitions.hpp"
+	<string>
+	<map>
+
+1427990822 c:\users\lessju\documents\github\tpm-access-layer\src\library\protocol.hpp
+	<sys/socket.h>
+	<arpa/inet.h>
+	<winsock2.h>
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	"Definitions.hpp"
+
+1427986955 c:\users\lessju\documents\github\tpm-access-layer\src\library\utils.hpp
+	"Definitions.hpp"
+	<iostream>
+	<string>
+
+1427984381 source:c:\users\lessju\documents\github\tpm-access-layer\src\library\board.cpp
+	"Board.hpp"
+	<stdlib.h>
+	<string.h>
+	<unistd.h>
+	<stdio.h>
+
+1427984381 source:c:\users\lessju\documents\github\tpm-access-layer\src\library\memorymap.cpp
+	"MemoryMap.hpp"
+	"RapidXML.hpp"
+	"Utils.hpp"
+	<algorithm>
+	<iostream>
+	<string.h>
+	<stdio.h>
+
+1427984381 c:\users\lessju\documents\github\tpm-access-layer\src\library\rapidxml.hpp
+	<cstdlib>
+	<cassert>
+	<new>
+	<exception>
+
+1427986965 source:c:\users\lessju\documents\github\tpm-access-layer\src\library\protocol.cpp
+	"Protocol.hpp"
+	"Utils.hpp"
+	<stdlib.h>
+
+1427986995 source:c:\users\lessju\documents\github\tpm-access-layer\src\library\utils.cpp
+	"Utils.hpp"
+	<sys/socket.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<winsock.h>
+	<sstream>
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	<math.h>
+
+1428308836 source:c:\users\lessju\documents\github\tpm-access-layer\src\windows\main.cpp
+	"main.h"
+	"stdio.h"
+
+1428307373 c:\users\lessju\documents\github\tpm-access-layer\src\windows\main.h
+	<windows.h>
+	"../library/AccessLayer.hpp"
+

@@ -28,6 +28,18 @@ RETURN UCP::createSocket(const char *IP, int port)
     // Copy port
     this -> port = port; 
 
+    // If running under windows, we need to initialise the API
+    // TODO: Does not work yet
+    /* #if defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
+        WSADATA wsaData;
+        if(WSAStartup(MAKEWORD(2,0), &wsaData) != 0)
+        {
+            printf("An error occured during startup! \n");
+            WSACleanup();
+            return FAILURE;
+        }
+    #endif */
+
     // Open socket
     if ((this -> sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
     {
@@ -82,7 +94,7 @@ RETURN UCP::sendPacket(char *message, size_t length)
 }
 
 // Receive packet from board
-ssize_t UCP::receivePacket(char *buffer, size_t max_length)
+size_t UCP::receivePacket(char *buffer, size_t max_length)
 {
     // Wait for reply from board
     return recvfrom(sockfd,       // Socket

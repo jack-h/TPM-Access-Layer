@@ -22,7 +22,7 @@ map<unsigned int, Board *> boards;
 
 // Set up internal structures to be able to communicate with a processing board
 // Arguments:
-ID connectBoard(const char* IP, unsigned short port)
+ID DLL_EXPORT connectBoard(const char* IP, unsigned short port)
 {    
     DEBUG_PRINT("AccessLayer::connect. Connecting to " << IP);
 
@@ -57,7 +57,7 @@ ID connectBoard(const char* IP, unsigned short port)
 }
 
 // Clear up internal network structures for board in question
-RETURN disconnectBoard(ID id)
+RETURN DLL_EXPORT disconnectBoard(ID id)
 {    
     // Check if board exists, and if not, return
     if (boards.size() == 0)
@@ -88,19 +88,19 @@ RETURN disconnectBoard(ID id)
 
 // Rest board. Note that return from this function is not determined, due to
 // the board being reset
-RETURN resetBoard(ID id)
+RETURN DLL_EXPORT resetBoard(ID id)
 {    
     return FAILURE;
 }
 
 // Get board status
-STATUS getStatus(ID id)
+STATUS DLL_EXPORT getStatus(ID id)
 {    
     return OK;
 }
 
 // Get list of registers
-REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers)
+REGISTER_INFO* DLL_EXPORT getRegisterList(ID id, unsigned int *num_registers)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -119,7 +119,7 @@ REGISTER_INFO* getRegisterList(ID id, unsigned int *num_registers)
 }
 
 // Get a register's value
-VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset)
+VALUES DLL_EXPORT readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset)
 {  
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -138,7 +138,7 @@ VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset)
 }
 
 // Set a register's value
-RETURN writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset)
+RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -157,7 +157,7 @@ RETURN writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, U
 }
 
 // Read from address
-VALUES readAddress(ID id, UINT address, UINT n)
+VALUES DLL_EXPORT readAddress(ID id, UINT address, UINT n)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -177,7 +177,7 @@ VALUES readAddress(ID id, UINT address, UINT n)
 
 
 // Write from address
-RETURN writeAddress(ID id, UINT address, UINT n, UINT *values)
+RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT n, UINT *values)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -197,7 +197,7 @@ RETURN writeAddress(ID id, UINT address, UINT n, UINT *values)
 
 // Load firmware to FPGA. This function return immediately. The status of the
 // board can be monitored through the getStatus call
-RETURN loadFirmware(ID id, DEVICE device, const char* bitstream)
+RETURN DLL_EXPORT loadFirmware(ID id, DEVICE device, const char* bitstream)
 {
     // Check if device is valid
     if (!(device == FPGA_1 || device == FPGA_2))
@@ -221,7 +221,7 @@ RETURN loadFirmware(ID id, DEVICE device, const char* bitstream)
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-RETURN loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
+RETURN DLL_EXPORT loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
 {
     // Check if device is valid
     if (!(device == FPGA_1 || device == FPGA_2))

@@ -4,7 +4,18 @@
 #include <stdint.h>
 
 // Enable or disable debugging
-#define DEBUG 0
+#define DEBUG 1
+
+// To export functions to a Windows DLL we need to apply the DLL_EXPORT in each
+// functions. This is defined in Windows, however will not work for Linux. Therefore
+// in Linux we map this to an empty string
+#ifndef DLL_EXPORT
+    #if defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
+        #define DLL_EXPORT __declspec(dllexport)
+    #else
+        #define DLL_EXPORT
+    #endif
+#endif
 
 // ========================== DATA TYPE DEFINITIONS ==========================
 

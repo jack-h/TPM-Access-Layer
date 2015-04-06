@@ -6,9 +6,10 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
 #elif defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
-    #include <winsock.h>
+    #include <winsock2.h>
 #endif
 
+#include <sstream>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -54,3 +55,21 @@ UINT lendian(UINT value)
 
     return value;
 }
+
+// Convert string to number (Windows only)
+#if defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
+    int stoi(std::string input, int beg, int base)
+    {
+        int x;
+        std::stringstream ss;
+
+        if (base == 16)
+            ss << std::hex << input;
+        else
+            ss << input;
+
+        ss >> x;
+
+        return x;
+    }
+#endif

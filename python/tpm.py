@@ -91,7 +91,7 @@ class TPM:
         """ Class constructor """
 
         # Check if filepath is included in arguments
-        filepath = kwargs.get('filepath', None)
+        filepath = kwargs.get('library', None)
 
         # Initialise library
         self._initialiseLibrary(filepath)

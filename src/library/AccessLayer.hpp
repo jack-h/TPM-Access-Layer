@@ -29,14 +29,14 @@
 //   port  Port number to use
 // Returns:
 //   A board ID in case of success, -1 on failure      
-extern "C" ID connectBoard(const char* IP, unsigned short port);
+extern "C" ID DLL_EXPORT connectBoard(const char* IP, unsigned short port);
 
 // Clear up internal network structures for board in question
 // Arguments:
 //   id    Board ID
 // Returns:
 //   RETURN
-extern "C" RETURN disconnectBoard(ID id);
+extern "C" RETURN DLL_EXPORT disconnectBoard(ID id);
 
 // ========================= BOARD RELATED FUNCTIONS =========================
 
@@ -46,14 +46,14 @@ extern "C" RETURN disconnectBoard(ID id);
 //   id    Board ID
 // Returns:
 //   RETURN
-extern "C" RETURN resetBoard(ID id);
+extern "C" RETURN DLL_EXPORT resetBoard(ID id);
 
 // Get board status
 // Arguments:
 //   id    Board ID
 // Returns:
 //   Board status
-extern "C" STATUS getStatus(ID id);
+extern "C" STATUS DLL_EXPORT getStatus(ID id);
 
 // ========================= REGISTER RELATED FUNCTIONS =========================
 
@@ -62,7 +62,7 @@ extern "C" STATUS getStatus(ID id);
 //   id    Board ID
 // Returns:
 //   Array of REGISTER_INFO
-extern "C" REGISTER_INFO* getRegisterList(ID id, UINT *num_registers);
+extern "C" REGISTER_INFO* DLL_EXPORT getRegisterList(ID id, UINT *num_registers);
 
 // Get a register's value
 // Arguments:
@@ -71,7 +71,7 @@ extern "C" REGISTER_INFO* getRegisterList(ID id, UINT *num_registers);
 //   reg     Register to query
 // Returns:
 //    VALUE 
-extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset = 0);
+extern "C" VALUES DLL_EXPORT readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset = 0);
 
 // Arguments:
 //   id      Board ID
@@ -80,7 +80,7 @@ extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT 
 //   value   32-bit value to write to register
 // Returns:
 //    VALUE 
-extern "C" RETURN writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset = 0);
+extern "C" RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset = 0);
 
 // Get address content
 // Arguments:
@@ -89,7 +89,7 @@ extern "C" RETURN writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT
 //   n        Number of values to read
 // Returns:
 //    VALUE 
-extern "C" VALUES readAddress(ID id, UINT address, UINT n);
+extern "C" VALUES DLL_EXPORT readAddress(ID id, UINT address, UINT n);
 
 // Arguments:
 //   id      Board ID
@@ -98,7 +98,7 @@ extern "C" VALUES readAddress(ID id, UINT address, UINT n);
 //   values  32-bit values to write to address
 // Returns:
 //    VALUE 
-extern "C" RETURN writeAddress(ID id, UINT address, UINT n, UINT *values);
+extern "C" RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT n, UINT *values);
 
 // [Optional] Set a periodic register
 // Arguments:
@@ -157,11 +157,11 @@ extern "C" RETURN writeAddress(ID id, UINT address, UINT n, UINT *values);
 //   bistream array containing data bitfile
 // Returns:
 //   RETURN
-extern "C" RETURN loadFirmware(ID id, DEVICE device, const char* bitstream);
+extern "C" RETURN DLL_EXPORT loadFirmware(ID id, DEVICE device, const char* bitstream);
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-extern "C" RETURN loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream);
+extern "C" RETURN DLL_EXPORT loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream);
 
 // Request RF data from the running firmware. This is still TBD
 
