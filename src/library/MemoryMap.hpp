@@ -30,6 +30,7 @@ class MemoryMap
                     this -> name = name;
 
                     // Assign default values
+                    this -> module      = "";
                     this -> permission  = READ;
                     this -> size        = 1;
                     this -> description = "";
@@ -41,6 +42,7 @@ class MemoryMap
 
             public:
                 string         name;         // String representation of register
+                string         module;       // Path of any additional modules
                 REGISTER_TYPE  type;         // Sensor, board-register or firmware-register
                 DEVICE         device;       // Set of FPGAs (if any) to which this is applicable
                 PERMISSION     permission;   // Define register access type
@@ -61,8 +63,10 @@ class MemoryMap
         RegisterInfo *getRegisterInfo(DEVICE device, REGISTER reg);
 
     private:
-        char        *filepath;  // Store filepath to memory map XML file
+        char        *filepath;                                    // Store filepath to memory map XML file
         map<DEVICE, map<string, RegisterInfo *> >   memory_map;   // Full memory map of devices
+
+        
 };
 
 

@@ -142,6 +142,34 @@ extern "C" RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT n, UINT *val
 //   RETURN
 // extern "C" RETURN stopConditionalRegister(ID id, DEVICE device, REGISTER reg);
 
+// ====================== SPI DEVICES RELATED FUNCTIONS =======================
+
+// Get list of SPI devices
+// Arguments:
+//   id    Board ID
+// Returns:
+//   Array of REGISTER_INFO
+extern "C" SPI_DEVICE_INFO* DLL_EXPORT getDeviceList(ID id, UINT *num_devices);
+
+// Get a device's value
+// Arguments:
+//   id       Board ID
+//   device   Device name
+//   address  Address to read value from
+// Returns:
+//    VALUE 
+extern "C" VALUES DLL_EXPORT readDevice(ID id, REGISTER device, UINT address);
+
+// Set a device's value
+// Arguments:
+//   id      Board ID
+//   device  Device name
+//   address Address to write value to 
+//   value   32-bit value to write to device
+// Returns:
+//    VALUE 
+extern "C" RETURN DLL_EXPORT writeDevice(ID id, REGISTER device, UINT address, UINT value);
+
 // ======================== FIRMWARE RELATED FUNCTIONS ========================
 
 // NOTE: Currently it is assumed that the memory map will be located in the same

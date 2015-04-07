@@ -12,7 +12,7 @@ using namespace std;
 // MemoryMap constructor
 MemoryMap::MemoryMap(char *path)
 {
-    // Check if filepath exists
+    // TODO: Check if filepath exists
 
     // If so, store locally
     size_t len = strlen(path);
@@ -112,11 +112,24 @@ MemoryMap::MemoryMap(char *path)
 
             // Check if a base address is specified
             compAttr = compNode -> first_attribute("address");
-            UINT comp_address;
-            if (compAttr == 0)
-                comp_address = 0;
-            else
-                comp_address = stoi(compAttr -> value(), 0, 16);      
+            UINT comp_address = (compAttr == 0) ? 0 : stoi(compAttr -> value(), 0, 16);
+
+            // Check if description is specified
+            compAttr = compNode -> first_attribute("description");
+            string desc = (compAttr == 0) ? "" : compAttr -> value();
+
+            // Check if module exists
+            compAttr =  compNode -> first_attribute("module");
+            string module = (compAttr == 0) ? "" : compAttr -> value();
+
+            // Create entry in memory map
+            RegisterInfo *reg_info = new RegisterInfo(RegisterInfo(comp_id));
+            reg_info -> device      = currDevice;
+            reg_info -> type        = COMPONENT;
+            reg_info -> address     = comp_address;
+            reg_info -> description = desc;        
+            reg_info -> module      = module;
+            memory_map[currDevice][comp_id]  = reg_info;
 
             // NOTE: We are ignoring additional attributes for now...
             
@@ -137,95 +150,88 @@ MemoryMap::MemoryMap(char *path)
                 else
                     register_address = device_address + comp_address;
 
-                // Check whether register contains bitfields
-                xml_node<> *bitNode = registerNode -> first_node();
+                // Create RegisterInfo object and set defaults
+                string full_id = comp_id + "." + reg_id;
+                reg_info = new RegisterInfo(RegisterInfo(full_id));
+                reg_info -> device = currDevice;
+                reg_info -> type   = currType;
+                reg_info -> address = register_address;
 
-                // If no bitfields define, create entry for current register
-                if (bitNode == 0)
-                {   
-                    // Create RegisterInfo object and set defaults
-                    string full_id = comp_id + "." + reg_id;
-                    RegisterInfo *reg_info = new RegisterInfo(RegisterInfo(full_id));
-                    reg_info -> device = currDevice;
-                    reg_info -> type   = currType;
-                    reg_info -> address = register_address;
+                // Create new entry in map
+                memory_map[currDevice][full_id] = reg_info;
 
-                    // Create new entry in map
-                    memory_map[currDevice][full_id] = reg_info;
-
-                    // Loop over device registers and update register info struct
-                    for(registerAttr = registerNode -> first_attribute();
-                        registerAttr;
-                        registerAttr = registerAttr -> next_attribute())
-                    {
-                        std::string name = registerAttr -> name();
-
-                        // Extract attribute values
-                        if (name.compare("id") == 0 || name.compare("address") == 0)
-                            ; // Skip, already processed
-                        else if (name.compare("mode") == 0)
-                        {
-                            
-                        }
-                        else if (name.compare("mask") == 0)
-                        {
-                            // Set register mask
-                            reg_info -> bitmask = strtoul(registerAttr -> value(), 0, 16);
-
-                            // Get number of bits and bitshift
-                            UINT shift = 0, bits = 0;
-                            bool found = false;
-                            for(unsigned i = 0; i <= sizeof(UINT) * 8 - 1; i++)
-                            {
-                                if (((reg_info -> bitmask >> i) & 0x00000001) == 1)
-                                {
-                                    bits++;
-                                    if (!found) { found = true; shift = i; }
-                                }
-                            }                        
-
-                            reg_info -> shift = shift;
-                            reg_info -> bits  = bits;
-                        }   
-                        else if (name.compare("permission") == 0)
-                        {       
-                            // Set register permission
-                            string mode = registerAttr -> value();
-                            if (mode.compare("r") == 0)
-                                reg_info -> permission = READ;
-                            else if (mode.compare("w") == 0)
-                                reg_info -> permission = WRITE;
-                            else if (mode.compare("rw") == 0)
-                                reg_info -> permission = READWRITE;
-                            else
-                                ; // Unknown permission, ignore for now
-                        }
-                        else if (name.compare("size") == 0)
-                            // Set register size
-                            reg_info -> size = stoi(registerAttr -> value(), 0, 10);
-                        else if (name.compare("description") == 0)
-                        {
-                            // Set register description
-                            reg_info -> description = registerAttr -> value();
-                        }
-                        else if (name.compare("tags") == 0)
-                        {
-                            // Use tag to detect if register is a sensor
-                            string tag = registerAttr -> value();
-                            if (name.compare("sensor") == 0)
-                                reg_info -> type = SENSOR;
-                        }
-                        else if (name.compare("module") == 0)
-                            ; // Ignore for now
-                        else 
-                            ; // Unsupported attribute, ignore for now
-                    }
-
-                }
-                // Register contains bitfields, loop over all of them
-                else
+                // Loop over device registers and update register info struct
+                for(registerAttr = registerNode -> first_attribute();
+                    registerAttr;
+                    registerAttr = registerAttr -> next_attribute())
                 {
-                    for(bitNode = registerNode -> first_node();
+                    std::string name = registerAttr -> name();
+
+                    // Extract attribute values
+                    if (name.compare("id") == 0 || name.compare("address") == 0)
+                        ; // Skip, already processed
+                    else if (name.compare("mode") == 0)
+                    {
+                        
+                    }
+                    else if (name.compare("mask") == 0)
+                    {
+                        // Set register mask
+                        reg_info -> bitmask = strtoul(registerAttr -> value(), 0, 16);
+
+                        // Get number of bits and bitshift
+                        UINT shift = 0, bits = 0;
+                        bool found = false;
+                        for(unsigned i = 0; i <= sizeof(UINT) * 8 - 1; i++)
+                        {
+                            if (((reg_info -> bitmask >> i) & 0x00000001) == 1)
+                            {
+                                bits++;
+                                if (!found) { found = true; shift = i; }
+                            }
+                        }                        
+
+                        reg_info -> shift = shift;
+                        reg_info -> bits  = bits;
+                    }   
+                    else if (name.compare("permission") == 0)
+                    {       
+                        // Set register permission
+                        string mode = registerAttr -> value();
+                        if (mode.compare("r") == 0)
+                            reg_info -> permission = READ;
+                        else if (mode.compare("w") == 0)
+                            reg_info -> permission = WRITE;
+                        else if (mode.compare("rw") == 0)
+                            reg_info -> permission = READWRITE;
+                        else
+                            ; // Unknown permission, ignore for now
+                    }
+                    else if (name.compare("size") == 0)
+                        // Set register size
+                        reg_info -> size = stoi(registerAttr -> value(), 0, 10);
+                    else if (name.compare("description") == 0)
+                    {
+                        // Set register description
+                        reg_info -> description = registerAttr -> value();
+                    }
+                    else if (name.compare("tags") == 0)
+                    {
+                        // Use tag to detect if register is a sensor
+                        string tag = registerAttr -> value();
+                        if (name.compare("sensor") == 0)
+                            reg_info -> type = SENSOR;
+                    }
+                    else if (name.compare("module") == 0)
+                        reg_info -> module = registerAttr -> value();
+                    else 
+                        ; // Unsupported attribute, ignore for now
+                }
+
+                // Check whether register contains bitfields
+                if (registerNode -> first_node())
+                {
+                    for(xml_node<> *bitNode = registerNode -> first_node();
                         bitNode;
                         bitNode = bitNode -> next_sibling())
                     {
@@ -235,7 +241,7 @@ MemoryMap::MemoryMap(char *path)
 
                         // Create RegisterInfo object and set defaults
                         string full_id = comp_id + "." + reg_id + "." + bit_id;
-                        RegisterInfo *reg_info = new RegisterInfo(RegisterInfo(full_id));
+                        reg_info = new RegisterInfo(RegisterInfo(full_id));
                         reg_info -> device = currDevice;
                         reg_info -> type   = currType;
                         reg_info -> address = register_address;
@@ -305,8 +311,6 @@ MemoryMap::MemoryMap(char *path)
                                 if (name.compare("sensor") == 0)
                                     reg_info -> type = SENSOR;
                             }
-                            else if (name.compare("module") == 0)
-                                ; // Ignore for now
                             else 
                                 ; // Unsupported attribute, ignore for now
                         }

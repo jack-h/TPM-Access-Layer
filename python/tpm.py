@@ -33,6 +33,8 @@ class RegisterType(Enum):
     Sensor = 1
     BoardRegister = 2
     FirmwareRegister = 3
+    SPIDevice = 4
+    Component = 5
 
 # Permission
 class Permission(Enum):
@@ -57,6 +59,12 @@ class RegisterInfo:
         self.bits = bits
         self.size = size
         self.desc = desc
+
+class SPIDeviceInfo:
+    def __init__(self, name, spi_sclk, spi_en):
+        self.name     = name
+        self.spi_sclk = spi_sclk
+        self.spi_en   = spi_en
 
 # --------------- Helpers ------------------------------
 DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2" }
@@ -85,6 +93,13 @@ class TPM:
             ('size',        ctypes.c_uint32),
             ('description', ctypes.c_char_p)
         ]
+    
+    class SPIDeviceInfoStruct(ctypes.Structure):
+        _fields_ = [
+            ('name',     ctypes.c_char_p),
+            ('spi_sclk', ctypes.c_uint32),
+            ('spi_en',   ctypes.c_uint32)
+        ]
 
     # Class constructor
     def __init__(self, *args, **kwargs):
@@ -102,6 +117,9 @@ class TPM:
 
         # Set registerList to None
         self._registerList = None
+
+        # Set deviceList to None
+        self._deviceList = None
 
         # Set ID to None
         self.id = None
@@ -155,9 +173,10 @@ class TPM:
         # All OK, call function
         err = Error(self._tpm.loadFirmwareBlocking(self.id, device.value, filepath))
 
-        # If call succeeded, get register list
+        # If call succeeded, get register and device list
         if err == Error.Success:
             self.getRegisterList()
+            self.getDeviceList()
 
         # Return 
         return err
@@ -178,6 +197,9 @@ class TPM:
         # Call function
         registers = self._tpm.getRegisterList(self.id, ptr)
 
+        # Create device map for register names
+        names = { Device.Board : "board", Device.FPGA_1 : "fpga1", Device.FPGA_2 : "fpga2" }
+
         # Wrap register formats and return
         registerList = { }
         for i in range(num.value):
@@ -191,7 +213,7 @@ class TPM:
             reg['bitmask']     = registers[i].bitmask
             reg['bits']        = registers[i].bits
             reg['description'] = registers[i].description
-            registerList[reg['name']] = reg
+            registerList["%s.%s" % (names[reg['device']], reg['name'])] = reg
 
         # Store register list locally for get and set items
         self._registerList = registerList
@@ -200,6 +222,39 @@ class TPM:
         self._tpm.freeMemory(registers)
 
         return registerList
+
+    def getDeviceList(self):
+        """ Get list of SPI devices """
+
+        # Check if register list has already been acquired, and if so return it
+        if self._deviceList is not None:
+            return self._deviceList
+
+        # Create an integer and extract it's address
+        INTP = ctypes.POINTER(ctypes.c_uint32)
+        num  = ctypes.c_uint32(0)
+        addr = ctypes.addressof(num)
+        ptr  = ctypes.cast(addr, INTP)
+
+        # Call function
+        devices = self._tpm.getDeviceList(self.id, ptr)
+
+        # Wrap register formats and return
+        deviceList = { }
+        for i in range(num.value):
+            reg = { }
+            reg['name']      = devices[i].name
+            reg['spi_en']    = devices[i].spi_en
+            reg['spi_sclk']  = devices[i].spi_sclk
+            deviceList[reg['name']] = reg
+
+        # Store register list locally for get and set items
+        self._deviceList = deviceList
+
+        # Free registers pointer
+        self._tpm.freeMemory(devices)
+
+        return deviceList
 
     def readRegister(self, device, register, n = 1, offset = 0):
         """" Get register value """
@@ -292,6 +347,40 @@ class TPM:
             print "Something not quite right in writeAddress"
 
 
+    def readDevice(self, device, address):
+        """" Get device value """
+    
+        # Check if device is in device list
+        if device not in self._deviceList:
+            print "Device not found in device list"
+            return
+
+        # Call function
+        values = self._tpm.readDevice(self.id, device, address)
+
+        # Check if value succeeded, otherwise reture
+        if values.error == Error.Failure.value:
+            return Error.Failure
+
+        # Read succeeded, wrap data and return
+        valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
+
+        if n == 1:
+            return valPtr[0]
+        else:
+            return [valPtr[i] for i in range(n)]
+
+    def writeDevice(self, device, address, value):
+        """ Set device value """
+
+        # Check if device is in device list
+        if device not in self._deviceList:
+            print "Device not found in device list"
+            return
+
+        # Call function
+        return Error(self._tpm.writeDevice(self.id, device, address, value))
+
     def listRegisterNames(self):
         """ Print list of register names """
         
@@ -313,8 +402,21 @@ class TPM:
             for regname in sorted(v):
                 print '\t' + str(regname)
 
+    def listDeviceNames(self):
+        """ Print list of SPI device names """
+        
+        # Run check
+        if not self._checks():
+            return
+
+        # Loop over all SPI devices
+        print "List of SPI Devices"
+        print "-------------------"
+        for k in self._deviceList:
+            print k
+
     def findRegister(self, string, display = False):
-        """ Return register information for provided register """
+        """ Return register information for provided search string """
         
         # Run checks
         if not self._checks():
@@ -346,6 +448,29 @@ class TPM:
         # Return matches
         return matches
 
+    def findDevice(self, string, display = False):
+        """ Return SPI device information for provided search string """
+
+        # Run check
+        if not self._check():
+            return
+
+        # Loop over all devices
+        matches = []
+        for k, v in self._deviceList:
+            if re.match(string, k) is not None:
+                matches.append(v)
+
+        # Display to screen if required
+        if display:
+            string = "\n"
+            for v in sorted(matches, key = lambda k : k['name']):
+                string += 'Name: %s, spi_sclk: %d, spi_en: %d\n' % (v['name'], v['spi_sclk'], v['spi_en'])
+            print string
+
+        # Return matches
+        return matches
+
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
 
@@ -357,22 +482,20 @@ class TPM:
         if type(key) is int:
             return self.readAddress(key)
 
+        # Checkl if the specified key is a tuple, in which case we are reading from a device
+        if type(key) is tuple:
+            if len(key) == 2:
+                return self.readDevice(key[0], key[1])
+            else:
+                print "A device name and address need to be specified for reading SPI devices"
+
         elif type(key) is str:
             # Check if a device is specified in the register name
             device = self._getDevice(key)
-            if device:
-                # Device found, extract register name
+            if self._registerList.has_key(key):
+                reg = self._registerList[key]
                 key = '.'.join(key.split('.')[1:])
-                # Check if register list contains this register
-                if self._registerList.has_key(key):
-                    # Get register value
-                    reg = self._registerList[key]
-                    return self.readRegister(device, key, reg['size'])
-            # No device specified, get register value
-            else:            
-                if self._registerList.has_key(key):
-                    reg = self._registerList[key]
-                    return self.readRegister(reg['device'], key, reg['size'])
+                return self.readRegister(device, key, reg['size'])
         else:
             print "Unrecognised key type. Use register name or memory address"
             return
@@ -391,21 +514,20 @@ class TPM:
         if type(key) is int:
             return self.writeAddress(key, value)
 
+        # Check if the specified key is a tuple, in which case we are writing to a device
+        if type(key) is tuple:
+            if len(key) == 2:
+                return self.writeDevice(key[0], key[1], value)
+            else:
+                print "A device name and address need to be specified for writing to SPI devices"
+
         elif type(key) is str:      
             # Check if device is specified in the register name
             device = self._getDevice(key)
-            if device:
-                # Device found, extract register name
-                key = key = '.'.join(key.split('.')[1:])
-                # Check if register list contains the register
-                if self._registerList.has_key(key):
-                    reg = self._registerList[key]
-                    return self.writeRegister(device, key, value)
-            # No device found, get register value
-            else:
-                if self._registerList.has_key(key): 
-                    reg = self._registerList[key]
-                    return self.writeRegister(reg['device'], key, value)
+            if self._registerList.has_key(key):
+                reg = self._registerList[key]
+                key = '.'.join(key.split('.')[1:])
+                return self.writeRegister(device, key, value)
         else:
             print "Unrecognised key type. Use register name or memory address"
             return
@@ -442,6 +564,14 @@ class TPM:
                 adspace  = ' ' * (15 - len(hex(reg['address'])))
                 string += '%s\t%s%s%s%s0x%08X\n' % (DeviceNames[k], reg['name'], regspace, hex(reg['address']), adspace, reg['bitmask'])
 
+        # Add SPI devices
+        if len(self._deviceList) > 0:
+            string += "\nSPI Devices\n"
+            string += "-----------\n"
+
+        for v in sorted(self._deviceList.itervalues(), key = lambda k : k['name']):
+            string += 'Name: %s\tspi_sclk: %d\tspi_en: %d\n' % (v['name'], v['spi_sclk'], v['spi_en'])
+
         # Return string representation
         return string
 
@@ -465,12 +595,11 @@ class TPM:
 
         try:
             device = name.split('.')[0].upper()
-            print device
-            if device in ['BOARD', 'CPLD', 'TPM']:
+            if device == "BOARD":
                 return Device.Board
-            elif device in ['FPGA_1', 'FPGA1']:
+            elif device == "FPGA1":
                 return Device.FPGA_1
-            elif device in ['FPGA2', 'FPGA_2']:
+            elif device == "FPGA2":
                 return Device.FPGA_2
             else:
                 return None
@@ -526,6 +655,18 @@ class TPM:
         # Define writeRegister function
         self._tpm.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
         self._tpm.writeAddress.restype = ctypes.c_int
+
+        # Define getDeviceList function
+        self._tpm.getDeviceList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
+        self._tpm.getDeviceList.restype = ctypes.POINTER(self.SPIDeviceInfoStruct)
+
+        # Define readDevice function
+        self._tpm.readDevice.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_uint32]
+        self._tpm.readDevice.restype = self.ValuesStruct
+
+        # Define writeDevice function
+        self._tpm.writeDevice.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_uint32, ctypes.c_uint32]
+        self._tpm.writeDevice.restype = ctypes.c_int
 
         # Define freeMemory function
         self._tpm.freeMemory.argtypes = [ctypes.c_void_p]

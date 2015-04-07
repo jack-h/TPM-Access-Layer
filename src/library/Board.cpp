@@ -12,6 +12,9 @@ Board::Board(const char *ip, unsigned short port)
 {
     // Set default number of FPGAs
     this -> num_fpgas = 1;
+
+    this -> spi_devices = NULL;
+    this -> memory_map  = NULL;
 }
 
 // ------------------------ TPM class implementation -----------------------
@@ -151,6 +154,128 @@ RETURN TPM::writeAddress(UINT address, UINT n, UINT *values)
     return protocol -> writeRegister(address, n, values);
 }
 
+// Get list of SPI devices
+SPI_DEVICE_INFO *TPM::getDeviceList(UINT *num_devices)
+{
+    return spi_devices -> getSPIList(num_devices);
+}
+
+// Read value from device
+VALUES TPM::readDevice(REGISTER device, UINT address)
+{
+    // Get device information 
+    std::pair<int, int> info = spi_devices -> getSPIInfo(device);
+
+    // If device was not found, return error
+    if (info.first == -1 && info.second == -1)
+    {
+        DEBUG_PRINT("TPM::readDevice. Device " << device << " was not found in device list");
+        return {0, FAILURE};
+    }
+
+    // TODO: Check address
+
+    UINT base_address = spi_devices -> spi_address;
+
+    // Wait for SPI switch to be ready
+    // TODO: Make nicer
+    for(;;)
+    {
+        VALUES vals = protocol -> readRegister(base_address + spi_devices -> cmd_address, 1);
+        printf("First Value: %d\n", (vals.values[0] & (spi_devices -> cmd_start_mask)));
+        if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
+            break;
+        sleep(1);
+    }
+
+    // All system go, issue request as an array of values
+    UINT values[6];
+    values[0] = address;  // Address
+    values[1] = 0;        // Applicable only to write operations
+    values[2] = 0;        // Skip
+    values[3] = info.first;   // spi_en
+    values[4] = info.second;  // spi_sclk   
+    values[5] = 0x03;     // Read operation    
+    
+    // Issue request
+    if (protocol -> writeRegister(base_address + spi_devices -> cmd_address, 6, values) == FAILURE)
+    {
+        DEBUG_PRINT("TPM::readDevice. Failed to read from device " << device);
+        return {0, FAILURE};
+    }
+
+    // Wait for request to be completed on board
+    for(;;)
+    {
+        VALUES vals = protocol -> readRegister(base_address + spi_devices -> cmd_address, 1);
+        printf("Second Value: %d\n", (vals.values[0] & (spi_devices -> cmd_start_mask)));
+        if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
+            break;
+        sleep(1);
+    }
+
+    // Request ready on device, grab data
+    VALUES vals = protocol -> readRegister(base_address + spi_devices -> read_data, 1);
+    vals.values[0] = vals.values[0] & spi_devices -> read_data_mask;
+
+    // All done
+    return vals;
+}
+
+// Write value to device
+RETURN TPM::writeDevice(REGISTER device, UINT address, UINT value)
+{
+    // Get device information 
+    std::pair<int, int> info = spi_devices -> getSPIInfo(device);
+
+    // If device was not found, return error
+    if (info.first == -1 && info.second == -1)
+    {
+        DEBUG_PRINT("TPM::readDevice. Device " << device << " was not found in device list");
+        return FAILURE;
+    }
+
+    // TODO: Check address
+
+    UINT base_address = spi_devices -> spi_address;
+
+    // Wait for SPI switch to be ready
+    // TODO: Make nicer
+    for(;;)
+    {
+        VALUES vals = protocol -> readRegister(base_address + spi_devices -> cmd_address, 1);
+        if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
+            break;
+    }
+
+    // All system go, issue request as an array of values
+    UINT values[6];
+    values[0] = address;  // Address
+    values[1] = value & spi_devices -> write_data_mask;  // Value to write
+    values[2] = 0;        // Skip
+    values[3] = info.first;   // spi_en
+    values[4] = info.second;  // spi_sclk   
+    values[5] = 0x01;     // Write operation    
+    
+    // Issue request
+    if (protocol -> writeRegister(base_address + spi_devices -> cmd_address, 6, values) == FAILURE)
+    {
+        DEBUG_PRINT("TPM::readDevice. Failed to read from device " << device);
+        return FAILURE;
+    }
+
+    // Wait for request to be completed on board
+    for(;;)
+    {
+        VALUES vals = protocol -> readRegister(base_address + spi_devices -> cmd_address, 1);
+        if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
+            break;
+    }
+
+    // All done
+    return SUCCESS;
+}
+
 // Asynchronously load firmware to FPGA.
 RETURN TPM::loadFirmware(DEVICE device, const char* bitstream)
 {
@@ -169,7 +294,55 @@ RETURN TPM::loadFirmwareBlocking(DEVICE device, const char* bitstream)
     char *xml_file = extractXMLFile(bitstream);
 
     // Create new memory map
-    memory_map = new MemoryMap(xml_file);    
+    memory_map = new MemoryMap(xml_file); 
+
+    // We have memory map, check if it contains an SPI entry
+    MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(BOARD, "spi");
+    if (info == NULL)
+        return SUCCESS;
+
+    // SPI detected, check if XML file path exists
+    if (info -> module == "")
+    {
+        DEBUG_PRINT("Error loading SPI devices, XML file not specified");
+        return SUCCESS;
+    }
+    
+    // Load SPI XML file
+    spi_devices = new SPI(const_cast<char *>((info -> module).c_str()));       
+       
+    // Populate general SPI properties
+    info = memory_map -> getRegisterInfo(BOARD, "spi");
+    spi_devices -> spi_address = info -> address;
+    
+    info = memory_map -> getRegisterInfo(BOARD, "spi.address");
+    spi_devices -> spi_address += info -> address;
+    spi_devices -> spi_address_mask = info -> bitmask;
+
+    info = memory_map -> getRegisterInfo(BOARD, "spi.write_data");
+    spi_devices -> write_data = info -> address;
+    spi_devices -> write_data_mask = info -> bitmask;
+
+    info = memory_map -> getRegisterInfo(BOARD, "spi.read_data");
+    spi_devices -> read_data = info -> address;
+    spi_devices -> read_data_mask = info -> bitmask;
+
+    info = memory_map -> getRegisterInfo(BOARD, "spi.chip_select");
+    spi_devices -> chip_select = info -> address;
+    spi_devices -> chip_select_mask = info -> bitmask;
+
+    info = memory_map -> getRegisterInfo(BOARD, "spi.sclk");
+    spi_devices -> sclk = info -> address;
+    spi_devices -> sclk_mask = info -> bitmask;
+
+    info = memory_map -> getRegisterInfo(BOARD, "spi.cmd");
+    spi_devices -> cmd_address = info -> address;
+
+    info = memory_map -> getRegisterInfo(BOARD, "spi.cmd.start");
+    spi_devices -> cmd_start_mask = info -> bitmask;
+    
+    info = memory_map -> getRegisterInfo(BOARD, "spi.cmd.rnw");
+    spi_devices -> cmd_rnw_mask = info -> bitmask;
 
     return SUCCESS;
 }

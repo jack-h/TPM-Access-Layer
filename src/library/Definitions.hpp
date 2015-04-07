@@ -46,7 +46,11 @@ STATUS;
 
 // At least three types of registers can be defined (a sensor, a board/
 // peripheral register and a firmware register).
-typedef enum {SENSOR = 1, BOARD_REGISTER = 2, FIRMWARE_REGISTER = 3} REGISTER_TYPE;
+typedef enum {SENSOR            = 1, 
+              BOARD_REGISTER    = 2, 
+              FIRMWARE_REGISTER = 3, 
+              SPI_DEVICE        = 4, 
+              COMPONENT         = 5} REGISTER_TYPE;
 
 // ### Register access permissions 
 typedef enum {READ = 1, WRITE = 2, READWRITE = 3} PERMISSION;
@@ -72,5 +76,12 @@ typedef struct REGISTER_INFO {
     unsigned int  size;         // Memory size in bytes 
     const char    *description; // Register string description
 } REGISTER_INFO;
+
+// Encapsulate SPI device information 
+typedef struct SPI_DEVICE_INFO {
+    REGISTER      name;         // String representation of register
+    UINT          spi_sclk;     // SPI_SCLK
+    UINT          spi_en;       // SPI_EN
+} SPI_DEVICE_INFO;
 
 #endif // DEFINITIONS

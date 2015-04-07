@@ -5,6 +5,7 @@
 #include "MemoryMap.hpp"
 #include "Protocol.hpp"
 #include "Utils.hpp"
+#include "SPI.hpp"  
 
 #include <string.h>
 
@@ -50,8 +51,10 @@ class Board
         virtual RETURN loadFirmwareBlocking(DEVICE device, const char* bitstream) = 0;
 
         // Functions dealing with on-board devices (such as SPI devices)
-        // virtual 
-
+        virtual SPI_DEVICE_INFO *getDeviceList(UINT *num_devices) = 0;
+        virtual VALUES          readDevice(REGISTER device, UINT address) = 0;
+        virtual RETURN          writeDevice(REGISTER device, UINT address, UINT value) = 0;
+        
     // ---------- Protected class functions ---------- 
     protected:
 
@@ -61,12 +64,14 @@ class Board
         unsigned int    id;   // Board identifier
         char            *ip;  // Board IP address
         unsigned short  port; // Port to communicate with board
-        unsigned short  num_fpgas;   // Number of FPGAs on board
+        unsigned short  num_fpgas;  // Number of FPGAs on board
         STATUS          status; // Board status
 
-        Protocol        *protocol;   // Protocol instance to communicate with board
+        Protocol        *protocol;    // Protocol instance to communicate with board
 
-        MemoryMap       *memory_map; // Memory map instance
+        MemoryMap       *memory_map;  // Memory map instance
+
+        SPI             *spi_devices; // SPI devices map
 
 };
 
@@ -104,6 +109,11 @@ class TPM: public Board
 
         // Synchronously load firmware to FPGA
         RETURN loadFirmwareBlocking(DEVICE device, const char* bitstream);
+
+        // Functions dealing with on-board devices (such as SPI devices)
+        SPI_DEVICE_INFO *getDeviceList(UINT *num_devices);
+        VALUES          readDevice(REGISTER device, UINT address);
+        RETURN          writeDevice(REGISTER device, UINT address, UINT value);
 
     protected:
 };

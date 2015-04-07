@@ -100,7 +100,7 @@ STATUS DLL_EXPORT getStatus(ID id)
 }
 
 // Get list of registers
-REGISTER_INFO* DLL_EXPORT getRegisterList(ID id, unsigned int *num_registers)
+REGISTER_INFO* DLL_EXPORT getRegisterList(ID id, UINT *num_registers)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -116,6 +116,25 @@ REGISTER_INFO* DLL_EXPORT getRegisterList(ID id, unsigned int *num_registers)
 
     // Return register list
     return board -> getRegisterList(num_registers);
+}
+
+// Get list of SPI devices
+SPI_DEVICE_INFO* DLL_EXPORT getDeviceList(ID id, UINT *num_devices)
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end())
+    {
+        DEBUG_PRINT("AccessLayer::getDeviceList. " << id << " not connected");
+        return NULL;   
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Return device list
+    return board -> getDeviceList(num_devices);
 }
 
 // Get a register's value
@@ -193,6 +212,44 @@ RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT n, UINT *values)
 
     // Write value to address on board
     return board -> writeAddress(address, n, values);
+}
+
+// Get a device's value
+VALUES DLL_EXPORT readDevice(ID id, REGISTER device, UINT address)
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::readDevice. " << id << " not connected");
+        return {0, FAILURE};
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Get register value from board
+    return board -> readDevice(device, address);
+}
+
+// Set a device's value
+RETURN DLL_EXPORT writeDevice(ID id, REGISTER device, UINT address, UINT value)
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::writeDevice. " << id << " not connected");
+        return FAILURE;
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Write value to address on board
+    return board -> writeDevice(device, address, value);
 }
 
 // Load firmware to FPGA. This function return immediately. The status of the

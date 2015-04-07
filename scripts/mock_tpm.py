@@ -33,8 +33,8 @@ def readMemory(address, n):
         if addr in memory.keys():
             values.append(memory[addr])
         else:
-            memory[addr] = 45
-            values.append(45)
+            memory[addr] = 0
+            values.append(0)
 
     # Return values
     return values
