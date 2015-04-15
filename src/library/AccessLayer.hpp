@@ -29,7 +29,7 @@
 //   port  Port number to use
 // Returns:
 //   A board ID in case of success, -1 on failure      
-extern "C" ID DLL_EXPORT connectBoard(const char* IP, unsigned short port);
+extern "C" ID DLL_EXPORT connectBoard(BOARD_MAKE board, const char* IP, unsigned short port);
 
 // Clear up internal network structures for board in question
 // Arguments:
@@ -71,7 +71,7 @@ extern "C" REGISTER_INFO* DLL_EXPORT getRegisterList(ID id, UINT *num_registers)
 //   reg     Register to query
 // Returns:
 //    VALUE 
-extern "C" VALUES DLL_EXPORT readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset = 0);
+extern "C" VALUES DLL_EXPORT readRegister(ID id, DEVICE device, REGISTER reg, UINT n = 1, UINT offset = 0);
 
 // Arguments:
 //   id      Board ID
@@ -80,7 +80,7 @@ extern "C" VALUES DLL_EXPORT readRegister(ID id, DEVICE device, REGISTER reg, UI
 //   value   32-bit value to write to register
 // Returns:
 //    VALUE 
-extern "C" RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset = 0);
+extern "C" RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n = 1, UINT offset = 0);
 
 // Get address content
 // Arguments:
@@ -89,7 +89,7 @@ extern "C" RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, U
 //   n        Number of values to read
 // Returns:
 //    VALUE 
-extern "C" VALUES DLL_EXPORT readAddress(ID id, UINT address, UINT n);
+extern "C" VALUES DLL_EXPORT readAddress(ID id, UINT address, UINT n = 1);
 
 // Arguments:
 //   id      Board ID
@@ -98,7 +98,7 @@ extern "C" VALUES DLL_EXPORT readAddress(ID id, UINT address, UINT n);
 //   values  32-bit values to write to address
 // Returns:
 //    VALUE 
-extern "C" RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT n, UINT *values);
+extern "C" RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT *values, UINT n = 1);
 
 // [Optional] Set a periodic register
 // Arguments:
@@ -176,6 +176,13 @@ extern "C" RETURN DLL_EXPORT writeDevice(ID id, REGISTER device, UINT address, U
 //       directory as the bitstream, with the same name (except the extention, which
 //       will be .XML. It is also assumed that the file will contain the mapping for
 //       the CPLD, FPGA1 and FPGA2, and that no additional module files are required
+
+// Get list of firmware preset on the board
+// Arguments:
+//    id            Board ID
+//    device        Sepcify to which DEVICE this applies
+//    num_firmware  Return number of firmware on board
+extern "C" FIRMWARE DLL_EXPORT getFirmware(ID id, DEVICE device, UINT *num_firmware);
 
 // Load firmware to DEVICE. This function return immediately. The status of the
 // board can be monitored through the getStatus call

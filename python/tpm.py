@@ -297,13 +297,13 @@ class TPM:
             ptr  = ctypes.cast(addr, INTP)
 
             return Error(self._tpm.writeRegister(self.id, device.value,
-                                                 register, 1, ptr, offset))
+                                                 register, ptr, 1, offset))
 
         elif type(values) is list:
             n = len(values)
             vals = (ctypes.c_uint32 * n) (*values)
             return Error(self._tpm.writeRegister(self.id, device.value,
-                                                 register, n, vals, offset))
+                                                 register, vals, n, offset))
         else:
             print "Something not quite right in writeRegister"
 
@@ -337,12 +337,12 @@ class TPM:
             addr = ctypes.addressof(num)
             ptr  = ctypes.cast(addr, INTP)
 
-            return Error(self._tpm.writeAddress(self.id, address, 1, ptr))
+            return Error(self._tpm.writeAddress(self.id, address, ptr))
 
         elif type(values) is list:
             n = len(values)
             vals = (ctypes.c_uint32 * n) (*values)
-            return Error(self._tpm.writeAddress(self.id, address, n, vals))
+            return Error(self._tpm.writeAddress(self.id, address, vals, n))
         else:
             print "Something not quite right in writeAddress"
 
@@ -645,7 +645,7 @@ class TPM:
         self._tpm.readRegister.restype = self.ValuesStruct
 
         # Define writeRegister function
-        self._tpm.writeRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
+        self._tpm.writeRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32, ctypes.c_uint32]
         self._tpm.writeRegister.restype = ctypes.c_int
 
         # Define readRegister function
@@ -653,7 +653,7 @@ class TPM:
         self._tpm.readAddress.restype = self.ValuesStruct
 
         # Define writeRegister function
-        self._tpm.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
+        self._tpm.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
         self._tpm.writeAddress.restype = ctypes.c_int
 
         # Define getDeviceList function

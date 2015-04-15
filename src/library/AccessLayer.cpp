@@ -10,8 +10,10 @@
 #include <map>
 
 #include "AccessLayer.hpp"
+#include "ROACH.hpp"
 #include "Board.hpp"
 #include "Utils.hpp"
+#include "TPM.hpp"
 
 using namespace std;
 
@@ -22,7 +24,7 @@ map<unsigned int, Board *> boards;
 
 // Set up internal structures to be able to communicate with a processing board
 // Arguments:
-ID DLL_EXPORT connectBoard(const char* IP, unsigned short port)
+ID DLL_EXPORT connectBoard(BOARD_MAKE boardMake, const char* IP, unsigned short port)
 {    
     DEBUG_PRINT("AccessLayer::connect. Connecting to " << IP);
 
@@ -44,7 +46,25 @@ ID DLL_EXPORT connectBoard(const char* IP, unsigned short port)
     }
 
     // If not, create board instance, store in map
-    Board *board = new TPM(IP, port);
+    Board *board;
+
+    switch (boardMake)
+    {
+        case TPM_BOARD:
+        {
+            board = new TPM(IP, port);
+            break;
+        }
+        case ROACH_BOARD:
+        {
+            board = new ROACH(IP, port);
+            break;
+        }
+        case ROACH2_BOARD:
+            break;
+        case UNIBOARD_BOARD:
+            break;
+    }
 
     // Check if board connected succesfully
     if (board -> getStatus() == NETWORK_ERROR)
@@ -157,7 +177,7 @@ VALUES DLL_EXPORT readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT 
 }
 
 // Set a register's value
-RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT *values, UINT offset)
+RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n, UINT offset)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -172,7 +192,7 @@ RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT
     Board *board = it -> second;
 
     // Get register value from board
-    return board -> writeRegister(device, reg, n, values, offset);
+    return board -> writeRegister(device, reg, values, n, offset);
 }
 
 // Read from address
@@ -196,7 +216,7 @@ VALUES DLL_EXPORT readAddress(ID id, UINT address, UINT n)
 
 
 // Write from address
-RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT n, UINT *values)
+RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT *values, UINT n)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -211,7 +231,7 @@ RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT n, UINT *values)
     Board *board = it -> second;
 
     // Write value to address on board
-    return board -> writeAddress(address, n, values);
+    return board -> writeAddress(address, values, n);
 }
 
 // Get a device's value
@@ -250,6 +270,29 @@ RETURN DLL_EXPORT writeDevice(ID id, REGISTER device, UINT address, UINT value)
 
     // Write value to address on board
     return board -> writeDevice(device, address, value);
+}
+
+// Get list of firmware on board
+FIRMWARE DLL_EXPORT getFirmware(ID id, DEVICE device, UINT *num_firmware)
+{
+    // Check if device is valid
+    if (!(device == FPGA_1 || device == FPGA_2))
+        return NULL;
+
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end()) 
+    {
+        DEBUG_PRINT("AccessLayer::getFirmware. " << id << " not connected");
+        return NULL;   
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Cal getFirmware on board instance
+    return board -> getFirmware(device, num_firmware);
 }
 
 // Load firmware to FPGA. This function return immediately. The status of the

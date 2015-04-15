@@ -1,5 +1,5 @@
-#include "Protocol.hpp"
 #include "Utils.hpp"
+#include "UCP.hpp"
 
 #include <stdlib.h>
 
@@ -15,6 +15,7 @@ UCP::UCP() : Protocol()
     read_reply  = (ucp_read_reply *) malloc(sizeof(ucp_read_reply));
     write_reply = (ucp_write_reply *) malloc(sizeof(ucp_write_reply));
 }
+
 
 // Create and initialise socket
 RETURN UCP::createSocket(const char *IP, int port)
@@ -187,7 +188,7 @@ VALUES UCP::readRegister(UINT address, UINT n, UINT offset)
 }
 
 // Issue a write register request, and return reply
-RETURN UCP::writeRegister(UINT address, UINT n, UINT *values, UINT offset)
+RETURN UCP::writeRegister(UINT address, UINT *values, UINT n, UINT offset)
 {
     // Value per payload
     unsigned values_per_payload = MAX_PAYLOAD_SIZE / sizeof(UINT);
@@ -257,4 +258,10 @@ RETURN UCP::writeRegister(UINT address, UINT n, UINT *values, UINT offset)
  
     // All done
     return SUCCESS;
+}
+
+// TODO: Implement this when functionality is defined
+FIRMWARE UCP::listFirmware(UINT *num_firmware)
+{
+    return NULL;
 }

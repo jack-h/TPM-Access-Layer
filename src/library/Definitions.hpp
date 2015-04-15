@@ -28,8 +28,17 @@ typedef const char* REGISTER;
 // Representation of basic datatype
 typedef uint32_t UINT;
 
+// Represent list of firmware
+typedef char** FIRMWARE;
+
 // Device types
 typedef enum { BOARD = 1, FPGA_1 = 2, FPGA_2 = 4 } DEVICE;
+
+// Implemented board types
+typedef enum { TPM_BOARD = 1, 
+               ROACH_BOARD = 2, 
+               ROACH2_BOARD = 3, 
+               UNIBOARD_BOARD = 4 } BOARD_MAKE;
 
 // Return type for most of the function calls, specifying whether the call
 // succeeded or failed
