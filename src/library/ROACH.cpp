@@ -49,7 +49,23 @@ REGISTER_INFO* ROACH::getRegisterList(UINT *num_registers)
 // Get register value
 VALUES ROACH::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
 {
-    return {NULL, NOT_IMPLEMENTED};
+    // Check if device is valid
+    if (device != FPGA_1)
+    {
+        DEBUG_PRINT("ROACH::readRegister. Invalid device specific, only FPGA_1 is valid for ROACH");
+        return {NULL, FAILURE};
+    }
+
+    // Check if register is in list of registers
+    int index = katcp -> getRegisterIndex(reg);
+    if (index == -1)
+    {
+        DEBUG_PRINT("ROACH::readRegister. Register not found");
+        return {NULL, FAILURE};
+    }
+    
+    // Register found, call KATCP write function
+    return katcp -> readRegister((UINT) index, n, offset);
 }
 
 // Set register value

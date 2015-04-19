@@ -187,9 +187,10 @@ class FPGABoard(object):
         firmware = self._board.getFirmware(self.id, device.value, ptr)
 
         # Process all firmware
-        firmwareList = []
-        for i in range(num.value):
-            pass
+        firmwareList = [firmware[i] for i in range(num.value)]
+
+        # Free firmware pointer
+        self._board.freeMemory(firmware)
 
         # Store as class member and return
         self._firmwareList = firmwareList
@@ -258,14 +259,16 @@ class FPGABoard(object):
             reg['size']        = registers[i].size
             reg['bitmask']     = registers[i].bitmask
             reg['bits']        = registers[i].bits
-            reg['description'] = registers[i].description
+            #TODO: Check below
+#            reg['description'] = registers[i].description
             registerList["%s.%s" % (names[reg['device']], reg['name'])] = reg
 
         # Store register list locally for get and set items
         self._registerList = registerList
 
         # Free registers pointer
-        self._board.freeMemory(registers)
+        # TODO: Does not work for Roach
+#        self._board.freeMemory(regist   ers)
 
         return registerList
 
@@ -346,6 +349,7 @@ class FPGABoard(object):
 
             # Create an integer and extract it's address
             INTP = ctypes.POINTER(ctypes.c_uint32)
+            print values
             num  = ctypes.c_uint32(values)
             addr = ctypes.addressof(num)
             ptr  = ctypes.cast(addr, INTP)
@@ -751,7 +755,7 @@ class Roach(FPGABoard):
         kwargs['fpgaBoard'] = BoardMake.RoachBoard
         return super(Roach, self).__init__(*args, **kwargs)
 
-    def getRegisterList():
+    def getRegisterList(self):
         """ Add functionality to getRegisterList in order to map register names 
             as python attributes """
 
@@ -761,10 +765,18 @@ class Roach(FPGABoard):
         # The super class will prepend the device type to the register name.
         # Since everyting on the roach is controlled by a single entity, we don't
         # need this. Remove prepended device type
-        for i in range(self._registerList):
-            self._registerList[i].replace("fpga1.","")
+        newRegList = { }
+        for k in self._registerList.keys():
+            newKey = k.replace("fpga1.", "")
+            newRegList[newKey] = self._registerList[k]
+            newRegList[newKey]['name'] = newKey
+        self._registerList = newRegList
 
         return self._registerList
+
+    def getFirmwareList(self):
+        """ Roach helper for getFirmwareList """
+        return super(Roach, self).getFirmwareList(Device.FPGA_1)
 
     def readRegister(self, register, n = 1, offset = 0):
         """ Roach helper for readRegister """
@@ -792,7 +804,7 @@ class Roach(FPGABoard):
         # Check if register is valid
         if type(key) is str:
             if self._registerList.has_key(key):
-                return self.readRegister(device, key, reg['size'])
+                return self.readRegister(key, self._registerList[key]['size'])
         else:
             print "Unrecognised key type. Use register name or memory address"
             return
@@ -810,7 +822,7 @@ class Roach(FPGABoard):
         if type(key) is str:      
             # Check if register is valid
             if self._registerList.has_key(key):
-                return self.writeRegister(device, key, value)
+                return self.writeRegister(key, value)
         else:
             print "Unrecognised key type. Use register name or memory address"
             return
@@ -841,4 +853,5 @@ class Roach(FPGABoard):
 
     def __str__(self):
         """ Override __str__ to print register information in a human readable format """
-        return super(Roach, self).listRegisterNames()
+        super(Roach, self).listRegisterNames()
+        return ""

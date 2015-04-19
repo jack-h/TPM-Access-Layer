@@ -78,6 +78,22 @@ char *KATCP::readReply(UINT bytes)
     return buffer;
 }
 
+// Process KATCP escapes
+string KATCP::processEscapes(string &s, const char to_detect, const char to_replace)
+{
+    string value = "";
+    for(unsigned i = 0; i < s.size(); i++)
+        if (s[i] == '\\' && s[i+1] == to_detect) 
+        {
+            value += to_replace;
+            i++;
+        }
+        else
+            value += s[i];
+    return value;
+}
+
+
 // =====================================================================
 
 // Class constructor
@@ -194,7 +210,20 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
                     DEBUG_PRINT("KATCP::readRegister. Command failed on board");
                     continue;
                 } 
-        
+
+                // Extract binary string 
+                line = line.substr(3, line.size());
+
+                // Process nulls
+                line = processEscapes(line, '0', '\0');
+
+                // Check if size is a multiple of 4
+                if (line.size() < 4 || line.size() % 4 != 0)
+                {
+                    DEBUG_PRINT("KATCP::readRegister. Incorrect value reply size");
+                    continue;
+                }
+
                 // We have our data, convert to unsigned integers
                 for (unsigned i = 0; i < line.size() / 4; i++)
                 {
@@ -457,7 +486,7 @@ REGISTER_INFO* KATCP::getRegisterList(UINT *num_registers)
         list[i].type = FIRMWARE_REGISTER;
         list[i].device = FPGA_1;
         list[i].permission = READWRITE;
-        list[i].size = 4; 
+        list[i].size = 1; 
         list[i].bitmask = 0xFFFFFFFF;
         list[i].bits = 32;
     }

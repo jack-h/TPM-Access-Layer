@@ -39,6 +39,7 @@ class KATCP: public Protocol
         void processInforms(std::string entry);
         void sendRequest(std::string command, std::vector<std::string> args);
         char *readReply(UINT bytes = 8192);
+        std::string processEscapes(std::string &s, const char to_detect, const char to_replace);
 
     // Public functions specific to KATCP
     public:
