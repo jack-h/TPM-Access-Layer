@@ -160,7 +160,71 @@ RETURN KATCP::closeSocket()
 // Issue a read register request, and return reply
 VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
 {
-    return {NULL, NOT_IMPLEMENTED};
+    // Send command
+    string regname = this -> registers[address];
+    sendRequest(string("read"), { regname, to_string(offset), to_string(n * 4) });
+
+    // Store values
+    vector<uint32_t> values;
+
+    // Read replies for board
+    RETURN result = FAILURE;
+    bool processed = false;
+    while (!processed)
+    {
+        char *buffer = readReply();
+        string reply = string(buffer); 
+        istringstream inputStream(reply);
+        string endRequestPrefix = "!read"; 
+
+        while(!inputStream.eof())
+        {
+            string line;
+            getline(inputStream, line);
+
+            // Line contains result
+            if (line.substr(0, endRequestPrefix.size()) == endRequestPrefix)
+            {
+                line = line.substr(endRequestPrefix.size() + 1, line.size());
+                processed = true;
+
+                // Check if command was succesful
+                if (line.substr(0, 2) != "ok")
+                {
+                    DEBUG_PRINT("KATCP::readRegister. Command failed on board");
+                    continue;
+                } 
+        
+                // We have our data, convert to unsigned integers
+                for (unsigned i = 0; i < line.size() / 4; i++)
+                {
+                    const char *data = line.substr(i * 4, (i+1)*4).c_str();
+                    uint32_t value = 0;
+                    value |= (data[0] << 24);
+                    value |= (data[1] << 16);
+                    value |= (data[2] << 8);
+                    value |= (data[3]     );
+                    values.push_back(value);
+                }
+
+                result = SUCCESS;
+            }
+            else    
+                // Other type of output, treat as inform
+                // TODO: Get these
+                processInforms(line);
+        }
+    }
+
+    // Create VALUES result
+    if (result == SUCCESS)
+    {
+        UINT *retValues = (UINT *) malloc(values.size() * sizeof(UINT));
+        memcpy(retValues, &values[0], values.size() * sizeof(UINT));
+        return {retValues, result};
+    }
+    else
+        return {NULL, result};
 }
 
 // Issue a write register request, and return reply
@@ -196,11 +260,9 @@ RETURN KATCP::writeRegister(UINT address, UINT *values, UINT n, UINT offset)
     bool succesful = true;
     while (!processed)
     {
-
         char *buffer = readReply();
         string reply = string(buffer); 
         istringstream inputStream(reply);
-        string logPrefix        = "#log";
         string endRequestPrefix = "!write";
 
         while (!inputStream.eof())
