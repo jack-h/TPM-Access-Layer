@@ -225,11 +225,10 @@ class FPGABoard(object):
             self._programmed = True
             self.getRegisterList()
             self.getDeviceList()
+            print "Success"
         else:
             self._programmed = False
-
-        # Return 
-        return err
+            print "Failed"
 
     def getRegisterList(self):
         """ Get list of registers """

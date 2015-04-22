@@ -4,6 +4,8 @@
 #include "Definitions.hpp"
 
 #include <iostream>
+#include <string>
+#include <vector>
 
 // Logging macro
 #if DEBUG
@@ -25,5 +27,12 @@ UINT lendian(UINT value);
 #if defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
     int stoi(std::string input, int beg, int base);
 #endif
+
+// Split string by delimeter
+std::vector<std::string> &split(const std::string &s, char delim, 
+                                std::vector<std::string> &elems);
+
+std::vector<std::string> split(const std::string &s, char delim);
+
 
 #endif // UTILS

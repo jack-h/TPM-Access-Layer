@@ -15,12 +15,28 @@ using namespace std;
 
 // ========================== Private functions =======================
 
-// Process inform from board
-// entry can contain multiple informs
-// TODO: implement these and define behaviour depending on their content
+// Process inform from board.
 void KATCP::processInforms(string entry)
 {  
-  //  cout << entry << endl;
+    string logPrefix = "#log"; 
+    string clientConnectedPrefix = "#client-connected";
+
+    // Emptry inform, ignore
+    if (entry.size() < 2)
+        return;
+
+    // Client connected inform, ignore
+    else if (entry.substr(0, clientConnectedPrefix.size()) == clientConnectedPrefix)
+        return;
+
+    // Process logs
+    else if (entry.substr(0, logPrefix.size()) == logPrefix)
+    {
+        entry = entry.substr(logPrefix.size(), entry.size());
+        vector<string> entries = split(entry,  ' ');
+        entry = processEscapes(entries[3]);
+        cout << entry << endl;
+    }
 }
 
 // Send KATCP request
@@ -148,7 +164,6 @@ string KATCP::processEscapes(string &s)
 
     return value;
 }
-
 
 // =====================================================================
 

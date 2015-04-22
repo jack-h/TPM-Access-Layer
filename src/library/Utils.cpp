@@ -15,13 +15,15 @@
 #include <stdio.h>
 #include <math.h>
 
+using namespace std;
+
 // Convert string IP address to a 32-bit number
 ID convertIPtoID(const char *IP)
 {
     #ifdef __unix__
         struct sockaddr_in sa;
         inet_pton(AF_INET, IP, &(sa.sin_addr));
-        return (ID) abs(sa.sin_addr.s_addr);
+        return (ID) abs((long) sa.sin_addr.s_addr);
     #else
         // TODO: Write this up
         return 1010;
@@ -73,3 +75,23 @@ UINT lendian(UINT value)
         return x;
     }
 #endif
+
+// Split string by delimeter
+vector<string> & split(const string &s, char delim, vector<string> &elems) 
+{
+    stringstream ss(s);
+    string item;
+    while (getline(ss, item, delim)) 
+        if (!item.empty())
+            elems.push_back(item);
+    return elems;
+}
+
+
+vector<string> split(const string &s, char delim) 
+{
+    vector<string> elems;
+    split(s, delim, elems);
+    return elems;
+}
+
