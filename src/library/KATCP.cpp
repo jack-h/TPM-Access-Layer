@@ -89,6 +89,7 @@ char *KATCP::readReply(UINT bytes)
         if ((count = read(this -> sockfd, buffer + total, bytes)) <= 0)
         {
             // Timeout
+            buffer[0] = '\0';
             if (errno == EAGAIN)
                 return buffer;
             else // Error occured
@@ -100,7 +101,7 @@ char *KATCP::readReply(UINT bytes)
 
         // Set timeout
         struct timeval tv;
-        tv.tv_sec = 0;//(bytes > 8192 ? 1 : 0);  
+        tv.tv_sec = 0;
         tv.tv_usec = 0; 
 
         // Successfully read data, check if any more data is pending
@@ -120,9 +121,6 @@ char *KATCP::readReply(UINT bytes)
         if (result <= 0 && buffer[total -1] == '\n')
             ready = true;
     }
-
-    // Add a null terminator
-    buffer[total] = '\0';
 
     // All done, return
     return buffer;
@@ -259,11 +257,12 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
     bool processed = false;
     while (!processed)
     {
-        char *buffer = readReply(n * 4 * 2); // Four bytes per word + buffer
+        // Four bytes per word + buffer
+        char *buffer = readReply(n * 4 * 2 + 15); 
         string reply = string(buffer); 
-        istringstream inputStream(reply);
+        istringstream inputStream;
+        inputStream.str(reply);
         string endRequestPrefix = "!read"; 
-
         while(!inputStream.eof())
         {
             string line;

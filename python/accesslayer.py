@@ -114,6 +114,7 @@ class FPGABoard(object):
 
         # Set defaults
         self._registerList = None
+        self._firmwareList = None
         self._fpgaBoard    = 0
         self._deviceList   = None
         self.id            = None
@@ -360,7 +361,6 @@ class FPGABoard(object):
             addr = ctypes.addressof(num)
             ptr  = ctypes.cast(addr, INTP)
 
-            print "Calling write register"
             err = self._board.writeRegister(self.id, device.value,
                                             register, ptr, 1, offset)
             return err
@@ -878,7 +878,6 @@ class Roach(FPGABoard):
         elif self._registerList is not None and name in self._registerList:
             self.writeRegister(name, value)
         else:
-            print name, dir(self)
             print "Register %s not found" % name
             raise AttributeError  
 
