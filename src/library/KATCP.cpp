@@ -2,12 +2,14 @@
 #include "KATCP.hpp"
 #include "Utils.hpp"
 
+#include <sys/select.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
 
 #include <algorithm>
 #include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -17,8 +19,8 @@ using namespace std;
 // entry can contain multiple informs
 // TODO: implement these and define behaviour depending on their content
 void KATCP::processInforms(string entry)
-{
-
+{  
+  //  cout << entry << endl;
 }
 
 // Send KATCP request
@@ -61,35 +63,89 @@ void KATCP::sendRequest(string command, vector<string> args)
 char *KATCP::readReply(UINT bytes)
 {   
     // Read data from socket
-    int count;
+    int count, total = 0;
     char *buffer = (char *) malloc(bytes * sizeof(char));
+    memset(buffer, 0, bytes * sizeof(char));
 
-    if ((count = read(this -> sockfd, buffer, bytes)) == -1)
+    bool ready = false;
+    while (!ready)
     {
-        if (errno == EAGAIN)
-            return NULL;
-        else
+        if ((count = read(this -> sockfd, buffer + total, bytes)) <= 0)
         {
-            DEBUG_PRINT("KATCP::readReply. Error while reading reply from KATCP device");
-            return NULL;
+            // Timeout
+            if (errno == EAGAIN)
+                return buffer;
+            else // Error occured
+            {
+                DEBUG_PRINT("KATCP::readReply. Error while reading reply from KATCP device");
+                return buffer;
+            }
         }
-    } 
 
+        // Set timeout
+        struct timeval tv;
+        tv.tv_sec = 0;//(bytes > 8192 ? 1 : 0);  
+        tv.tv_usec = 0; 
+
+        // Successfully read data, check if any more data is pending
+        // Set up sets for select
+        fd_set readset;
+        FD_ZERO(&readset);
+        FD_SET(this -> sockfd, &readset);
+
+        int result;
+        do
+        {
+            result = select(1, &readset, NULL, NULL, &tv);
+        } while (result == -1 && errno == EINTR);
+
+        // Check if data is pending, and if so issue another read
+        total += count;
+        if (result <= 0 && buffer[total -1] == '\n')
+            ready = true;
+    }
+
+    // Add a null terminator
+    buffer[total] = '\0';
+
+    // All done, return
     return buffer;
 }
 
 // Process KATCP escapes
-string KATCP::processEscapes(string &s, const char to_detect, const char to_replace)
+string KATCP::processEscapes(string &s)
 {
     string value = "";
     for(unsigned i = 0; i < s.size(); i++)
-        if (s[i] == '\\' && s[i+1] == to_detect) 
+    {
+        if (s[i] == '\\')
         {
-            value += to_replace;
+            if (s[i+1] == '0') 
+                value += '\0';
+            else if (s[i+1] == 'e')
+                value += '\x1b';
+            else if (s[i+1] == 't') 
+                value += '\t';
+            else if (s[i+1] == 'n') 
+                value += '\n';
+            else if (s[i+1] == 'r') 
+                value += '\r';
+            else if (s[i+1] == '\'') 
+                value += '\'';
+            else if (s[i+1] == '"') 
+                value += '\"';
+            else if (s[i+1] == '\\') 
+                value += '\\';
+            else if (s[i+1] == '_') 
+                value += ' ';
+            else
+                i--;
             i++;
         }
         else
             value += s[i];
+    }
+
     return value;
 }
 
@@ -188,7 +244,7 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
     bool processed = false;
     while (!processed)
     {
-        char *buffer = readReply();
+        char *buffer = readReply(n * 4 * 2); // Four bytes per word + buffer
         string reply = string(buffer); 
         istringstream inputStream(reply);
         string endRequestPrefix = "!read"; 
@@ -214,8 +270,8 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
                 // Extract binary string 
                 line = line.substr(3, line.size());
 
-                // Process nulls
-                line = processEscapes(line, '0', '\0');
+                // Process escapes
+                line = processEscapes(line);
 
                 // Check if size is a multiple of 4
                 if (line.size() < 4 || line.size() % 4 != 0)
@@ -225,17 +281,16 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
                 }
 
                 // We have our data, convert to unsigned integers
-                for (unsigned i = 0; i < line.size() / 4; i++)
+                const unsigned char *buf = (unsigned char *) line.c_str();
+                for (unsigned i = 0; i < line.size(); i+= 4)
                 {
-                    const char *data = line.substr(i * 4, (i+1)*4).c_str();
                     uint32_t value = 0;
-                    value |= (data[0] << 24);
-                    value |= (data[1] << 16);
-                    value |= (data[2] << 8);
-                    value |= (data[3]     );
+                    value |= (*buf++ << 24);
+                    value |= (*buf++ << 16);
+                    value |= (*buf++ << 8);
+                    value |= (*buf++     );
                     values.push_back(value);
                 }
-
                 result = SUCCESS;
             }
             else    
@@ -243,6 +298,8 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
                 // TODO: Get these
                 processInforms(line);
         }
+
+        free(buffer);
     }
 
     // Create VALUES result
@@ -266,7 +323,7 @@ RETURN KATCP::writeRegister(UINT address, UINT *values, UINT n, UINT offset)
     for(unsigned i = 0; i < n; i++)
     {
         // Split unsigned integer into 4 bytes
-        char bytes[4];
+        unsigned char bytes[4];
         bytes[3] = values[i] & 0xFF;
         bytes[2] = (values[i] >> 8)  & 0xFF;
         bytes[1] = (values[i] >> 16) & 0xFF;
@@ -274,12 +331,28 @@ RETURN KATCP::writeRegister(UINT address, UINT *values, UINT n, UINT offset)
 
         // Catenate each byte to the packed string
         for(unsigned j = 0; j < 4; j++)
+        {
             if (bytes[j] == '\0')
                 packedData += "\\0";
+            else if (bytes[j] == '\t')
+                packedData += "\\t";
+            else if (bytes[j] == '\n')
+                packedData += "\\n";
+            else if (bytes[j] == '\r')
+                packedData += "\\r";
+            else if (bytes[j] == '\'')
+                packedData += "\\'";
+            else if (bytes[j] == '\"')
+                packedData += "\\\"";
+            else if (bytes[j] == '\\')
+                packedData += "\\\\";
+            else if (bytes[j] == ' ')
+                packedData += "\\_";
             else
-                packedData += bytes[j];      
+                packedData += bytes[j];  
+        }    
     }
-    
+
     // Send command
     string regname = this -> registers[address];
     sendRequest(string("write"), { regname, to_string(offset), packedData });
@@ -293,13 +366,11 @@ RETURN KATCP::writeRegister(UINT address, UINT *values, UINT n, UINT offset)
         string reply = string(buffer); 
         istringstream inputStream(reply);
         string endRequestPrefix = "!write";
-
         while (!inputStream.eof())
         {
             // Categorise statement
             string line;
             getline(inputStream, line);
-
             // Line contains result
             if (line.substr(0, endRequestPrefix.size()) == endRequestPrefix)
             {

@@ -119,9 +119,17 @@ class FPGABoard(object):
         self.id            = None
         self.status        = Status.NotConnected
         self._programmed   = False
-        self._libray       = None
+        self._library       = None
         self._board        = None
-        self.__initialised = True  # Used by __setattr__ to know how to handle new attributes
+
+        # Override to make this compatible with IPython
+        self.__methods__        = None
+        self.trait_names        = None
+        self._getAttributeNames = None
+        self.__members__        = None
+
+        # Used by __setattr__ to know how to handle new attributes
+        self.__initialised = True  
 
         # Check if FPGA board type is specified
         self._fpgaBoard = kwargs.get('fpgaBoard', None)
@@ -349,13 +357,14 @@ class FPGABoard(object):
 
             # Create an integer and extract it's address
             INTP = ctypes.POINTER(ctypes.c_uint32)
-            print values
             num  = ctypes.c_uint32(values)
             addr = ctypes.addressof(num)
             ptr  = ctypes.cast(addr, INTP)
 
-            return Error(self._board.writeRegister(self.id, device.value,
-                                                 register, ptr, 1, offset))
+            print "Calling write register"
+            err = self._board.writeRegister(self.id, device.value,
+                                            register, ptr, 1, offset)
+            return err
 
         elif type(values) is list:
             n = len(values)
@@ -762,9 +771,13 @@ class Roach(FPGABoard):
         # Populate register list
         super(Roach, self).getRegisterList()
 
+        # Check if any register are present
+        if self._registerList is None:
+            return None
+
         # The super class will prepend the device type to the register name.
-        # Since everyting on the roach is controlled by a single entity, we don't
-        # need this. Remove prepended device type
+        # Since everyting on the roach is controlled by a single entity,
+        # we don't need this. Remove prepended device type
         newRegList = { }
         for k in self._registerList.keys():
             newKey = k.replace("fpga1.", "")
@@ -793,6 +806,22 @@ class Roach(FPGABoard):
     def loadFirmware(self, boffile):
         """ Roach helpder for loadFirmware """
         return super(Roach, self).loadFirmware(Device.FPGA_1, boffile)
+
+    def readAddress(self, address, n = 1):
+        """ Roach helper for readAddress """
+        print "Read memory address not supported for ROACH"
+
+    def writeAddress(self, address, values):
+        """ Roach helper for writeAddress """
+        print "Write memory address not supported for ROACH"
+
+    def writeDevice(self, device, address, value):
+        """ Roach helper for writeDevice """
+        print "Write device is not supported for ROACH"
+
+    def readDevice(self, device, address):
+        """ Roach helper for readDevice """
+        print "Read device is not supported for ROACH"
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
@@ -832,22 +861,25 @@ class Roach(FPGABoard):
 
     def __getattr__(self, name):
         """ Override __getattr__, get value from board """
-        if self._registerList is not None and name in self._registerList:
-            self.readRegister(Device.FPGA_1, name)
+        if name in self.__dict__:
+            return self.__dict__[name]
+        elif self._registerList is not None and name in self._registerList:
+            return self.readRegister(name)
         else:
             print "Register %s not found" % name
             raise AttributeError
 
     def __setattr__(self, name, value):
         """ Override __setattr__, set value on board"""
-
+        if name in self.__dict__:
+            self.__dict__[name] = value
         # Allow attributes to be defined normally during initialisation
-        if not self.__dict__.has_key('__FPGABoard__initialised'):
+        elif not self.__dict__.has_key('_FPGABoard__initialised'):
             return dict.__setattr__(self, name, value)
-
-        if self._registerList is not None and name in self._registerList:
-            self.writeRegister(Device.FPGA_1, name, value)
+        elif self._registerList is not None and name in self._registerList:
+            self.writeRegister(name, value)
         else:
+            print name, dir(self)
             print "Register %s not found" % name
             raise AttributeError  
 

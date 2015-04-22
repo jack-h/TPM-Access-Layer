@@ -1,4 +1,14 @@
 
+Version 0.3
+-----------
+
+- Added SPI Devices functionality in library and python interface
+- Added KATCP client implementation for ROACH
+- Added ROACH board implementation
+- Access Layer is compatible with ROACH boards (ROACH1 tested)
+- Python interface compatible with ROACH boards (ROACH1 tested)
+- Get register list also get the current register value when called
+
 Version 0.2
 -----------
 

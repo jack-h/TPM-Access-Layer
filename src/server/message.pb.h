@@ -35,6 +35,7 @@ void protobuf_ShutdownFile_message_2eproto();
 class Request;
 class Reply;
 class Reply_RegisterInfoType;
+class Reply_SPIInfoType;
 
 enum Request_CommandType {
   Request_CommandType_CONNECT = 1,
@@ -103,6 +104,27 @@ inline bool Request_RegisterType_Parse(
     const ::std::string& name, Request_RegisterType* value) {
   return ::google::protobuf::internal::ParseNamedEnum<Request_RegisterType>(
     Request_RegisterType_descriptor(), name, value);
+}
+enum Request_BoardMake {
+  Request_BoardMake_TPM_BOARD = 1,
+  Request_BoardMake_ROACH_BAORD = 2,
+  Request_BoardMake_ROACH2_BOARD = 3,
+  Request_BoardMake_UNIBOARD_BOARD = 4
+};
+bool Request_BoardMake_IsValid(int value);
+const Request_BoardMake Request_BoardMake_BoardMake_MIN = Request_BoardMake_TPM_BOARD;
+const Request_BoardMake Request_BoardMake_BoardMake_MAX = Request_BoardMake_UNIBOARD_BOARD;
+const int Request_BoardMake_BoardMake_ARRAYSIZE = Request_BoardMake_BoardMake_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* Request_BoardMake_descriptor();
+inline const ::std::string& Request_BoardMake_Name(Request_BoardMake value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    Request_BoardMake_descriptor(), value);
+}
+inline bool Request_BoardMake_Parse(
+    const ::std::string& name, Request_BoardMake* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Request_BoardMake>(
+    Request_BoardMake_descriptor(), name, value);
 }
 enum Reply_ResultType {
   Reply_ResultType_SUCCESS = 0,
@@ -190,11 +212,13 @@ inline bool Reply_DeviceType_Parse(
 enum Reply_RegisterType {
   Reply_RegisterType_SENSOR = 1,
   Reply_RegisterType_BOARD_REGISTER = 2,
-  Reply_RegisterType_FIRMWARE_REGISTER = 3
+  Reply_RegisterType_FIRMWARE_REGISTER = 3,
+  Reply_RegisterType_SPI_DEVICE = 4,
+  Reply_RegisterType_COMPONENT = 5
 };
 bool Reply_RegisterType_IsValid(int value);
 const Reply_RegisterType Reply_RegisterType_RegisterType_MIN = Reply_RegisterType_SENSOR;
-const Reply_RegisterType Reply_RegisterType_RegisterType_MAX = Reply_RegisterType_FIRMWARE_REGISTER;
+const Reply_RegisterType Reply_RegisterType_RegisterType_MAX = Reply_RegisterType_COMPONENT;
 const int Reply_RegisterType_RegisterType_ARRAYSIZE = Reply_RegisterType_RegisterType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Reply_RegisterType_descriptor();
@@ -343,6 +367,32 @@ class Request : public ::google::protobuf::Message {
     return Request_RegisterType_Parse(name, value);
   }
 
+  typedef Request_BoardMake BoardMake;
+  static const BoardMake TPM_BOARD = Request_BoardMake_TPM_BOARD;
+  static const BoardMake ROACH_BAORD = Request_BoardMake_ROACH_BAORD;
+  static const BoardMake ROACH2_BOARD = Request_BoardMake_ROACH2_BOARD;
+  static const BoardMake UNIBOARD_BOARD = Request_BoardMake_UNIBOARD_BOARD;
+  static inline bool BoardMake_IsValid(int value) {
+    return Request_BoardMake_IsValid(value);
+  }
+  static const BoardMake BoardMake_MIN =
+    Request_BoardMake_BoardMake_MIN;
+  static const BoardMake BoardMake_MAX =
+    Request_BoardMake_BoardMake_MAX;
+  static const int BoardMake_ARRAYSIZE =
+    Request_BoardMake_BoardMake_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  BoardMake_descriptor() {
+    return Request_BoardMake_descriptor();
+  }
+  static inline const ::std::string& BoardMake_Name(BoardMake value) {
+    return Request_BoardMake_Name(value);
+  }
+  static inline bool BoardMake_Parse(const ::std::string& name,
+      BoardMake* value) {
+    return Request_BoardMake_Parse(name, value);
+  }
+
   // accessors -------------------------------------------------------
 
   // required .Request.CommandType command = 1;
@@ -442,6 +492,13 @@ class Request : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint32 >*
       mutable_values();
 
+  // optional .Request.BoardMake board = 13;
+  inline bool has_board() const;
+  inline void clear_board();
+  static const int kBoardFieldNumber = 13;
+  inline ::Request_BoardMake board() const;
+  inline void set_board(::Request_BoardMake value);
+
   // @@protoc_insertion_point(class_scope:Request)
  private:
   inline void set_has_command();
@@ -464,6 +521,8 @@ class Request : public ::google::protobuf::Message {
   inline void clear_has_file();
   inline void set_has_value();
   inline void clear_has_value();
+  inline void set_has_board();
+  inline void clear_has_board();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -480,6 +539,7 @@ class Request : public ::google::protobuf::Message {
   ::std::string* file_;
   ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > values_;
   ::google::protobuf::uint32 value_;
+  int board_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
   friend void protobuf_ShutdownFile_message_2eproto();
@@ -594,6 +654,20 @@ class Reply_RegisterInfoType : public ::google::protobuf::Message {
   inline ::std::string* release_description();
   inline void set_allocated_description(::std::string* description);
 
+  // required uint32 value = 7;
+  inline bool has_value() const;
+  inline void clear_value();
+  static const int kValueFieldNumber = 7;
+  inline ::google::protobuf::uint32 value() const;
+  inline void set_value(::google::protobuf::uint32 value);
+
+  // required uint32 bits = 8;
+  inline bool has_bits() const;
+  inline void clear_bits();
+  static const int kBitsFieldNumber = 8;
+  inline ::google::protobuf::uint32 bits() const;
+  inline void set_bits(::google::protobuf::uint32 value);
+
   // @@protoc_insertion_point(class_scope:Reply.RegisterInfoType)
  private:
   inline void set_has_name();
@@ -608,6 +682,10 @@ class Reply_RegisterInfoType : public ::google::protobuf::Message {
   inline void clear_has_size();
   inline void set_has_description();
   inline void clear_has_description();
+  inline void set_has_value();
+  inline void clear_has_value();
+  inline void set_has_bits();
+  inline void clear_has_bits();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -619,12 +697,118 @@ class Reply_RegisterInfoType : public ::google::protobuf::Message {
   int permission_;
   ::google::protobuf::uint32 size_;
   ::std::string* description_;
+  ::google::protobuf::uint32 value_;
+  ::google::protobuf::uint32 bits_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
   friend void protobuf_ShutdownFile_message_2eproto();
 
   void InitAsDefaultInstance();
   static Reply_RegisterInfoType* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Reply_SPIInfoType : public ::google::protobuf::Message {
+ public:
+  Reply_SPIInfoType();
+  virtual ~Reply_SPIInfoType();
+
+  Reply_SPIInfoType(const Reply_SPIInfoType& from);
+
+  inline Reply_SPIInfoType& operator=(const Reply_SPIInfoType& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Reply_SPIInfoType& default_instance();
+
+  void Swap(Reply_SPIInfoType* other);
+
+  // implements Message ----------------------------------------------
+
+  Reply_SPIInfoType* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Reply_SPIInfoType& from);
+  void MergeFrom(const Reply_SPIInfoType& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  static const int kNameFieldNumber = 1;
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline void set_name(const char* value, size_t size);
+  inline ::std::string* mutable_name();
+  inline ::std::string* release_name();
+  inline void set_allocated_name(::std::string* name);
+
+  // required uint32 spi_sclk = 2;
+  inline bool has_spi_sclk() const;
+  inline void clear_spi_sclk();
+  static const int kSpiSclkFieldNumber = 2;
+  inline ::google::protobuf::uint32 spi_sclk() const;
+  inline void set_spi_sclk(::google::protobuf::uint32 value);
+
+  // required uint32 spi_en = 3;
+  inline bool has_spi_en() const;
+  inline void clear_spi_en();
+  static const int kSpiEnFieldNumber = 3;
+  inline ::google::protobuf::uint32 spi_en() const;
+  inline void set_spi_en(::google::protobuf::uint32 value);
+
+  // @@protoc_insertion_point(class_scope:Reply.SPIInfoType)
+ private:
+  inline void set_has_name();
+  inline void clear_has_name();
+  inline void set_has_spi_sclk();
+  inline void clear_has_spi_sclk();
+  inline void set_has_spi_en();
+  inline void clear_has_spi_en();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* name_;
+  ::google::protobuf::uint32 spi_sclk_;
+  ::google::protobuf::uint32 spi_en_;
+  friend void  protobuf_AddDesc_message_2eproto();
+  friend void protobuf_AssignDesc_message_2eproto();
+  friend void protobuf_ShutdownFile_message_2eproto();
+
+  void InitAsDefaultInstance();
+  static Reply_SPIInfoType* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -680,6 +864,7 @@ class Reply : public ::google::protobuf::Message {
   // nested types ----------------------------------------------------
 
   typedef Reply_RegisterInfoType RegisterInfoType;
+  typedef Reply_SPIInfoType SPIInfoType;
 
   typedef Reply_ResultType ResultType;
   static const ResultType SUCCESS = Reply_ResultType_SUCCESS;
@@ -788,6 +973,8 @@ class Reply : public ::google::protobuf::Message {
   static const RegisterType SENSOR = Reply_RegisterType_SENSOR;
   static const RegisterType BOARD_REGISTER = Reply_RegisterType_BOARD_REGISTER;
   static const RegisterType FIRMWARE_REGISTER = Reply_RegisterType_FIRMWARE_REGISTER;
+  static const RegisterType SPI_DEVICE = Reply_RegisterType_SPI_DEVICE;
+  static const RegisterType COMPONENT = Reply_RegisterType_COMPONENT;
   static inline bool RegisterType_IsValid(int value) {
     return Reply_RegisterType_IsValid(value);
   }
@@ -882,6 +1069,22 @@ class Reply : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 id() const;
   inline void set_id(::google::protobuf::int32 value);
 
+  // repeated string firmware = 9;
+  inline int firmware_size() const;
+  inline void clear_firmware();
+  static const int kFirmwareFieldNumber = 9;
+  inline const ::std::string& firmware(int index) const;
+  inline ::std::string* mutable_firmware(int index);
+  inline void set_firmware(int index, const ::std::string& value);
+  inline void set_firmware(int index, const char* value);
+  inline void set_firmware(int index, const char* value, size_t size);
+  inline ::std::string* add_firmware();
+  inline void add_firmware(const ::std::string& value);
+  inline void add_firmware(const char* value);
+  inline void add_firmware(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& firmware() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_firmware();
+
   // @@protoc_insertion_point(class_scope:Reply)
  private:
   inline void set_has_result();
@@ -908,6 +1111,7 @@ class Reply : public ::google::protobuf::Message {
   ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > values_;
   ::google::protobuf::RepeatedPtrField< ::Reply_RegisterInfoType > registerlist_;
   ::std::string* message_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> firmware_;
   ::google::protobuf::int32 id_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
@@ -1352,6 +1556,31 @@ Request::mutable_values() {
   return &values_;
 }
 
+// optional .Request.BoardMake board = 13;
+inline bool Request::has_board() const {
+  return (_has_bits_[0] & 0x00000800u) != 0;
+}
+inline void Request::set_has_board() {
+  _has_bits_[0] |= 0x00000800u;
+}
+inline void Request::clear_has_board() {
+  _has_bits_[0] &= ~0x00000800u;
+}
+inline void Request::clear_board() {
+  board_ = 1;
+  clear_has_board();
+}
+inline ::Request_BoardMake Request::board() const {
+  // @@protoc_insertion_point(field_get:Request.board)
+  return static_cast< ::Request_BoardMake >(board_);
+}
+inline void Request::set_board(::Request_BoardMake value) {
+  assert(::Request_BoardMake_IsValid(value));
+  set_has_board();
+  board_ = value;
+  // @@protoc_insertion_point(field_set:Request.board)
+}
+
 // -------------------------------------------------------------------
 
 // Reply_RegisterInfoType
@@ -1605,6 +1834,182 @@ inline void Reply_RegisterInfoType::set_allocated_description(::std::string* des
     description_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:Reply.RegisterInfoType.description)
+}
+
+// required uint32 value = 7;
+inline bool Reply_RegisterInfoType::has_value() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void Reply_RegisterInfoType::set_has_value() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void Reply_RegisterInfoType::clear_has_value() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void Reply_RegisterInfoType::clear_value() {
+  value_ = 0u;
+  clear_has_value();
+}
+inline ::google::protobuf::uint32 Reply_RegisterInfoType::value() const {
+  // @@protoc_insertion_point(field_get:Reply.RegisterInfoType.value)
+  return value_;
+}
+inline void Reply_RegisterInfoType::set_value(::google::protobuf::uint32 value) {
+  set_has_value();
+  value_ = value;
+  // @@protoc_insertion_point(field_set:Reply.RegisterInfoType.value)
+}
+
+// required uint32 bits = 8;
+inline bool Reply_RegisterInfoType::has_bits() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void Reply_RegisterInfoType::set_has_bits() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void Reply_RegisterInfoType::clear_has_bits() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void Reply_RegisterInfoType::clear_bits() {
+  bits_ = 0u;
+  clear_has_bits();
+}
+inline ::google::protobuf::uint32 Reply_RegisterInfoType::bits() const {
+  // @@protoc_insertion_point(field_get:Reply.RegisterInfoType.bits)
+  return bits_;
+}
+inline void Reply_RegisterInfoType::set_bits(::google::protobuf::uint32 value) {
+  set_has_bits();
+  bits_ = value;
+  // @@protoc_insertion_point(field_set:Reply.RegisterInfoType.bits)
+}
+
+// -------------------------------------------------------------------
+
+// Reply_SPIInfoType
+
+// required string name = 1;
+inline bool Reply_SPIInfoType::has_name() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Reply_SPIInfoType::set_has_name() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Reply_SPIInfoType::clear_has_name() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Reply_SPIInfoType::clear_name() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_->clear();
+  }
+  clear_has_name();
+}
+inline const ::std::string& Reply_SPIInfoType::name() const {
+  // @@protoc_insertion_point(field_get:Reply.SPIInfoType.name)
+  return *name_;
+}
+inline void Reply_SPIInfoType::set_name(const ::std::string& value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set:Reply.SPIInfoType.name)
+}
+inline void Reply_SPIInfoType::set_name(const char* value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:Reply.SPIInfoType.name)
+}
+inline void Reply_SPIInfoType::set_name(const char* value, size_t size) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:Reply.SPIInfoType.name)
+}
+inline ::std::string* Reply_SPIInfoType::mutable_name() {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:Reply.SPIInfoType.name)
+  return name_;
+}
+inline ::std::string* Reply_SPIInfoType::release_name() {
+  clear_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = name_;
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void Reply_SPIInfoType::set_allocated_name(::std::string* name) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (name) {
+    set_has_name();
+    name_ = name;
+  } else {
+    clear_has_name();
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:Reply.SPIInfoType.name)
+}
+
+// required uint32 spi_sclk = 2;
+inline bool Reply_SPIInfoType::has_spi_sclk() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void Reply_SPIInfoType::set_has_spi_sclk() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void Reply_SPIInfoType::clear_has_spi_sclk() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void Reply_SPIInfoType::clear_spi_sclk() {
+  spi_sclk_ = 0u;
+  clear_has_spi_sclk();
+}
+inline ::google::protobuf::uint32 Reply_SPIInfoType::spi_sclk() const {
+  // @@protoc_insertion_point(field_get:Reply.SPIInfoType.spi_sclk)
+  return spi_sclk_;
+}
+inline void Reply_SPIInfoType::set_spi_sclk(::google::protobuf::uint32 value) {
+  set_has_spi_sclk();
+  spi_sclk_ = value;
+  // @@protoc_insertion_point(field_set:Reply.SPIInfoType.spi_sclk)
+}
+
+// required uint32 spi_en = 3;
+inline bool Reply_SPIInfoType::has_spi_en() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void Reply_SPIInfoType::set_has_spi_en() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void Reply_SPIInfoType::clear_has_spi_en() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void Reply_SPIInfoType::clear_spi_en() {
+  spi_en_ = 0u;
+  clear_has_spi_en();
+}
+inline ::google::protobuf::uint32 Reply_SPIInfoType::spi_en() const {
+  // @@protoc_insertion_point(field_get:Reply.SPIInfoType.spi_en)
+  return spi_en_;
+}
+inline void Reply_SPIInfoType::set_spi_en(::google::protobuf::uint32 value) {
+  set_has_spi_en();
+  spi_en_ = value;
+  // @@protoc_insertion_point(field_set:Reply.SPIInfoType.spi_en)
 }
 
 // -------------------------------------------------------------------
@@ -1870,6 +2275,60 @@ inline void Reply::set_id(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:Reply.id)
 }
 
+// repeated string firmware = 9;
+inline int Reply::firmware_size() const {
+  return firmware_.size();
+}
+inline void Reply::clear_firmware() {
+  firmware_.Clear();
+}
+inline const ::std::string& Reply::firmware(int index) const {
+  // @@protoc_insertion_point(field_get:Reply.firmware)
+  return firmware_.Get(index);
+}
+inline ::std::string* Reply::mutable_firmware(int index) {
+  // @@protoc_insertion_point(field_mutable:Reply.firmware)
+  return firmware_.Mutable(index);
+}
+inline void Reply::set_firmware(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:Reply.firmware)
+  firmware_.Mutable(index)->assign(value);
+}
+inline void Reply::set_firmware(int index, const char* value) {
+  firmware_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:Reply.firmware)
+}
+inline void Reply::set_firmware(int index, const char* value, size_t size) {
+  firmware_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:Reply.firmware)
+}
+inline ::std::string* Reply::add_firmware() {
+  return firmware_.Add();
+}
+inline void Reply::add_firmware(const ::std::string& value) {
+  firmware_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:Reply.firmware)
+}
+inline void Reply::add_firmware(const char* value) {
+  firmware_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:Reply.firmware)
+}
+inline void Reply::add_firmware(const char* value, size_t size) {
+  firmware_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:Reply.firmware)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+Reply::firmware() const {
+  // @@protoc_insertion_point(field_list:Reply.firmware)
+  return firmware_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+Reply::mutable_firmware() {
+  // @@protoc_insertion_point(field_mutable_list:Reply.firmware)
+  return &firmware_;
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -1891,6 +2350,11 @@ template <> struct is_proto_enum< ::Request_RegisterType> : ::google::protobuf::
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Request_RegisterType>() {
   return ::Request_RegisterType_descriptor();
+}
+template <> struct is_proto_enum< ::Request_BoardMake> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Request_BoardMake>() {
+  return ::Request_BoardMake_descriptor();
 }
 template <> struct is_proto_enum< ::Reply_ResultType> : ::google::protobuf::internal::true_type {};
 template <>

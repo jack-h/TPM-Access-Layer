@@ -29,6 +29,14 @@ message Request
         FIRMWARE_REGISTER = 3;
     }
 
+    enum BoardMake
+    {
+        TPM_BOARD = 1;
+        ROACH_BAORD = 2;
+        ROACH2_BOARD = 3;
+        UNIBOARD_BOARD = 4;
+    }
+
     required CommandType command = 1;
     optional string ip = 2;
     optional int32 port = 3;
@@ -41,6 +49,7 @@ message Request
     optional string file = 10;
     optional uint32 value = 11;
     repeated uint32 values = 12;
+    optional BoardMake board = 13;
 }
 
 message Reply
@@ -77,6 +86,15 @@ message Reply
         required PermissionType permission = 4;
         required uint32 size               = 5;
         required string description        = 6;
+        required uint32 value              = 7;
+        required uint32 bits               = 8;
+    }
+
+    message SPIInfoType
+    {
+        required string name = 1;
+        required uint32 spi_sclk = 2;
+        required uint32 spi_en = 3;
     }
 
     enum DeviceType
@@ -91,6 +109,8 @@ message Reply
         SENSOR = 1;
         BOARD_REGISTER = 2;
         FIRMWARE_REGISTER = 3;
+        SPI_DEVICE = 4;
+        COMPONENT = 5;
     }
 
     required ResultType result = 1;
@@ -101,5 +121,6 @@ message Reply
     repeated RegisterInfoType registerList = 6;
     optional string message = 7;
     optional int32 id = 8;
+    repeated string firmware = 9;
 
 }

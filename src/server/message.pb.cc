@@ -24,12 +24,16 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::EnumDescriptor* Request_CommandType_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* Request_DeviceType_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* Request_RegisterType_descriptor_ = NULL;
+const ::google::protobuf::EnumDescriptor* Request_BoardMake_descriptor_ = NULL;
 const ::google::protobuf::Descriptor* Reply_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   Reply_reflection_ = NULL;
 const ::google::protobuf::Descriptor* Reply_RegisterInfoType_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   Reply_RegisterInfoType_reflection_ = NULL;
+const ::google::protobuf::Descriptor* Reply_SPIInfoType_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  Reply_SPIInfoType_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* Reply_ResultType_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* Reply_TpmStatus_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* Reply_PermissionType_descriptor_ = NULL;
@@ -46,7 +50,7 @@ void protobuf_AssignDesc_message_2eproto() {
       "message.proto");
   GOOGLE_CHECK(file != NULL);
   Request_descriptor_ = file->message_type(0);
-  static const int Request_offsets_[11] = {
+  static const int Request_offsets_[12] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, command_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, ip_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, port_),
@@ -58,6 +62,7 @@ void protobuf_AssignDesc_message_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, file_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, value_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, values_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, board_),
   };
   Request_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -73,8 +78,9 @@ void protobuf_AssignDesc_message_2eproto() {
   Request_CommandType_descriptor_ = Request_descriptor_->enum_type(0);
   Request_DeviceType_descriptor_ = Request_descriptor_->enum_type(1);
   Request_RegisterType_descriptor_ = Request_descriptor_->enum_type(2);
+  Request_BoardMake_descriptor_ = Request_descriptor_->enum_type(3);
   Reply_descriptor_ = file->message_type(1);
-  static const int Reply_offsets_[8] = {
+  static const int Reply_offsets_[9] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply, result_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply, permission_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply, status_),
@@ -83,6 +89,7 @@ void protobuf_AssignDesc_message_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply, registerlist_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply, message_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply, id_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply, firmware_),
   };
   Reply_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -96,13 +103,15 @@ void protobuf_AssignDesc_message_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Reply));
   Reply_RegisterInfoType_descriptor_ = Reply_descriptor_->nested_type(0);
-  static const int Reply_RegisterInfoType_offsets_[6] = {
+  static const int Reply_RegisterInfoType_offsets_[8] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_RegisterInfoType, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_RegisterInfoType, type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_RegisterInfoType, device_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_RegisterInfoType, permission_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_RegisterInfoType, size_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_RegisterInfoType, description_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_RegisterInfoType, value_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_RegisterInfoType, bits_),
   };
   Reply_RegisterInfoType_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -115,6 +124,23 @@ void protobuf_AssignDesc_message_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Reply_RegisterInfoType));
+  Reply_SPIInfoType_descriptor_ = Reply_descriptor_->nested_type(1);
+  static const int Reply_SPIInfoType_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_SPIInfoType, name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_SPIInfoType, spi_sclk_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_SPIInfoType, spi_en_),
+  };
+  Reply_SPIInfoType_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      Reply_SPIInfoType_descriptor_,
+      Reply_SPIInfoType::default_instance_,
+      Reply_SPIInfoType_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_SPIInfoType, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Reply_SPIInfoType, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(Reply_SPIInfoType));
   Reply_ResultType_descriptor_ = Reply_descriptor_->enum_type(0);
   Reply_TpmStatus_descriptor_ = Reply_descriptor_->enum_type(1);
   Reply_PermissionType_descriptor_ = Reply_descriptor_->enum_type(2);
@@ -138,6 +164,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
     Reply_descriptor_, &Reply::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     Reply_RegisterInfoType_descriptor_, &Reply_RegisterInfoType::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    Reply_SPIInfoType_descriptor_, &Reply_SPIInfoType::default_instance());
 }
 
 }  // namespace
@@ -149,6 +177,8 @@ void protobuf_ShutdownFile_message_2eproto() {
   delete Reply_reflection_;
   delete Reply_RegisterInfoType::default_instance_;
   delete Reply_RegisterInfoType_reflection_;
+  delete Reply_SPIInfoType::default_instance_;
+  delete Reply_SPIInfoType_reflection_;
 }
 
 void protobuf_AddDesc_message_2eproto() {
@@ -158,51 +188,59 @@ void protobuf_AddDesc_message_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\rmessage.proto\"\346\004\n\007Request\022%\n\007command\030\001"
+    "\n\rmessage.proto\"\334\005\n\007Request\022%\n\007command\030\001"
     " \002(\0162\024.Request.CommandType\022\n\n\002ip\030\002 \001(\t\022\014"
     "\n\004port\030\003 \001(\005\022\n\n\002id\030\004 \001(\005\022\024\n\014registerName"
     "\030\006 \001(\t\022-\n\016registerFamily\030\007 \001(\0162\025.Request"
     ".RegisterType\022#\n\006device\030\010 \001(\0162\023.Request."
     "DeviceType\022\t\n\001n\030\t \001(\r\022\014\n\004file\030\n \001(\t\022\r\n\005v"
-    "alue\030\013 \001(\r\022\016\n\006values\030\014 \003(\r\"\363\001\n\013CommandTy"
-    "pe\022\013\n\007CONNECT\020\001\022\016\n\nDISCONNECT\020\002\022\017\n\013RESET"
-    "_BOARD\020\003\022\016\n\nGET_STATUS\020\004\022\025\n\021GET_REGISTER"
-    "_LIST\020\005\022\026\n\022GET_REGISTER_VALUE\020\006\022\026\n\022SET_R"
-    "EGISTER_VALUE\020\007\022\027\n\023GET_REGISTER_VALUES\020\010"
-    "\022\027\n\023SET_REGISTER_VALUES\020\t\022\021\n\rLOAD_FIRMWA"
-    "RE\020\n\022\032\n\026LOAD_FIRMWARE_BLOCKING\020\013\"/\n\nDevi"
-    "ceType\022\t\n\005BOARD\020\001\022\n\n\006FPGA_1\020\002\022\n\n\006FPGA_2\020"
-    "\003\"E\n\014RegisterType\022\n\n\006SENSOR\020\001\022\022\n\016BOARD_R"
-    "EGISTER\020\002\022\025\n\021FIRMWARE_REGISTER\020\003\"\270\006\n\005Rep"
-    "ly\022!\n\006result\030\001 \002(\0162\021.Reply.ResultType\022)\n"
-    "\npermission\030\002 \001(\0162\025.Reply.PermissionType"
-    "\022 \n\006status\030\003 \001(\0162\020.Reply.TpmStatus\022\r\n\005va"
-    "lue\030\004 \001(\r\022\016\n\006values\030\005 \003(\r\022-\n\014registerLis"
-    "t\030\006 \003(\0132\027.Reply.RegisterInfoType\022\017\n\007mess"
-    "age\030\007 \001(\t\022\n\n\002id\030\010 \001(\005\032\264\001\n\020RegisterInfoTy"
-    "pe\022\014\n\004name\030\001 \002(\t\022!\n\004type\030\002 \002(\0162\023.Reply.R"
-    "egisterType\022!\n\006device\030\003 \002(\0162\021.Reply.Devi"
-    "ceType\022)\n\npermission\030\004 \002(\0162\025.Reply.Permi"
-    "ssionType\022\014\n\004size\030\005 \002(\r\022\023\n\013description\030\006"
-    " \002(\t\"M\n\nResultType\022\013\n\007SUCCESS\020\000\022\024\n\007FAILU"
-    "RE\020\377\377\377\377\377\377\377\377\377\001\022\034\n\017NOT_IMPLEMENTED\020\376\377\377\377\377\377\377"
-    "\377\377\001\"\237\001\n\tTpmStatus\022\006\n\002OK\020\000\022\035\n\020LOADING_FIR"
-    "MWARE\020\377\377\377\377\377\377\377\377\377\001\022\031\n\014CONFIG_ERROR\020\376\377\377\377\377\377\377"
-    "\377\377\001\022\030\n\013BOARD_ERROR\020\375\377\377\377\377\377\377\377\377\001\022\032\n\rNOT_CON"
-    "NECTED\020\374\377\377\377\377\377\377\377\377\001\022\032\n\rNETWORK_ERROR\020\373\377\377\377\377"
-    "\377\377\377\377\001\"4\n\016PermissionType\022\010\n\004READ\020\001\022\t\n\005WRI"
-    "TE\020\002\022\r\n\tREADWRITE\020\003\"/\n\nDeviceType\022\t\n\005BOA"
-    "RD\020\001\022\n\n\006FPGA_1\020\002\022\n\n\006FPGA_2\020\004\"E\n\014Register"
-    "Type\022\n\n\006SENSOR\020\001\022\022\n\016BOARD_REGISTER\020\002\022\025\n\021"
-    "FIRMWARE_REGISTER\020\003", 1459);
+    "alue\030\013 \001(\r\022\016\n\006values\030\014 \003(\r\022!\n\005board\030\r \001("
+    "\0162\022.Request.BoardMake\"\363\001\n\013CommandType\022\013\n"
+    "\007CONNECT\020\001\022\016\n\nDISCONNECT\020\002\022\017\n\013RESET_BOAR"
+    "D\020\003\022\016\n\nGET_STATUS\020\004\022\025\n\021GET_REGISTER_LIST"
+    "\020\005\022\026\n\022GET_REGISTER_VALUE\020\006\022\026\n\022SET_REGIST"
+    "ER_VALUE\020\007\022\027\n\023GET_REGISTER_VALUES\020\010\022\027\n\023S"
+    "ET_REGISTER_VALUES\020\t\022\021\n\rLOAD_FIRMWARE\020\n\022"
+    "\032\n\026LOAD_FIRMWARE_BLOCKING\020\013\"/\n\nDeviceTyp"
+    "e\022\t\n\005BOARD\020\001\022\n\n\006FPGA_1\020\002\022\n\n\006FPGA_2\020\003\"E\n\014"
+    "RegisterType\022\n\n\006SENSOR\020\001\022\022\n\016BOARD_REGIST"
+    "ER\020\002\022\025\n\021FIRMWARE_REGISTER\020\003\"Q\n\tBoardMake"
+    "\022\r\n\tTPM_BOARD\020\001\022\017\n\013ROACH_BAORD\020\002\022\020\n\014ROAC"
+    "H2_BOARD\020\003\022\022\n\016UNIBOARD_BOARD\020\004\"\305\007\n\005Reply"
+    "\022!\n\006result\030\001 \002(\0162\021.Reply.ResultType\022)\n\np"
+    "ermission\030\002 \001(\0162\025.Reply.PermissionType\022 "
+    "\n\006status\030\003 \001(\0162\020.Reply.TpmStatus\022\r\n\005valu"
+    "e\030\004 \001(\r\022\016\n\006values\030\005 \003(\r\022-\n\014registerList\030"
+    "\006 \003(\0132\027.Reply.RegisterInfoType\022\017\n\007messag"
+    "e\030\007 \001(\t\022\n\n\002id\030\010 \001(\005\022\020\n\010firmware\030\t \003(\t\032\321\001"
+    "\n\020RegisterInfoType\022\014\n\004name\030\001 \002(\t\022!\n\004type"
+    "\030\002 \002(\0162\023.Reply.RegisterType\022!\n\006device\030\003 "
+    "\002(\0162\021.Reply.DeviceType\022)\n\npermission\030\004 \002"
+    "(\0162\025.Reply.PermissionType\022\014\n\004size\030\005 \002(\r\022"
+    "\023\n\013description\030\006 \002(\t\022\r\n\005value\030\007 \002(\r\022\014\n\004b"
+    "its\030\010 \002(\r\032=\n\013SPIInfoType\022\014\n\004name\030\001 \002(\t\022\020"
+    "\n\010spi_sclk\030\002 \002(\r\022\016\n\006spi_en\030\003 \002(\r\"M\n\nResu"
+    "ltType\022\013\n\007SUCCESS\020\000\022\024\n\007FAILURE\020\377\377\377\377\377\377\377\377\377"
+    "\001\022\034\n\017NOT_IMPLEMENTED\020\376\377\377\377\377\377\377\377\377\001\"\237\001\n\tTpmS"
+    "tatus\022\006\n\002OK\020\000\022\035\n\020LOADING_FIRMWARE\020\377\377\377\377\377\377"
+    "\377\377\377\001\022\031\n\014CONFIG_ERROR\020\376\377\377\377\377\377\377\377\377\001\022\030\n\013BOARD"
+    "_ERROR\020\375\377\377\377\377\377\377\377\377\001\022\032\n\rNOT_CONNECTED\020\374\377\377\377\377"
+    "\377\377\377\377\001\022\032\n\rNETWORK_ERROR\020\373\377\377\377\377\377\377\377\377\001\"4\n\016Per"
+    "missionType\022\010\n\004READ\020\001\022\t\n\005WRITE\020\002\022\r\n\tREAD"
+    "WRITE\020\003\"/\n\nDeviceType\022\t\n\005BOARD\020\001\022\n\n\006FPGA"
+    "_1\020\002\022\n\n\006FPGA_2\020\004\"d\n\014RegisterType\022\n\n\006SENS"
+    "OR\020\001\022\022\n\016BOARD_REGISTER\020\002\022\025\n\021FIRMWARE_REG"
+    "ISTER\020\003\022\016\n\nSPI_DEVICE\020\004\022\r\n\tCOMPONENT\020\005", 1718);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "message.proto", &protobuf_RegisterTypes);
   Request::default_instance_ = new Request();
   Reply::default_instance_ = new Reply();
   Reply_RegisterInfoType::default_instance_ = new Reply_RegisterInfoType();
+  Reply_SPIInfoType::default_instance_ = new Reply_SPIInfoType();
   Request::default_instance_->InitAsDefaultInstance();
   Reply::default_instance_->InitAsDefaultInstance();
   Reply_RegisterInfoType::default_instance_->InitAsDefaultInstance();
+  Reply_SPIInfoType::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_message_2eproto);
 }
 
@@ -300,6 +338,31 @@ const Request_RegisterType Request::RegisterType_MIN;
 const Request_RegisterType Request::RegisterType_MAX;
 const int Request::RegisterType_ARRAYSIZE;
 #endif  // _MSC_VER
+const ::google::protobuf::EnumDescriptor* Request_BoardMake_descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return Request_BoardMake_descriptor_;
+}
+bool Request_BoardMake_IsValid(int value) {
+  switch(value) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      return true;
+    default:
+      return false;
+  }
+}
+
+#ifndef _MSC_VER
+const Request_BoardMake Request::TPM_BOARD;
+const Request_BoardMake Request::ROACH_BAORD;
+const Request_BoardMake Request::ROACH2_BOARD;
+const Request_BoardMake Request::UNIBOARD_BOARD;
+const Request_BoardMake Request::BoardMake_MIN;
+const Request_BoardMake Request::BoardMake_MAX;
+const int Request::BoardMake_ARRAYSIZE;
+#endif  // _MSC_VER
 #ifndef _MSC_VER
 const int Request::kCommandFieldNumber;
 const int Request::kIpFieldNumber;
@@ -312,6 +375,7 @@ const int Request::kNFieldNumber;
 const int Request::kFileFieldNumber;
 const int Request::kValueFieldNumber;
 const int Request::kValuesFieldNumber;
+const int Request::kBoardFieldNumber;
 #endif  // !_MSC_VER
 
 Request::Request()
@@ -343,6 +407,7 @@ void Request::SharedCtor() {
   n_ = 0u;
   file_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   value_ = 0u;
+  board_ = 1;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -405,13 +470,14 @@ void Request::Clear() {
     device_ = 1;
     n_ = 0u;
   }
-  if (_has_bits_[8 / 32] & 768) {
+  if (_has_bits_[8 / 32] & 2816) {
     if (has_file()) {
       if (file_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         file_->clear();
       }
     }
     value_ = 0u;
+    board_ = 1;
   }
   values_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -613,6 +679,26 @@ bool Request::MergePartialFromCodedStream(
           goto handle_unusual;
         }
         if (input->ExpectTag(96)) goto parse_values;
+        if (input->ExpectTag(104)) goto parse_board;
+        break;
+      }
+
+      // optional .Request.BoardMake board = 13;
+      case 13: {
+        if (tag == 104) {
+         parse_board:
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::Request_BoardMake_IsValid(value)) {
+            set_board(static_cast< ::Request_BoardMake >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(13, value);
+          }
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -716,6 +802,12 @@ void Request::SerializeWithCachedSizes(
       12, this->values(i), output);
   }
 
+  // optional .Request.BoardMake board = 13;
+  if (has_board()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      13, this->board(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -803,6 +895,12 @@ void Request::SerializeWithCachedSizes(
       WriteUInt32ToArray(12, this->values(i), target);
   }
 
+  // optional .Request.BoardMake board = 13;
+  if (has_board()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      13, this->board(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -884,6 +982,12 @@ int Request::ByteSize() const {
           this->value());
     }
 
+    // optional .Request.BoardMake board = 13;
+    if (has_board()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->board());
+    }
+
   }
   // repeated uint32 values = 12;
   {
@@ -954,6 +1058,9 @@ void Request::MergeFrom(const Request& from) {
     if (from.has_value()) {
       set_value(from.value());
     }
+    if (from.has_board()) {
+      set_board(from.board());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -989,6 +1096,7 @@ void Request::Swap(Request* other) {
     std::swap(file_, other->file_);
     std::swap(value_, other->value_);
     values_.Swap(&other->values_);
+    std::swap(board_, other->board_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -1113,6 +1221,8 @@ bool Reply_RegisterType_IsValid(int value) {
     case 1:
     case 2:
     case 3:
+    case 4:
+    case 5:
       return true;
     default:
       return false;
@@ -1123,6 +1233,8 @@ bool Reply_RegisterType_IsValid(int value) {
 const Reply_RegisterType Reply::SENSOR;
 const Reply_RegisterType Reply::BOARD_REGISTER;
 const Reply_RegisterType Reply::FIRMWARE_REGISTER;
+const Reply_RegisterType Reply::SPI_DEVICE;
+const Reply_RegisterType Reply::COMPONENT;
 const Reply_RegisterType Reply::RegisterType_MIN;
 const Reply_RegisterType Reply::RegisterType_MAX;
 const int Reply::RegisterType_ARRAYSIZE;
@@ -1134,6 +1246,8 @@ const int Reply_RegisterInfoType::kDeviceFieldNumber;
 const int Reply_RegisterInfoType::kPermissionFieldNumber;
 const int Reply_RegisterInfoType::kSizeFieldNumber;
 const int Reply_RegisterInfoType::kDescriptionFieldNumber;
+const int Reply_RegisterInfoType::kValueFieldNumber;
+const int Reply_RegisterInfoType::kBitsFieldNumber;
 #endif  // !_MSC_VER
 
 Reply_RegisterInfoType::Reply_RegisterInfoType()
@@ -1161,6 +1275,8 @@ void Reply_RegisterInfoType::SharedCtor() {
   permission_ = 1;
   size_ = 0u;
   description_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  value_ = 0u;
+  bits_ = 0u;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -1202,7 +1318,18 @@ Reply_RegisterInfoType* Reply_RegisterInfoType::New() const {
 }
 
 void Reply_RegisterInfoType::Clear() {
-  if (_has_bits_[0 / 32] & 63) {
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<Reply_RegisterInfoType*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 255) {
+    ZR_(value_, bits_);
     if (has_name()) {
       if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         name_->clear();
@@ -1218,6 +1345,10 @@ void Reply_RegisterInfoType::Clear() {
       }
     }
   }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -1336,6 +1467,36 @@ bool Reply_RegisterInfoType::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(56)) goto parse_value;
+        break;
+      }
+
+      // required uint32 value = 7;
+      case 7: {
+        if (tag == 56) {
+         parse_value:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &value_)));
+          set_has_value();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(64)) goto parse_bits;
+        break;
+      }
+
+      // required uint32 bits = 8;
+      case 8: {
+        if (tag == 64) {
+         parse_bits:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &bits_)));
+          set_has_bits();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -1408,6 +1569,16 @@ void Reply_RegisterInfoType::SerializeWithCachedSizes(
       6, this->description(), output);
   }
 
+  // required uint32 value = 7;
+  if (has_value()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(7, this->value(), output);
+  }
+
+  // required uint32 bits = 8;
+  if (has_bits()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(8, this->bits(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -1463,6 +1634,16 @@ void Reply_RegisterInfoType::SerializeWithCachedSizes(
         6, this->description(), target);
   }
 
+  // required uint32 value = 7;
+  if (has_value()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(7, this->value(), target);
+  }
+
+  // required uint32 bits = 8;
+  if (has_bits()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(8, this->bits(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -1514,6 +1695,20 @@ int Reply_RegisterInfoType::ByteSize() const {
           this->description());
     }
 
+    // required uint32 value = 7;
+    if (has_value()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->value());
+    }
+
+    // required uint32 bits = 8;
+    if (has_bits()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->bits());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -1559,6 +1754,12 @@ void Reply_RegisterInfoType::MergeFrom(const Reply_RegisterInfoType& from) {
     if (from.has_description()) {
       set_description(from.description());
     }
+    if (from.has_value()) {
+      set_value(from.value());
+    }
+    if (from.has_bits()) {
+      set_bits(from.bits());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -1576,7 +1777,7 @@ void Reply_RegisterInfoType::CopyFrom(const Reply_RegisterInfoType& from) {
 }
 
 bool Reply_RegisterInfoType::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000003f) != 0x0000003f) return false;
+  if ((_has_bits_[0] & 0x000000ff) != 0x000000ff) return false;
 
   return true;
 }
@@ -1589,6 +1790,8 @@ void Reply_RegisterInfoType::Swap(Reply_RegisterInfoType* other) {
     std::swap(permission_, other->permission_);
     std::swap(size_, other->size_);
     std::swap(description_, other->description_);
+    std::swap(value_, other->value_);
+    std::swap(bits_, other->bits_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -1607,6 +1810,343 @@ void Reply_RegisterInfoType::Swap(Reply_RegisterInfoType* other) {
 // -------------------------------------------------------------------
 
 #ifndef _MSC_VER
+const int Reply_SPIInfoType::kNameFieldNumber;
+const int Reply_SPIInfoType::kSpiSclkFieldNumber;
+const int Reply_SPIInfoType::kSpiEnFieldNumber;
+#endif  // !_MSC_VER
+
+Reply_SPIInfoType::Reply_SPIInfoType()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:Reply.SPIInfoType)
+}
+
+void Reply_SPIInfoType::InitAsDefaultInstance() {
+}
+
+Reply_SPIInfoType::Reply_SPIInfoType(const Reply_SPIInfoType& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:Reply.SPIInfoType)
+}
+
+void Reply_SPIInfoType::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  spi_sclk_ = 0u;
+  spi_en_ = 0u;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+Reply_SPIInfoType::~Reply_SPIInfoType() {
+  // @@protoc_insertion_point(destructor:Reply.SPIInfoType)
+  SharedDtor();
+}
+
+void Reply_SPIInfoType::SharedDtor() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void Reply_SPIInfoType::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* Reply_SPIInfoType::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return Reply_SPIInfoType_descriptor_;
+}
+
+const Reply_SPIInfoType& Reply_SPIInfoType::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_message_2eproto();
+  return *default_instance_;
+}
+
+Reply_SPIInfoType* Reply_SPIInfoType::default_instance_ = NULL;
+
+Reply_SPIInfoType* Reply_SPIInfoType::New() const {
+  return new Reply_SPIInfoType;
+}
+
+void Reply_SPIInfoType::Clear() {
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<Reply_SPIInfoType*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 7) {
+    ZR_(spi_sclk_, spi_en_);
+    if (has_name()) {
+      if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        name_->clear();
+      }
+    }
+  }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool Reply_SPIInfoType::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:Reply.SPIInfoType)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // required string name = 1;
+      case 1: {
+        if (tag == 10) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_name()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->name().data(), this->name().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "name");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(16)) goto parse_spi_sclk;
+        break;
+      }
+
+      // required uint32 spi_sclk = 2;
+      case 2: {
+        if (tag == 16) {
+         parse_spi_sclk:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &spi_sclk_)));
+          set_has_spi_sclk();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(24)) goto parse_spi_en;
+        break;
+      }
+
+      // required uint32 spi_en = 3;
+      case 3: {
+        if (tag == 24) {
+         parse_spi_en:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &spi_en_)));
+          set_has_spi_en();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:Reply.SPIInfoType)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:Reply.SPIInfoType)
+  return false;
+#undef DO_
+}
+
+void Reply_SPIInfoType::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:Reply.SPIInfoType)
+  // required string name = 1;
+  if (has_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->name().data(), this->name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "name");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      1, this->name(), output);
+  }
+
+  // required uint32 spi_sclk = 2;
+  if (has_spi_sclk()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->spi_sclk(), output);
+  }
+
+  // required uint32 spi_en = 3;
+  if (has_spi_en()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->spi_en(), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:Reply.SPIInfoType)
+}
+
+::google::protobuf::uint8* Reply_SPIInfoType::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:Reply.SPIInfoType)
+  // required string name = 1;
+  if (has_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->name().data(), this->name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "name");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->name(), target);
+  }
+
+  // required uint32 spi_sclk = 2;
+  if (has_spi_sclk()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->spi_sclk(), target);
+  }
+
+  // required uint32 spi_en = 3;
+  if (has_spi_en()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->spi_en(), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:Reply.SPIInfoType)
+  return target;
+}
+
+int Reply_SPIInfoType::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // required string name = 1;
+    if (has_name()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->name());
+    }
+
+    // required uint32 spi_sclk = 2;
+    if (has_spi_sclk()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->spi_sclk());
+    }
+
+    // required uint32 spi_en = 3;
+    if (has_spi_en()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->spi_en());
+    }
+
+  }
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void Reply_SPIInfoType::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const Reply_SPIInfoType* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const Reply_SPIInfoType*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void Reply_SPIInfoType::MergeFrom(const Reply_SPIInfoType& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_name()) {
+      set_name(from.name());
+    }
+    if (from.has_spi_sclk()) {
+      set_spi_sclk(from.spi_sclk());
+    }
+    if (from.has_spi_en()) {
+      set_spi_en(from.spi_en());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void Reply_SPIInfoType::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Reply_SPIInfoType::CopyFrom(const Reply_SPIInfoType& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Reply_SPIInfoType::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000007) != 0x00000007) return false;
+
+  return true;
+}
+
+void Reply_SPIInfoType::Swap(Reply_SPIInfoType* other) {
+  if (other != this) {
+    std::swap(name_, other->name_);
+    std::swap(spi_sclk_, other->spi_sclk_);
+    std::swap(spi_en_, other->spi_en_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata Reply_SPIInfoType::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = Reply_SPIInfoType_descriptor_;
+  metadata.reflection = Reply_SPIInfoType_reflection_;
+  return metadata;
+}
+
+
+// -------------------------------------------------------------------
+
+#ifndef _MSC_VER
 const int Reply::kResultFieldNumber;
 const int Reply::kPermissionFieldNumber;
 const int Reply::kStatusFieldNumber;
@@ -1615,6 +2155,7 @@ const int Reply::kValuesFieldNumber;
 const int Reply::kRegisterListFieldNumber;
 const int Reply::kMessageFieldNumber;
 const int Reply::kIdFieldNumber;
+const int Reply::kFirmwareFieldNumber;
 #endif  // !_MSC_VER
 
 Reply::Reply()
@@ -1707,6 +2248,7 @@ void Reply::Clear() {
 
   values_.Clear();
   registerlist_.Clear();
+  firmware_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -1856,6 +2398,25 @@ bool Reply::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(74)) goto parse_firmware;
+        break;
+      }
+
+      // repeated string firmware = 9;
+      case 9: {
+        if (tag == 74) {
+         parse_firmware:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->add_firmware()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->firmware(this->firmware_size() - 1).data(),
+            this->firmware(this->firmware_size() - 1).length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "firmware");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(74)) goto parse_firmware;
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -1935,6 +2496,16 @@ void Reply::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(8, this->id(), output);
   }
 
+  // repeated string firmware = 9;
+  for (int i = 0; i < this->firmware_size(); i++) {
+  ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    this->firmware(i).data(), this->firmware(i).length(),
+    ::google::protobuf::internal::WireFormat::SERIALIZE,
+    "firmware");
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      9, this->firmware(i), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -1995,6 +2566,16 @@ void Reply::SerializeWithCachedSizes(
   // optional int32 id = 8;
   if (has_id()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(8, this->id(), target);
+  }
+
+  // repeated string firmware = 9;
+  for (int i = 0; i < this->firmware_size(); i++) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->firmware(i).data(), this->firmware(i).length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "firmware");
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteStringToArray(9, this->firmware(i), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -2067,6 +2648,13 @@ int Reply::ByteSize() const {
         this->registerlist(i));
   }
 
+  // repeated string firmware = 9;
+  total_size += 1 * this->firmware_size();
+  for (int i = 0; i < this->firmware_size(); i++) {
+    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+      this->firmware(i));
+  }
+
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -2094,6 +2682,7 @@ void Reply::MergeFrom(const Reply& from) {
   GOOGLE_CHECK_NE(&from, this);
   values_.MergeFrom(from.values_);
   registerlist_.MergeFrom(from.registerlist_);
+  firmware_.MergeFrom(from.firmware_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_result()) {
       set_result(from.result());
@@ -2146,6 +2735,7 @@ void Reply::Swap(Reply* other) {
     registerlist_.Swap(&other->registerlist_);
     std::swap(message_, other->message_);
     std::swap(id_, other->id_);
+    firmware_.Swap(&other->firmware_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

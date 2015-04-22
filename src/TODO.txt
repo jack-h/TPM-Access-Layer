@@ -1,5 +1,4 @@
 - Remove temporary hard-coded loadFirmwareBlocking in server connect call
-- Implement SPI devices: Use a single packet for all operations
 - Board memory map static somewhere, bitfile maps stored in bitstream
 - Make this Windows friendly
 
@@ -10,3 +9,4 @@
 - [DONE] Write/read directly to/from an addrees
 - [DONE] Implement bitwise writes properly (read, bit-wise and, write)
 - [DONE] Free register list struct array in python wrapper
+- [DONE] Implement SPI devices: Use a single packet for all operations
