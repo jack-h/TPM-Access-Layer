@@ -233,11 +233,7 @@ RETURN KATCP::closeSocket()
         return SUCCESS;
 
     // Attempt to close socket
-    if (close(this -> sockfd) < 1)
-    {
-        DEBUG_PRINT("KATCP::closeSocket. Couldn't close socket");
-        return FAILURE;
-    }
+    close(this -> sockfd);
 
     return SUCCESS;
 }
@@ -574,6 +570,7 @@ REGISTER_INFO* KATCP::getRegisterList(UINT *num_registers)
         list[i].size = 1; 
         list[i].bitmask = 0xFFFFFFFF;
         list[i].bits = 32;
+        list[i].description = "";
     }
 
     return list;

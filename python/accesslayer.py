@@ -1,77 +1,9 @@
-from sys import platform
+from interface import *
 from math import ceil
-from enum import Enum
 import numpy as np
-import ctypes, os
+import ctypes
+import os
 import re
-
-# --------------- Enumerations --------------------------
-
-# Error
-class Error(Enum):
-    Success = 0
-    Failure = -1
-    NotImplemented = -2
-
-# Device
-class Device(Enum):
-    Board = 1
-    FPGA_1 = 2
-    FPGA_2 = 4
-
-# BoardMake
-class BoardMake(Enum):
-    TpmBoard      = 1
-    RoachBoard    = 2
-    Roach2Board   = 3
-    UniboardBoard = 4
-
-# Status
-class Status(Enum):
-    OK = 0
-    LoadingFirmware = -1
-    ConfigError = -2
-    BoardError = -3
-    NotConnected = -4
-    NetworkError = -5
-
-# RegisterType
-class RegisterType(Enum):
-    Sensor = 1
-    BoardRegister = 2
-    FirmwareRegister = 3
-    SPIDevice = 4
-    Component = 5
-
-# Permission
-class Permission(Enum):
-    Read      = 1
-    Write     = 2
-    ReadWrite = 3
-
-# --------------- Structures --------------------------
-class Values:
-    def __init__(self, values, error):
-        self.values = values
-        self.error = error
-
-class RegisterInfo:
-    def __init__(self, name, address, reg_type, device, permission, bitmask, bits, size, desc):
-        self.name = name    
-        self.address = address
-        self.type = reg_type
-        self.device = device
-        self.permission = permission
-        self.bitmask = bitmask
-        self.bits = bits
-        self.size = size
-        self.desc = desc
-
-class SPIDeviceInfo:
-    def __init__(self, name, spi_sclk, spi_en):
-        self.name     = name
-        self.spi_sclk = spi_sclk
-        self.spi_en   = spi_en
 
 # --------------- Helpers ------------------------------
 DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2" }
@@ -80,37 +12,11 @@ DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 
 
 # Wrap functionality for a TPM board
 class FPGABoard(object):
-
-    # Define ctype wrapper to library structures
-    class ValuesStruct(ctypes.Structure):
-        _fields_ = [
-            ('values', ctypes.POINTER(ctypes.c_uint32)),
-            ('error', ctypes.c_int)
-        ]
-
-    class RegisterInfoStruct(ctypes.Structure):
-        _fields_ = [    
-            ('name',        ctypes.c_char_p),
-            ('address',     ctypes.c_uint32),
-            ('type',        ctypes.c_int),
-            ('device',      ctypes.c_int),
-            ('permission',  ctypes.c_int),
-            ('bitmask',     ctypes.c_uint32),
-            ('bits',        ctypes.c_uint32),
-            ('size',        ctypes.c_uint32),
-            ('description', ctypes.c_char_p)
-        ]
-    
-    class SPIDeviceInfoStruct(ctypes.Structure):
-        _fields_ = [
-            ('name',     ctypes.c_char_p),
-            ('spi_sclk', ctypes.c_uint32),
-            ('spi_en',   ctypes.c_uint32)
-        ]
+    """ Class which wraps LMC functionality for generic FPGA boards """
 
     # Class constructor
-    def __init__(self, *args, **kwargs):
-        """ Class constructor """
+    def __init__(self, **kwargs):
+        """ Class constructor for FPGABoard"""
 
         # Set defaults
         self._registerList = None
@@ -120,8 +26,6 @@ class FPGABoard(object):
         self.id            = None
         self.status        = Status.NotConnected
         self._programmed   = False
-        self._library       = None
-        self._board        = None
 
         # Override to make this compatible with IPython
         self.__methods__        = None
@@ -142,7 +46,7 @@ class FPGABoard(object):
         filepath = kwargs.get('library', None)
 
         # Initialise library
-        self._initialiseLibrary(filepath)
+        initialiseLibrary(filepath)
 
         # Check if ip and port are defined in arguments
         ip   = kwargs.get('ip', None)
@@ -153,83 +57,75 @@ class FPGABoard(object):
             self.connect(ip, port)
 
     def connect(self, ip, port):
-        """ Connect to board """
-        boardId = self._board.connectBoard(self._fpgaBoard.value, ip, port)
-        if boardId == 0:
+        """ Connect to board
+        :param ip: Board IP
+        :param port: Port to connect to
+        :return: Success of Failure
+        """
+
+        board_id = callConnectBoard(self._fpgaBoard.value, ip, port)
+        if board_id == 0:
             print "Could not connect to board"
             self.status = Status.NetworkError
-            return Error.Failure
         else:
-            self.id = boardId
+            self.id = board_id
             self.status = Status.OK
-            return Error.Success
 
     def disconnect(self):
-        """ Disconnect from board """
+        """ Disconnect from board
+        :return: Success or Failure
+        """
 
         # Check if board is connected
         if self.id is None:
             print "Board not connected"
             return Error.Failure
 
-        ret = Error(self._board.disconnectBoard(self.id))
-        if (ret == Error.Success):
+        ret = callDisconnectBoard(self.id)
+        if ret == Error.Success:
             self.id = None
             self._registerList = None
         return ret
 
     def getFirmwareList(self, device):
-        """ Get list of firmware on board"""
+        """ Get list of firmware on board
+        :param device: Device on board to get list of firmware
+        :return: List of firmware
+        """
 
         # Check if board is connected
         if self.id is None:
             print "Board not connected"
             return Error.Failure
 
-        # Create an integer and extract it's address
-        INTP = ctypes.POINTER(ctypes.c_int)
-        num  = ctypes.c_int(0)
-        addr = ctypes.addressof(num)
-        ptr  = ctypes.cast(addr, INTP)
+        # Call getFirmware on board
+        self._firmwareList = callGetFirmwareList(self.id, device)
 
-        # Call library function
-        firmware = self._board.getFirmware(self.id, device.value, ptr)
-
-        # Process all firmware
-        firmwareList = [firmware[i] for i in range(num.value)]
-
-        # Free firmware pointer
-        self._board.freeMemory(firmware)
-
-        # Store as class member and return
-        self._firmwareList = firmwareList
-        return firmwareList
+        return self._firmwareList
         
     def loadFirmwareBlocking(self, device, filepath):
-        """ Blocking call to load firmware """
+        """ Blocking call to load firmware
+         :param device: Device on board to load firmware to
+         :param filepath: Path to firmware
+         :return: Success of Failure
+         """
         
         # Check if device argument is of type Device
         if not type(device) is Device:
             print "device argument should be of type Device"
             return
 
-        # Check if filepath is valid
-        # if not os.path.isfile(filepath):
-        #    print "Invalid file path %s" % filepath
-        #    return
-
         # All OK, call function
-        err = Error(self._board.loadFirmwareBlocking(self.id, device.value, filepath))
+        err = callLoadFirmwareBlocking(self.id, device, filepath)
 
         # If call succeeded, get register and device list
         if err == Error.Success:
             self._programmed = True
             self.getRegisterList()
             self.getDeviceList()
-            print "Success"
         else:
             self._programmed = False
-            print "Failed"
+            print "Failed to program Roach"
 
     def getRegisterList(self):
         """ Get list of registers """
@@ -243,42 +139,12 @@ class FPGABoard(object):
             print "Device must be programmed before register list can be loaded"
             return
 
-        # Create an integer and extract it's address
-        INTP = ctypes.POINTER(ctypes.c_int)
-        num  = ctypes.c_int(0)
-        addr = ctypes.addressof(num)
-        ptr  = ctypes.cast(addr, INTP)
-
         # Call function
-        registers = self._board.getRegisterList(self.id, ptr)
+        self._registerList = callGetRegisterList(self.id)
 
-        # Create device map for register names
-        names = { Device.Board : "board", Device.FPGA_1 : "fpga1", Device.FPGA_2 : "fpga2" }
+        # All done, return
+        return self._registerList
 
-        # Wrap register formats and return
-        registerList = { }
-        for i in range(num.value):
-            reg = { }
-            reg['name']        = registers[i].name
-            reg['address']     = registers[i].address
-            reg['type']        = RegisterType(registers[i].type)
-            reg['device']      = Device(registers[i].device)
-            reg['permission']  = Permission(registers[i].permission)
-            reg['size']        = registers[i].size
-            reg['bitmask']     = registers[i].bitmask
-            reg['bits']        = registers[i].bits
-            #TODO: Check below
-#            reg['description'] = registers[i].description
-            registerList["%s.%s" % (names[reg['device']], reg['name'])] = reg
-
-        # Store register list locally for get and set items
-        self._registerList = registerList
-
-        # Free registers pointer
-        # TODO: Does not work for Roach
-#        self._board.freeMemory(regist   ers)
-
-        return registerList
 
     def getDeviceList(self):
         """ Get list of SPI devices """
@@ -287,34 +153,20 @@ class FPGABoard(object):
         if self._deviceList is not None:
             return self._deviceList
 
-        # Create an integer and extract it's address
-        INTP = ctypes.POINTER(ctypes.c_uint32)
-        num  = ctypes.c_uint32(0)
-        addr = ctypes.addressof(num)
-        ptr  = ctypes.cast(addr, INTP)
-
         # Call function
-        devices = self._board.getDeviceList(self.id, ptr)
+        self._deviceList = callGetDeviceList(self.id)
 
-        # Wrap register formats and return
-        deviceList = { }
-        for i in range(num.value):
-            reg = { }
-            reg['name']      = devices[i].name
-            reg['spi_en']    = devices[i].spi_en
-            reg['spi_sclk']  = devices[i].spi_sclk
-            deviceList[reg['name']] = reg
-
-        # Store register list locally for get and set items
-        self._deviceList = deviceList
-
-        # Free registers pointer
-        self._board.freeMemory(devices)
-
-        return deviceList
+        # All done, return
+        return self._deviceList
 
     def readRegister(self, device, register, n = 1, offset = 0):
-        """" Get register value """
+        """" Get register value
+         :param device: Device on board to read register from
+         :param register: Register name
+         :param n: Number of words to read
+         :param offset: Memory address offset to read from
+         :return: Values
+         """
 
         # Perform basic checks
         if not self._checks():    
@@ -326,9 +178,9 @@ class FPGABoard(object):
             return
 
         # Call function
-        values = self._board.readRegister(self.id, device.value, register, n, offset)
+        values = callReadRegister(self.id, device, register, n, offset)
 
-        # Check if value succeeded, otherwise reture
+        # Check if value succeeded, otherwise return
         if values.error == Error.Failure.value:
             return Error.Failure
 
@@ -341,7 +193,13 @@ class FPGABoard(object):
             return [valPtr[i] for i in range(n)]
 
     def writeRegister(self, device, register, values, offset = 0):
-        """ Set register value """
+        """ Set register value
+         :param device: Device on board to write register to
+         :param register: Register name
+         :param values: Values to write
+         :param offset: Memory address offset to write to
+         :return: Success or Failure
+         """
 
         # Perform basic checks
         if not self._checks():    
@@ -352,100 +210,60 @@ class FPGABoard(object):
             print "device argument should be of type Device"
             return
 
-        # Check if we have a single value or list of values
-        if type(values) is not list:
-
-            # Create an integer and extract it's address
-            INTP = ctypes.POINTER(ctypes.c_uint32)
-            num  = ctypes.c_uint32(values)
-            addr = ctypes.addressof(num)
-            ptr  = ctypes.cast(addr, INTP)
-
-            err = self._board.writeRegister(self.id, device.value,
-                                            register, ptr, 1, offset)
-            return err
-
-        elif type(values) is list:
-            n = len(values)
-            vals = (ctypes.c_uint32 * n) (*values)
-            return Error(self._board.writeRegister(self.id, device.value,
-                                                 register, vals, n, offset))
-        else:
-            print "Something not quite right in writeRegister"
+        # Call function and return
+        return callWriteRegister(self.id, device, register, values, offset)
 
     def readAddress(self, address, n = 1):
-        """" Get register value """
+        """" Get register value
+         :param address: Memory address to read from
+         :param n: Number of words to read
+         :return: Values
+         """
 
-        # Call function
-        values = self._board.readAddress(self.id, address, n)
-
-        # Check if value succeeded, otherwise reture
-        if values.error == Error.Failure.value:
-            return Error.Failure
-
-        # Read succeeded, wrap data and return
-        valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
-
-        if n == 1:
-            return valPtr[0]
-        else:
-            return [valPtr[i] for i in range(n)]
+        # Call function and return
+        return  callReadAddress(self.id, address, n)
 
     def writeAddress(self, address, values):
-        """ Set register value """
+        """ Set register value
+         :param address: Memory address to write to
+         :param values: Values to write
+         :return: Success of Failure
+         """
 
-        # Check if we have a single value or list of values
-        if type(values) is not list:
-
-            # Create an integer and extract it's address
-            INTP = ctypes.POINTER(ctypes.c_uint32)
-            num  = ctypes.c_uint32(values)
-            addr = ctypes.addressof(num)
-            ptr  = ctypes.cast(addr, INTP)
-
-            return Error(self._board.writeAddress(self.id, address, ptr))
-
-        elif type(values) is list:
-            n = len(values)
-            vals = (ctypes.c_uint32 * n) (*values)
-            return Error(self._board.writeAddress(self.id, address, vals, n))
-        else:
-            print "Something not quite right in writeAddress"
+        # Call function and return
+        return callWriteAddress(self.id, address, values)
 
 
     def readDevice(self, device, address):
-        """" Get device value """
+        """" Get device value
+         :param device: SPI Device to read from
+         :param address: Address on device to read from
+         :return: Value
+         """
     
         # Check if device is in device list
         if device not in self._deviceList:
             print "Device not found in device list"
             return
 
-        # Call function
-        values = self._board.readDevice(self.id, device, address)
-
-        # Check if value succeeded, otherwise reture
-        if values.error == Error.Failure.value:
-            return Error.Failure
-
-        # Read succeeded, wrap data and return
-        valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
-
-        if n == 1:
-            return valPtr[0]
-        else:
-            return [valPtr[i] for i in range(n)]
+        # Call function and return
+        return callReadDevice(self.id, device, address)
 
     def writeDevice(self, device, address, value):
-        """ Set device value """
+        """ Set device value
+        :param device: SPI device to write to
+        :param address: Address on device to write to
+        :param value: Value to write
+        :return: Success or Failure
+        """
 
         # Check if device is in device list
         if device not in self._deviceList:
             print "Device not found in device list"
             return
 
-        # Call function
-        return Error(self._board.writeDevice(self.id, device, address, value))
+        # Call function and return
+        return callWriteDevice(self.id, device, address, value)
 
     def listRegisterNames(self):
         """ Print list of register names """
@@ -482,7 +300,11 @@ class FPGABoard(object):
             print k
 
     def findRegister(self, string, display = False):
-        """ Return register information for provided search string """
+        """ Return register information for provided search string
+         :param string: Regular expression to search against
+         :param display: True to output result to console
+         :return: List of found registers
+         """
         
         # Run checks
         if not self._checks():
@@ -498,7 +320,7 @@ class FPGABoard(object):
         # Display to screen if required
         if display:
             string = "\n"
-            for v in sorted(matches, key = lambda k : k['name']):
+            for v in sorted(matches, key = lambda l : l['name']):
                 string += '%s:\n%s\n'            % (v['name'], '-' * len(v['name']))
                 string += 'Address:\t%s\n'       % (hex(v['address']))
                 string += 'Type:\t\t%s\n'        % str(v['type'])
@@ -515,7 +337,11 @@ class FPGABoard(object):
         return matches
 
     def findDevice(self, string, display = False):
-        """ Return SPI device information for provided search string """
+        """ Return SPI device information for provided search string
+         :param string: Regular expression to search against
+         :param display: True to output result to console
+         :return: List of found devices
+         """
 
         # Run check
         if not self._check():
@@ -530,7 +356,7 @@ class FPGABoard(object):
         # Display to screen if required
         if display:
             string = "\n"
-            for v in sorted(matches, key = lambda k : k['name']):
+            for v in sorted(matches, key = lambda l : l['name']):
                 string += 'Name: %s, spi_sclk: %d, spi_en: %d\n' % (v['name'], v['spi_sclk'], v['spi_en'])
             print string
 
@@ -561,7 +387,8 @@ class FPGABoard(object):
 
         return True
 
-    def _getDevice(self, name):
+    @staticmethod
+    def _getDevice(name):
         """ Extract device name from provided register name, if present """
 
         try:
@@ -577,83 +404,14 @@ class FPGABoard(object):
         except:
             return None
 
-    def _initialiseLibrary(self, filepath = None):
-        """ Initialise library """
-       
-        # Load access layer shared library
-        if filepath is None:
-            self._library = "libboard"
-        else:
-            self._library = filepath
-
-        # Library found, load it (OS-specific)
-        if platform.find('linux') >= 0:
-            self._board = ctypes.CDLL(self._library + ".so")
-        elif platform in ['win32', 'cygwin']:
-            self._board = ctypes.WinDLL(self._library)
-        else:
-            print "Unsupported operating system"
-            return            
-
-        # Define connect function
-        self._board.connectBoard.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_uint16]
-        self._board.connectBoard.restype  = ctypes.c_uint32
-
-        # Define disconnect function
-        self._board.disconnectBoard.argtypes = [ctypes.c_uint32]
-        self._board.disconnectBoard.restype  = ctypes.c_int
-
-        # Define getFirmware function
-        self._board.getFirmware.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.POINTER(ctypes.c_int)]
-        self._board.getFirmware.restype = ctypes.POINTER(ctypes.c_char_p)
-
-        # Define loadFirmwareBlocking function
-        self._board.loadFirmwareBlocking.argtypes =  [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
-        self._board.loadFirmwareBlocking.restype = ctypes.c_int
-
-        # Define getRegisterList function
-        self._board.getRegisterList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_int)]
-        self._board.getRegisterList.restype = ctypes.POINTER(self.RegisterInfoStruct)
-
-        # Define readRegister function
-        self._board.readRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32]
-        self._board.readRegister.restype = self.ValuesStruct
-
-        # Define writeRegister function
-        self._board.writeRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32, ctypes.c_uint32]
-        self._board.writeRegister.restype = ctypes.c_int
-
-        # Define readRegister function
-        self._board.readAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32]
-        self._board.readAddress.restype = self.ValuesStruct
-
-        # Define writeRegister function
-        self._board.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
-        self._board.writeAddress.restype = ctypes.c_int
-
-        # Define getDeviceList function
-        self._board.getDeviceList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
-        self._board.getDeviceList.restype = ctypes.POINTER(self.SPIDeviceInfoStruct)
-
-        # Define readDevice function
-        self._board.readDevice.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_uint32]
-        self._board.readDevice.restype = self.ValuesStruct
-
-        # Define writeDevice function
-        self._board.writeDevice.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_uint32, ctypes.c_uint32]
-        self._board.writeDevice.restype = ctypes.c_int
-
-        # Define freeMemory function
-        self._board.freeMemory.argtypes = [ctypes.c_void_p]
-
 # ================================== TPM Board ======================================
 class TPM(FPGABoard):
     """ FPGABoard subclass for communicating with a TPM board """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """ Class constructor """
         kwargs['fpgaBoard'] = BoardMake.TpmBoard
-        super(TPM, self).__init__(*args, **kwargs)
+        super(TPM, self).__init__(**kwargs)
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
@@ -709,7 +467,6 @@ class TPM(FPGABoard):
             # Check if device is specified in the register name
             device = self._getDevice(key)
             if self._registerList.has_key(key):
-                reg = self._registerList[key]
                 key = '.'.join(key.split('.')[1:])
                 return self.writeRegister(device, key, value)
         else:
@@ -761,7 +518,7 @@ class Roach(FPGABoard):
     def __init__(self, *args, **kwargs):
         """ Class constructor """
         kwargs['fpgaBoard'] = BoardMake.RoachBoard
-        return super(Roach, self).__init__(*args, **kwargs)
+        super(Roach, self).__init__(**kwargs)
 
     def getRegisterList(self):
         """ Add functionality to getRegisterList in order to map register names 
@@ -803,8 +560,8 @@ class Roach(FPGABoard):
         return super(Roach, self).loadFirmwareBlocking(Device.FPGA_1, boffile)
 
     def loadFirmware(self, boffile):
-        """ Roach helpder for loadFirmware """
-        return super(Roach, self).loadFirmware(Device.FPGA_1, boffile)
+       """ Roach helpder for loadFirmware """
+       return super(Roach, self).loadFirmware(Device.FPGA_1, boffile)
 
     def readAddress(self, address, n = 1):
         """ Roach helper for readAddress """
@@ -874,7 +631,7 @@ class Roach(FPGABoard):
             self.__dict__[name] = value
         # Allow attributes to be defined normally during initialisation
         elif not self.__dict__.has_key('_FPGABoard__initialised'):
-            return dict.__setattr__(self, name, value)
+            return  dict.__setattr__(self, name, value)
         elif self._registerList is not None and name in self._registerList:
             self.writeRegister(name, value)
         else:
@@ -885,3 +642,19 @@ class Roach(FPGABoard):
         """ Override __str__ to print register information in a human readable format """
         super(Roach, self).listRegisterNames()
         return ""
+
+if __name__ == "__main__":
+    # Simple TPM test
+    tpm = TPM(ip="127.0.0.1", port=10000)
+    tpm.loadFirmwareBlocking(Device.FPGA_1, "/home/lessju/map.xml")
+    tpm['fpga1.regfile.block2048b'] = [1] * 512
+    print tpm['fpga1.regfile.block2048b']
+    tpm.disconnect()
+
+    # Simple ROACH test
+    roach = Roach(ip="192.168.100.2", port=7147)
+    roach.getFirmwareList()
+    roach.loadFirmwareBlocking("fenggbe.bof")
+    roach.amp_EQ0_coeff_bram = range(4096)
+    print roach.readRegister('amp_EQ0_coeff_bram', 4096)
+    roach.disconnect()
