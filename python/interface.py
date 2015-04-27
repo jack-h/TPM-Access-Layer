@@ -62,6 +62,7 @@ class RegisterInfo(object):
         self.permission = permission
         self.bitmask = bitmask
         self.bits = bits
+        self.value = value
         self.size = size
         self.desc = desc
 
@@ -90,6 +91,7 @@ class RegisterInfoStruct(ctypes.Structure):
         ('permission',  ctypes.c_int),
         ('bitmask',     ctypes.c_uint32),
         ('bits',        ctypes.c_uint32),
+        ('value',       ctypes.c_uint32),
         ('size',        ctypes.c_uint32),
         ('description', ctypes.c_char_p)
     ]
@@ -275,6 +277,7 @@ def callGetRegisterList(board_id):
             'size'        : registers[i].size,
             'bitmask'     : registers[i].bitmask,
             'bits'        : registers[i].bits,
+            'value'       : registers[i].value,
             'description' : registers[i].description
         }
         registerList["%s.%s" % (names[dev], registers[i].name)] = reg

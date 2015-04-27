@@ -82,6 +82,7 @@ typedef struct REGISTER_INFO {
     PERMISSION    permission;   // Define register access type
     UINT          bitmask;      // Register bitmask
     UINT          bits;         // Number of bits
+	UINT          value;        // Initial value 
     unsigned int  size;         // Memory size in bytes 
     const char    *description; // Register string description
 } REGISTER_INFO;

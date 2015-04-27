@@ -6,4 +6,4 @@ layer:
 	$(GCC) -shared -fPIC -Wall -std=c++11 -g -o $(LIBRARY_NAME) AccessLayer.cpp Board.cpp MemoryMap.cpp Utils.cpp SPI.cpp TPM.cpp UCP.cpp KATCP.cpp ROACH.cpp
 
 install: layer
-	install -D $(LIBRARY_NAME) $(INSTALL_DIR)/$(LIBRARY_NAME)
+	install -D $(LIBRARY_NAME) $(INSTALL_DIR)/$(LIBRARY_NAME

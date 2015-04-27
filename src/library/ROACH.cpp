@@ -43,7 +43,14 @@ STATUS ROACH::getStatus()
 // Get register list
 REGISTER_INFO* ROACH::getRegisterList(UINT *num_registers)
 {
-    return katcp -> getRegisterList(num_registers);;
+	// Call KATCP to get register information
+    REGISTER_INFO* regInfo = katcp -> getRegisterList(num_registers);
+	
+	// Populate structure with register values
+	this -> initialiseRegisterValues(regInfo, *num_registers);
+	
+	// All done, return
+	return regInfo;
 }
 
 // Get register value

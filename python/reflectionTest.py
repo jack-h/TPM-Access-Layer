@@ -46,7 +46,7 @@ class Driver(object):
             methods = inspect.getmembers(eval(module), predicate=inspect.ismethod)
             
             # Remove unwanted methods from list
-            methods = [a for a, b in methods if a not in ['__init__', 'performCheck']]
+            methods = [a for a, b in methods if a not in ['__init__', 'performChecks']]
 
             # Create module instances
             m = globals()[module]()
@@ -69,3 +69,4 @@ driver.loadModule('Multiplication')
 driver.loadModule('Addition')
 print "Addition: ", driver.add(1,2,3,4,5,6)
 print "Multiplication: ", driver.multiply(1,2,3,4,5,6)
+driver.performChecks()

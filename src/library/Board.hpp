@@ -57,7 +57,10 @@ class Board
         virtual SPI_DEVICE_INFO *getDeviceList(UINT *num_devices) = 0;
         virtual VALUES          readDevice(REGISTER device, UINT address) = 0;
         virtual RETURN          writeDevice(REGISTER device, UINT address, UINT value) = 0;
-        
+	
+	// ---------- Protected call function ----------
+		void initialiseRegisterValues(REGISTER_INFO *regInfo, int num_registers);
+		
     // ---------- Protected class members ---------- 
     protected:
 

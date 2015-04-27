@@ -241,6 +241,8 @@ RETURN KATCP::closeSocket()
 // Issue a read register request, and return reply
 VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
 {
+	DEBUG_PRINT("KATCP::readRegister. Reading register");
+	
     // Send command
     string regname = this -> registers[address];
     sendRequest(string("read"), { regname, to_string(offset), to_string(n * 4) });
@@ -326,6 +328,8 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
 // Issue a write register request, and return reply
 RETURN KATCP::writeRegister(UINT address, UINT *values, UINT n, UINT offset)
 {
+	DEBUG_PRINT("KATCP::writeRegister. Writing to register");
+	
     // Convert unsigned integer to string
     string packedData = "";
 
@@ -339,7 +343,7 @@ RETURN KATCP::writeRegister(UINT address, UINT *values, UINT n, UINT offset)
         bytes[1] = (values[i] >> 16) & 0xFF;
         bytes[0] = (values[i] >> 26) & 0xFF;
 
-        // Catenate each byte to the packed string
+        // Concatenate each byte to the packed string
         for(unsigned j = 0; j < 4; j++)
         {
             if (bytes[j] == '\0')
@@ -409,6 +413,8 @@ RETURN KATCP::writeRegister(UINT address, UINT *values, UINT n, UINT offset)
 // Get list of boffiles from board
 FIRMWARE KATCP::listFirmware(UINT *num_firmware)
 {
+	DEBUG_PRINT("KATCP::listFirmware. Querying board for firmware list");
+	
     *num_firmware = 0;
 
     // Send command to board
@@ -493,6 +499,8 @@ FIRMWARE KATCP::listFirmware(UINT *num_firmware)
 // Get list of registers from board
 REGISTER_INFO* KATCP::getRegisterList(UINT *num_registers)
 {
+	DEBUG_PRINT("KATCP::getRegisterList. Querying board for register list");
+	
     *num_registers = 0;
 
     // Send command to board
@@ -579,6 +587,8 @@ REGISTER_INFO* KATCP::getRegisterList(UINT *num_registers)
 // Load boffile
 RETURN KATCP::loadFirmwareBlocking(const char* boffile)
 {
+	DEBUG_PRINT("KATCP::loadFirmwareBlocking. Loading firmware");
+	
     // Send command to board
     sendRequest(string("progdev"), { string(boffile) });
 

@@ -48,7 +48,14 @@ STATUS TPM::getStatus()
 // Get register list from memory map
 REGISTER_INFO* TPM::getRegisterList(UINT *num_registers)
 {
-    return memory_map -> getRegisterList(num_registers);
+	// Call memory map to get register information
+    REGISTER_INFO* regInfo = memory_map -> getRegisterList(num_registers);
+	
+	// Populate structure with register values
+	this -> initialiseRegisterValues(regInfo, *num_registers);
+	
+	// All done, return
+	return regInfo;
 }
 
 // Get register value

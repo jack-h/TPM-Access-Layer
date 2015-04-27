@@ -1,7 +1,9 @@
 #include "SPI.hpp"
 #include "RapidXML.hpp"
 #include "Utils.hpp"    
+
 #include <string.h>
+#include <stdio.h>
 
 using namespace rapidxml;
 using namespace std;
