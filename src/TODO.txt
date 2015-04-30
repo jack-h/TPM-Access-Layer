@@ -1,6 +1,6 @@
 - Remove temporary hard-coded loadFirmwareBlocking in server connect call
 - Board memory map static somewhere, bitfile maps stored in bitstream
-- Make this Windows friendly
+- Make this Windows friendly - Never
 
 - [DONE] Check if IP and port are recheable
 - [DONE] Split requests for large memory areas into multiple request packets

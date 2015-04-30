@@ -1,9 +1,15 @@
+from plugins import *
 from interface import *
+import inspect
 import ctypes
+import sys
 import re
 
 # --------------- Helpers ------------------------------
 DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2" }
+
+# Load available plugins
+#_availablePlugins = [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]
 
 # ------------------------------------------------------
 
@@ -23,6 +29,9 @@ class FPGABoard(object):
         self.id            = None
         self.status        = Status.NotConnected
         self._programmed   = False
+
+        # List all available subclasses of FirmwareBlock (plugins)
+        self._availablePlugins = [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]
 
         # Override to make this compatible with IPython
         self.__methods__        = None
@@ -52,6 +61,43 @@ class FPGABoard(object):
         # If so, the connect immediately
         if not (ip is None and port is None):
             self.connect(ip, port)
+
+    # ------------------------------- Firmware block functionality ----------------------------
+    def loadPlugin(self, plugin):
+        """ Loads a firmware block plugin and incorporates its functionality
+        :param plugin: Plugin class name
+        :return: Success or Failure
+        """
+
+        # Check if module is available
+        if plugin not in self._availablePlugins:
+            print "Module %s is not available" % plugin
+            return Error.Failure
+
+        # Get list of class methods and remove those availale in superclass
+        methods = [name for name, mtype in
+                   inspect.getmembers(eval(plugin), predicate=inspect.ismethod)
+                   if name not in
+                   [a for a, b in inspect.getmembers(FirmwareBlock, predicate=inspect.ismethod)] ]
+
+        print methods
+
+        # Create plugin instances
+        instance = globals()[plugin](self)
+        self.__dict__[plugin] = instance
+
+        # Import plugins function into this class
+        for method in methods:
+            # Link class method to function pointer
+            self.__dict__[method] = getattr(instance, method)
+
+    def getAvailablePlugins(self):
+        """ Get list of availabe plugins
+        :return: List of plugins
+        """
+        return self._availablePlugins
+
+    # ---------------------------- FPBA Board functionality --------------------------
 
     def connect(self, ip, port):
         """ Connect to board
@@ -142,7 +188,6 @@ class FPGABoard(object):
         # All done, return
         return self._registerList
 
-
     def getDeviceList(self):
         """ Get list of SPI devices """
 
@@ -229,7 +274,6 @@ class FPGABoard(object):
 
         # Call function and return
         return callWriteAddress(self.id, address, values)
-
 
     def readDevice(self, device, address):
         """" Get device value
@@ -640,6 +684,8 @@ class Roach(FPGABoard):
         super(Roach, self).listRegisterNames()
         return ""
 
+
+# Note: Do not run the code below! (temp)
 if __name__ == "__main__":
     # Simple TPM test
     tpm = TPM(ip="127.0.0.1", port=10000)
