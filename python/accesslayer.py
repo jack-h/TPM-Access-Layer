@@ -8,9 +8,6 @@ import re
 # --------------- Helpers ------------------------------
 DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2" }
 
-# Load available plugins
-#_availablePlugins = [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]
-
 # ------------------------------------------------------
 
 # Wrap functionality for a TPM board
@@ -90,6 +87,9 @@ class FPGABoard(object):
         for method in methods:
             # Link class method to function pointer
             self.__dict__[method] = getattr(instance, method)
+
+        # All done, return
+        return Error.Success
 
     def getAvailablePlugins(self):
         """ Get list of availabe plugins
