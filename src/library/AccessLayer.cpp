@@ -24,7 +24,7 @@ map<unsigned int, Board *> boards;
 
 // Set up internal structures to be able to communicate with a processing board
 // Arguments:
-ID DLL_EXPORT connectBoard(BOARD_MAKE boardMake, const char* IP, unsigned short port)
+ID  connectBoard(BOARD_MAKE boardMake, const char* IP, unsigned short port)
 {    
     DEBUG_PRINT("AccessLayer::connect. Connecting to " << IP);
 
@@ -77,7 +77,7 @@ ID DLL_EXPORT connectBoard(BOARD_MAKE boardMake, const char* IP, unsigned short 
 }
 
 // Clear up internal network structures for board in question
-RETURN DLL_EXPORT disconnectBoard(ID id)
+RETURN  disconnectBoard(ID id)
 {    
     // Check if board exists, and if not, return
     if (boards.size() == 0)
@@ -108,19 +108,19 @@ RETURN DLL_EXPORT disconnectBoard(ID id)
 
 // Rest board. Note that return from this function is not determined, due to
 // the board being reset
-RETURN DLL_EXPORT resetBoard(ID id)
+RETURN  resetBoard(ID id)
 {    
     return FAILURE;
 }
 
 // Get board status
-STATUS DLL_EXPORT getStatus(ID id)
+STATUS  getStatus(ID id)
 {    
     return OK;
 }
 
 // Get list of registers
-REGISTER_INFO* DLL_EXPORT getRegisterList(ID id, UINT *num_registers)
+REGISTER_INFO*  getRegisterList(ID id, UINT *num_registers)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -139,7 +139,7 @@ REGISTER_INFO* DLL_EXPORT getRegisterList(ID id, UINT *num_registers)
 }
 
 // Get list of SPI devices
-SPI_DEVICE_INFO* DLL_EXPORT getDeviceList(ID id, UINT *num_devices)
+SPI_DEVICE_INFO*  getDeviceList(ID id, UINT *num_devices)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -158,7 +158,7 @@ SPI_DEVICE_INFO* DLL_EXPORT getDeviceList(ID id, UINT *num_devices)
 }
 
 // Get a register's value
-VALUES DLL_EXPORT readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset)
+VALUES  readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset)
 {  
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -177,7 +177,7 @@ VALUES DLL_EXPORT readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT 
 }
 
 // Set a register's value
-RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n, UINT offset)
+RETURN  writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n, UINT offset)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -196,7 +196,7 @@ RETURN DLL_EXPORT writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values
 }
 
 // Read from address
-VALUES DLL_EXPORT readAddress(ID id, UINT address, UINT n)
+VALUES  readAddress(ID id, UINT address, UINT n)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -216,7 +216,7 @@ VALUES DLL_EXPORT readAddress(ID id, UINT address, UINT n)
 
 
 // Write from address
-RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT *values, UINT n)
+RETURN  writeAddress(ID id, UINT address, UINT *values, UINT n)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -235,7 +235,7 @@ RETURN DLL_EXPORT writeAddress(ID id, UINT address, UINT *values, UINT n)
 }
 
 // Get a device's value
-VALUES DLL_EXPORT readDevice(ID id, REGISTER device, UINT address)
+VALUES  readDevice(ID id, REGISTER device, UINT address)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -254,7 +254,7 @@ VALUES DLL_EXPORT readDevice(ID id, REGISTER device, UINT address)
 }
 
 // Set a device's value
-RETURN DLL_EXPORT writeDevice(ID id, REGISTER device, UINT address, UINT value)
+RETURN  writeDevice(ID id, REGISTER device, UINT address, UINT value)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -273,7 +273,7 @@ RETURN DLL_EXPORT writeDevice(ID id, REGISTER device, UINT address, UINT value)
 }
 
 // Get list of firmware on board
-FIRMWARE DLL_EXPORT getFirmware(ID id, DEVICE device, UINT *num_firmware)
+FIRMWARE  getFirmware(ID id, DEVICE device, UINT *num_firmware)
 {
     // Check if device is valid
     if (!(device == FPGA_1 || device == FPGA_2))
@@ -297,7 +297,7 @@ FIRMWARE DLL_EXPORT getFirmware(ID id, DEVICE device, UINT *num_firmware)
 
 // Load firmware to FPGA. This function return immediately. The status of the
 // board can be monitored through the getStatus call
-RETURN DLL_EXPORT loadFirmware(ID id, DEVICE device, const char* bitstream)
+RETURN  loadFirmware(ID id, DEVICE device, const char* bitstream)
 {
     // Check if device is valid
     if (!(device == FPGA_1 || device == FPGA_2))
@@ -321,7 +321,7 @@ RETURN DLL_EXPORT loadFirmware(ID id, DEVICE device, const char* bitstream)
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-RETURN DLL_EXPORT loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
+RETURN  loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
 {
     // Check if device is valid
     if (!(device == FPGA_1 || device == FPGA_2))
