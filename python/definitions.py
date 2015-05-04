@@ -2,6 +2,20 @@ from enum import Enum
 import ctypes
 
 # --------------- Enumerations --------------------------
+class BoardState(Enum):
+    """ Board State enumeration """
+    Unknown = 0         # Tango
+    Init = 1            # Tango (was Initialising)
+    On = 2              # Tango (was Ready)
+    Running = 3         # Tango (was In_use)
+    Fault = 4           # Tango (was Faulty)
+    Off = 5             # Tango
+    Standby = 6         # Tango
+    Shutting_Down = 7   # ???
+    Maintenance = 8     # ???
+    Low_Power = 9       # ???
+    Safe_State = 10     # ???
+
 
 class Error(Enum):
     """ Error enumeration """

@@ -53,9 +53,8 @@ import sys
 from PyTango import Util, Attr, SpectrumAttr
 from PyTango._PyTango import DevFailed
 from accesslayer import *
+from definitions import *
 from types import *
-from enum import Enum
-from states import BoardState
 import pickle
 #----- PROTECTED REGION END -----#	//	TPM_DS.additionnal_import
 
