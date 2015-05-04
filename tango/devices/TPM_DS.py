@@ -216,7 +216,7 @@ class TPM_DS (PyTango.Device_4Impl):
         self.info_stream("Starting device initialization...")
         self.set_state(PyTango.DevState.UNKNOWN)
         self.tpm_instance = TPM(ip="127.0.0.1", port=10000)
-        self.setBoardState(BoardState.INIT.value)
+        self.setBoardState(BoardState.Init.value)
         self.info_stream("Device has been initialized.")
         #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
 
