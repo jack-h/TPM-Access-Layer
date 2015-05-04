@@ -31,7 +31,6 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="Disconnect" description="Disconnect this device." execMethod="disconnect" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -41,7 +40,6 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="addCommand" description="A generic command that adds a new command entry to the Tango device driver." execMethod="add_command" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="A string containing a dictionary for fields required for command creation.">
@@ -51,7 +49,6 @@
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="createScalarAttribute" description="A method that creates a new scalar attribute." execMethod="create_scalar_attribute" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="New attribute name.">
@@ -61,7 +58,6 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="createVectorAttribute" description="A method that creates a new vector attribute." execMethod="create_vector_attribute" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="New attribute name.">
@@ -71,7 +67,6 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="flushAttributes" description="A method that removes all attributes for the current firmware." execMethod="flush_attributes" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -81,7 +76,6 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="generateAttributes" description="A method that generates dynamic attributes based on the current firmware." execMethod="generate_attributes" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -91,7 +85,6 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="getDeviceList" description="Returns a list of devices, as a serialized python dictionary, stored as a string." execMethod="get_device_list" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -101,7 +94,6 @@
         <type xsi:type="pogoDsl:StringType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="getFirmwareList" description="Returns a list of firmwares, as a serialized python dictionary, stored as a string." execMethod="get_firmware_list" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Device on board to get list of firmware, as a string.">
@@ -111,7 +103,6 @@
         <type xsi:type="pogoDsl:StringType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="getRegisterInfo" description="Gets a dictionary of information associated with a specified register." execMethod="get_register_info" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="The register name for which information will be retrieved.">
@@ -121,7 +112,6 @@
         <type xsi:type="pogoDsl:StringType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="getRegisterList" description="Returns a list of registers and values, as a serialized python dictionary, stored as a string." execMethod="get_register_list" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -131,7 +121,6 @@
         <type xsi:type="pogoDsl:StringArrayType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="loadfirmwareblocking" description="Blocking call to load firmware." execMethod="loadfirmwareblocking" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="File path.">
@@ -141,7 +130,6 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="readAddress" description="Reads values from a register location. Instead of a register name, the actual physical address has to be provided." execMethod="read_address" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
@@ -151,7 +139,6 @@
         <type xsi:type="pogoDsl:UIntArrayType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="readDevice" description="Get device value." execMethod="read_device" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="String containing:&#xA;1) SPI Device to read from&#xA;2) Address on device to read from">
@@ -161,7 +148,6 @@
         <type xsi:type="pogoDsl:UIntType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="readRegister" description="Reads values from a register location." execMethod="read_register" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
@@ -171,7 +157,6 @@
         <type xsi:type="pogoDsl:UIntArrayType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="removeCommand" description="A generic command that removes a command entry from the Tango device driver." execMethod="remove_command" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Command name.">
@@ -181,7 +166,6 @@
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="setBoardState" description="Sets the board status by passing in a value.&#xA;        UNKNOWN&#x9;=  0&#xA;        INIT&#x9;&#x9;=  1&#xA;        ON&#x9;&#x9;=  2&#xA;        RUNNING&#x9;=  3&#xA;        FAULT&#x9;&#x9;=  4&#xA;        OFF&#x9;&#x9;=  5&#xA;        STANDBY&#x9;=  6&#xA;        SHUTTING_DOWN&#x9;=  7&#xA;        MAINTENANCE&#x9;=  8&#xA;        LOW_POWER&#x9;=  9&#xA;        SAFE_STATE&#x9;=  10" execMethod="set_board_state" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Board status value.">
@@ -191,7 +175,6 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="writeAddress" description="Writes values to a register location. The actual physical address has to be provided." execMethod="write_address" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
@@ -201,7 +184,6 @@
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="writeDevice" description="Set device value." execMethod="write_device" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="A string containing the following:&#xA;1) SPI device to write to&#xA;2) Address on device to write to&#xA;3) Value to write">
@@ -211,7 +193,6 @@
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <commands name="writeRegister" description="Writes values from a register location." execMethod="write_register" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
@@ -221,7 +202,6 @@
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-      <excludedStates>UNKNOWN</excludedStates>
     </commands>
     <attributes name="boardState" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
       <dataType xsi:type="pogoDsl:IntType"/>
@@ -230,7 +210,6 @@
       <dataReadyEvent fire="false" libCheckCriteria="true"/>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
       <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
-      <readExcludedStates>UNKNOWN</readExcludedStates>
     </attributes>
     <preferences docHome="./doc_html" makefileHome="/usr/share/pogo/preferences"/>
   </classes>

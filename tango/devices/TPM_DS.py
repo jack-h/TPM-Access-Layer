@@ -238,14 +238,6 @@ class TPM_DS (PyTango.Device_4Impl):
         attr.set_value(self.attr_boardStatus_read)
         #----- PROTECTED REGION END -----#	//	TPM_DS.boardState_read
         
-    def is_boardState_allowed(self, attr):
-        self.debug_stream("In is_boardState_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_boardState_allowed) ENABLED START -----#
-        state_ok = True
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_boardState_allowed
-        return state_ok
-        
     
     
         #----- PROTECTED REGION ID(TPM_DS.initialize_dynamic_attributes) ENABLED START -----#
@@ -281,7 +273,7 @@ class TPM_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.Connect
-
+        
     def Disconnect(self):
         """ Disconnect this device.
         
@@ -298,7 +290,6 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.Disconnect
         
-
     def addCommand(self, argin):
         """ A generic command that adds a new command entry to the Tango device driver.
         
@@ -351,7 +342,7 @@ class TPM_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.createScalarAttribute
-
+        
     def createVectorAttribute(self, argin):
         """ A method that creates a new vector attribute.
         
@@ -368,7 +359,7 @@ class TPM_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.createVectorAttribute
-
+        
     def flushAttributes(self):
         """ A method that removes all attributes for the current firmware.
         
@@ -387,7 +378,7 @@ class TPM_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.flushAttributes
-
+        
     def generateAttributes(self):
         """ A method that generates dynamic attributes based on the current firmware.
         
@@ -410,7 +401,7 @@ class TPM_DS (PyTango.Device_4Impl):
             else:
                 self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.generateAttributes
-
+        
     def getDeviceList(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
         
@@ -450,7 +441,7 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.getFirmwareList
         return argout
-
+        
     def getRegisterInfo(self, argin):
         """ Gets a dictionary of information associated with a specified register.
         
@@ -489,7 +480,7 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.getRegisterList
         return argout
-
+        
     def loadfirmwareblocking(self, argin):
         """ Blocking call to load firmware.
         
@@ -510,7 +501,6 @@ class TPM_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.loadfirmwareblocking
-
         
     def readAddress(self, argin):
         """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
@@ -532,7 +522,7 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.readAddress
         return argout
-
+        
     def readDevice(self, argin):
         """ Get device value.
         
@@ -557,7 +547,6 @@ class TPM_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION END -----#	//	TPM_DS.readDevice
         return argout
         
-
     def readRegister(self, argin):
         """ Reads values from a register location.
         
@@ -580,7 +569,7 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.readRegister
         return argout
-
+        
     def removeCommand(self, argin):
         """ A generic command that removes a command entry from the Tango device driver.
         
@@ -606,7 +595,7 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.removeCommand
         return argout
-
+        
     def setBoardState(self, argin):
         """ Sets the board status by passing in a value.
                 UNKNOWN	=  0
@@ -648,8 +637,21 @@ class TPM_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.writeAddress
+        
+    def writeAddress(self, argin):
+        """ Writes values to a register location. The actual physical address has to be provided.
+        
+        :param argin: Associated register information.
+        :type: PyTango.DevString
+        :return: True if successful, false if not.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In writeAddress()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.writeAddress) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	TPM_DS.writeAddress
         return argout
-
+        
     def writeDevice(self, argin):
         """ Set device value.
         
@@ -675,7 +677,7 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.writeDevice
         return argout
-
+        
     def writeRegister(self, argin):
         """ Writes values from a register location.
         
@@ -698,7 +700,7 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.writeRegister
         return argout
-
+        
 
 class TPM_DSClass(PyTango.DeviceClass):
     #--------- Add you global class variables here --------------------------
