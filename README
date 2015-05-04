@@ -21,6 +21,8 @@ Directory structures
 Comiling the library
 --------------------
 
+Requirements: - g++ 4.8+
+
 cd src/library
 make
 
@@ -40,10 +42,10 @@ To use, you need to export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path_to_project/src
 Using the Python wrapper
 ------------------------
 
-No setup file exists yet, so the following needs to be added:
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path_to_project/src/library
-
 Requirements: enum34 (pip should install it)
 
-cd python
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path_to_project/src/library
+
+python setup.py install
+Or simply open a python console from the python directory
 
