@@ -59,7 +59,7 @@ import pickle
 #----- PROTECTED REGION END -----#	//	TPM_DS.additionnal_import
 
 ## Device States Description
-## UNKNOWN : 
+## No states for this device
 
 class TPM_DS (PyTango.Device_4Impl):
 
@@ -68,28 +68,30 @@ class TPM_DS (PyTango.Device_4Impl):
     global tpm_instance
     tpm_instance = None
 
+    all_states_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
     # State flow definitions - allowed states for each command
     state_list = {
-        'loadFirmWareBlocking': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'getRegisterList': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'getDeviceList': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'Connect': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'Disconnect': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'getFirmwareList': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'getRegisterInfo': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'createScalarAttribute': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'createVectorAttribute': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'readRegister': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'writeRegister': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'generateAttributes': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'flushAttributes': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'readAddress': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'writeAddress': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'readDevice': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'writeDevice': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'setBoardState': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'addCommand': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'removeCommand': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        'loadFirmWareBlocking': all_states_list,
+        'getRegisterList': all_states_list,
+        'getDeviceList': all_states_list,
+        'Connect': all_states_list,
+        'Disconnect': all_states_list,
+        'getFirmwareList': all_states_list,
+        'getRegisterInfo': all_states_list,
+        'createScalarAttribute': all_states_list,
+        'createVectorAttribute': all_states_list,
+        'readRegister': all_states_list,
+        'writeRegister': all_states_list,
+        'generateAttributes': all_states_list,
+        'flushAttributes': all_states_list,
+        'readAddress': all_states_list,
+        'writeAddress': all_states_list,
+        'readDevice': all_states_list,
+        'writeDevice': all_states_list,
+        'setBoardState': all_states_list,
+        'addCommand': all_states_list,
+        'removeCommand': all_states_list
     }
 
     def checkStateFlow(self, fnName):
@@ -99,6 +101,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :type: String
         :return: True if allowed, false if not.
         :rtype: PyTango.DevBoolean """
+        self.debug_stream("In checkStateFlow()")
 
         # get allowed states for this command
         fnAllowedStates = self.state_list(fnName)
@@ -214,9 +217,8 @@ class TPM_DS (PyTango.Device_4Impl):
         self.attr_boardState_read = 0
         #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
         self.info_stream("Starting device initialization...")
-        self.set_state(PyTango.DevState.UNKNOWN)
-        self.tpm_instance = TPM(ip="127.0.0.1", port=10000)
         self.setBoardState(BoardState.Init.value)
+        self.tpm_instance = TPM(ip="127.0.0.1", port=10000)
         self.info_stream("Device has been initialized.")
         #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
 
@@ -270,20 +272,16 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In Connect()")
         #----- PROTECTED REGION ID(TPM_DS.Connect) ENABLED START -----#
-        arguments = eval(argin)
-        ip_str = arguments['ip']
-        port = arguments['port']
-        self.tpm_instance.connect(ip_str, port)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.Connect
-        
-    def is_Connect_allowed(self):
-        self.debug_stream("In is_Connect_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_Connect_allowed) ENABLED START -----#
         state_ok = self.checkStateFlow(self.Connect.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_Connect_allowed
-        return state_ok
-        
+        if state_ok:
+            arguments = eval(argin)
+            ip_str = arguments['ip']
+            port = arguments['port']
+            self.tpm_instance.connect(ip_str, port)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.Connect
+
     def Disconnect(self):
         """ Disconnect this device.
         
@@ -293,17 +291,14 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In Disconnect()")
         #----- PROTECTED REGION ID(TPM_DS.Disconnect) ENABLED START -----#
-        self.tpm_instance.disconnect()
+        state_ok = self.checkStateFlow(self.Connect.__name__)
+        if state_ok:
+            self.tpm_instance.disconnect()
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.Disconnect
         
-    def is_Disconnect_allowed(self):
-        self.debug_stream("In is_Disconnect_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_Disconnect_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.Disconnect.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_Disconnect_allowed
-        return state_ok
-        
+
     def addCommand(self, argin):
         """ A generic command that adds a new command entry to the Tango device driver.
         
@@ -314,35 +309,31 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In addCommand()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.addCommand) ENABLED START -----#
-        #  Protect the script from exceptions raised by Tango
-        try:
-            # Try create a new command entry
-            arguments = eval(argin)
-            commandName = arguments['commandName']
-            inValue = arguments['inType']
-            inType = arguments['inDesc']
-            outType = arguments['outType']
-            outDesc = arguments['outDesc']
-            allowedStates = arguments['states']
+        state_ok = self.checkStateFlow(self.addCommand.__name__)
+        if state_ok:
+            #  Protect the script from exceptions raised by Tango
+            try:
+                # Try create a new command entry
+                arguments = eval(argin)
+                commandName = arguments['commandName']
+                inValue = arguments['inType']
+                inType = arguments['inDesc']
+                outType = arguments['outType']
+                outDesc = arguments['outDesc']
+                allowedStates = arguments['states']
 
-            self.state_list[commandName] = allowedStates
-            self.cmd_list[commandName] = [[inType, inValue], [outType, outDesc]]
-            argout = True
-        except DevFailed as df:
-            print("Failed to create new command entry in device server: \n%s" % df)
-            argout = False
-        finally:
-            return argout
+                self.state_list[commandName] = allowedStates
+                self.cmd_list[commandName] = [[inType, inValue], [outType, outDesc]]
+                argout = True
+            except DevFailed as df:
+                print("Failed to create new command entry in device server: \n%s" % df)
+                argout = False
+            finally:
+                return argout
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.addCommand
         return argout
-        
-    def is_addCommand_allowed(self):
-        self.debug_stream("In is_addCommand_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_addCommand_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.addCommand.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_addCommand_allowed
-        return state_ok
         
     def createScalarAttribute(self, argin):
         """ A method that creates a new scalar attribute.
@@ -353,18 +344,14 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In createScalarAttribute()")
         #----- PROTECTED REGION ID(TPM_DS.createScalarAttribute) ENABLED START -----#
-        attr = Attr(argin, PyTango.DevULong)
-        self.add_attribute(attr, self.read_GeneralScalar, self.write_GeneralScalar)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.createScalarAttribute
-        
-    def is_createScalarAttribute_allowed(self):
-        self.debug_stream("In is_createScalarAttribute_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_createScalarAttribute_allowed) ENABLED START -----#
         state_ok = self.checkStateFlow(self.createScalarAttribute.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_createScalarAttribute_allowed
-        return state_ok
-        
+        if state_ok:
+            attr = Attr(argin, PyTango.DevULong)
+            self.add_attribute(attr, self.read_GeneralScalar, self.write_GeneralScalar)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.createScalarAttribute
+
     def createVectorAttribute(self, argin):
         """ A method that creates a new vector attribute.
         
@@ -374,18 +361,14 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In createVectorAttribute()")
         #----- PROTECTED REGION ID(TPM_DS.createVectorAttribute) ENABLED START -----#
-        attr = SpectrumAttr(argin, PyTango.DevULong, PyTango.READ_WRITE, len)
-        self.add_attribute(attr, self.read_GeneralVector, self.write_GeneralVector)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.createVectorAttribute
-        
-    def is_createVectorAttribute_allowed(self):
-        self.debug_stream("In is_createVectorAttribute_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_createVectorAttribute_allowed) ENABLED START -----#
         state_ok = self.checkStateFlow(self.createVectorAttribute.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_createVectorAttribute_allowed
-        return state_ok
-        
+        if state_ok:
+            attr = SpectrumAttr(argin, PyTango.DevULong, PyTango.READ_WRITE, len)
+            self.add_attribute(attr, self.read_GeneralVector, self.write_GeneralVector)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.createVectorAttribute
+
     def flushAttributes(self):
         """ A method that removes all attributes for the current firmware.
         
@@ -395,20 +378,16 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In flushAttributes()")
         #----- PROTECTED REGION ID(TPM_DS.flushAttributes) ENABLED START -----#
-        register_dict = self.tpm_instance.getRegisterList()
-        if register_dict is not None:
-            for reg_name, entries in register_dict.iteritems():
-                self.remove_attribute(reg_name)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.flushAttributes
-        
-    def is_flushAttributes_allowed(self):
-        self.debug_stream("In is_flushAttributes_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_flushAttributes_allowed) ENABLED START -----#
         state_ok = self.checkStateFlow(self.flushAttributes.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_flushAttributes_allowed
-        return state_ok
-        
+        if state_ok:
+            register_dict = self.tpm_instance.getRegisterList()
+            if register_dict is not None:
+                for reg_name, entries in register_dict.iteritems():
+                    self.remove_attribute(reg_name)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.flushAttributes
+
     def generateAttributes(self):
         """ A method that generates dynamic attributes based on the current firmware.
         
@@ -418,24 +397,20 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In generateAttributes()")
         #----- PROTECTED REGION ID(TPM_DS.generateAttributes) ENABLED START -----#
-        register_dict = self.tpm_instance.getRegisterList()
-        for reg_name, entries in register_dict.iteritems():
-            size = entries.get('size')
-            #print reg_name, size
-            if size > 1:
-                self.createVectorAttribute(reg_name, size)
-            else:
-                self.createScalarAttribute(reg_name)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.generateAttributes
-        
-    def is_generateAttributes_allowed(self):
-        self.debug_stream("In is_generateAttributes_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_generateAttributes_allowed) ENABLED START -----#
         state_ok = self.checkStateFlow(self.generateAttributes.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_generateAttributes_allowed
-        return state_ok
-        
+        if state_ok:
+            register_dict = self.tpm_instance.getRegisterList()
+            for reg_name, entries in register_dict.iteritems():
+                size = entries.get('size')
+                #print reg_name, size
+                if size > 1:
+                    self.createVectorAttribute(reg_name, size)
+                else:
+                    self.createScalarAttribute(reg_name)
+            else:
+                self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.generateAttributes
+
     def getDeviceList(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
         
@@ -446,18 +421,14 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In getDeviceList()")
         argout = ''
         #----- PROTECTED REGION ID(TPM_DS.getDeviceList) ENABLED START -----#
-        devlist = self.tpm_instance.getDeviceList()
-        argout = pickle.dumps(devlist)
+        state_ok = self.checkStateFlow(self.getDeviceList.__name__)
+        if state_ok:
+            devlist = self.tpm_instance.getDeviceList()
+            argout = pickle.dumps(devlist)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.getDeviceList
         return argout
-        
-    def is_getDeviceList_allowed(self):
-        self.debug_stream("In is_getDeviceList_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_getDeviceList_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.getDeviceList.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_getDeviceList_allowed
-        return state_ok
         
     def getFirmwareList(self, argin):
         """ Returns a list of firmwares, as a serialized python dictionary, stored as a string.
@@ -469,21 +440,17 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In getFirmwareList()")
         argout = ''
         #----- PROTECTED REGION ID(TPM_DS.getFirmwareList) ENABLED START -----#
-        arguments = eval(argin)
-        device = arguments['device']
-        firmware_list = self.tpm_instance.getFirmwareList(Device(device))
-        argout = pickle.dumps(firmware_list)
+        state_ok = self.checkStateFlow(self.getFirmwareList.__name__)
+        if state_ok:
+            arguments = eval(argin)
+            device = arguments['device']
+            firmware_list = self.tpm_instance.getFirmwareList(Device(device))
+            argout = pickle.dumps(firmware_list)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.getFirmwareList
         return argout
-        
-    def is_getFirmwareList_allowed(self):
-        self.debug_stream("In is_getFirmwareList_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_getFirmwareList_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.getFirmwareList.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_getFirmwareList_allowed
-        return state_ok
-        
+
     def getRegisterInfo(self, argin):
         """ Gets a dictionary of information associated with a specified register.
         
@@ -494,19 +461,15 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In getRegisterInfo()")
         argout = ''
         #----- PROTECTED REGION ID(TPM_DS.getRegisterInfo) ENABLED START -----#
-        reglist = self.tpm_instance.getRegisterList()
-        value = reglist.get(argin)
-        argout = pickle.dumps(value)
+        state_ok = self.checkStateFlow(self.getRegisterInfo.__name__)
+        if state_ok:
+            reglist = self.tpm_instance.getRegisterList()
+            value = reglist.get(argin)
+            argout = pickle.dumps(value)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.getRegisterInfo
         return argout
-        
-    def is_getRegisterInfo_allowed(self):
-        self.debug_stream("In is_getRegisterInfo_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_getRegisterInfo_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.getRegisterInfo.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_getRegisterInfo_allowed
-        return state_ok
         
     def getRegisterList(self):
         """ Returns a list of registers and values, as a serialized python dictionary, stored as a string.
@@ -518,19 +481,15 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In getRegisterList()")
         argout = ['']
         #----- PROTECTED REGION ID(TPM_DS.getRegisterList) ENABLED START -----#
-        register_dict = self.tpm_instance.getRegisterList()
-        argout = register_dict.keys()
+        state_ok = self.checkStateFlow(self.getRegisterList.__name__)
+        if state_ok:
+            register_dict = self.tpm_instance.getRegisterList()
+            argout = register_dict.keys()
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.getRegisterList
         return argout
-        
-    def is_getRegisterList_allowed(self):
-        self.debug_stream("In is_getRegisterList_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_getRegisterList_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.getRegisterList.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_getRegisterList_allowed
-        return state_ok
-        
+
     def loadfirmwareblocking(self, argin):
         """ Blocking call to load firmware.
         
@@ -540,21 +499,18 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In loadfirmwareblocking()")
         #----- PROTECTED REGION ID(TPM_DS.loadfirmwareblocking) ENABLED START -----#
-        arguments = eval(argin)
-        device = arguments['device']
-        filepath = arguments['path']
-        self.flushAttributes()
-        self.tpm_instance.loadFirmwareBlocking(Device(device), filepath)
-        self.generateAttributes()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.loadfirmwareblocking
-        
-    def is_loadfirmwareblocking_allowed(self):
-        self.debug_stream("In is_loadfirmwareblocking_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_loadfirmwareblocking_allowed) ENABLED START -----#
         state_ok = self.checkStateFlow(self.is_loadfirmwareblocking.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_loadfirmwareblocking_allowed
-        return state_ok
+        if state_ok:
+            arguments = eval(argin)
+            device = arguments['device']
+            filepath = arguments['path']
+            self.flushAttributes()
+            self.tpm_instance.loadFirmwareBlocking(Device(device), filepath)
+            self.generateAttributes()
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.loadfirmwareblocking
+
         
     def readAddress(self, argin):
         """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
@@ -566,21 +522,17 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In readAddress()")
         argout = [0]
         #----- PROTECTED REGION ID(TPM_DS.readAddress) ENABLED START -----#
-        arguments = eval(argin)
-        address = arguments['address']
-        words = arguments['words']
-        argout = self.tpm_instance.readAddress(address, words)
+        state_ok = self.checkStateFlow(self.readAddress.__name__)
+        if state_ok:
+            arguments = eval(argin)
+            address = arguments['address']
+            words = arguments['words']
+            argout = self.tpm_instance.readAddress(address, words)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.readAddress
         return argout
-        
-    def is_readAddress_allowed(self):
-        self.debug_stream("In is_readAddress_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_readAddress_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.readAddress.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_readAddress_allowed
-        return state_ok
-        
+
     def readDevice(self, argin):
         """ Get device value.
         
@@ -594,21 +546,18 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In readDevice()")
         argout = 0
         #----- PROTECTED REGION ID(TPM_DS.readDevice) ENABLED START -----#
-        arguments = eval(argin)
-        device = arguments['device']
-        address = arguments['address']
-        argout = self.tpm_instance.readDevice(device, address)
+        state_ok = self.checkStateFlow(self.readDevice.__name__)
+        if state_ok:
+            arguments = eval(argin)
+            device = arguments['device']
+            address = arguments['address']
+            argout = self.tpm_instance.readDevice(device, address)
+        else:
+           self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.readDevice
         return argout
         
-    def is_readDevice_allowed(self):
-        self.debug_stream("In is_readDevice_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_readDevice_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.readDevice.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_readDevice_allowed
-        return state_ok
-        
+
     def readRegister(self, argin):
         """ Reads values from a register location.
         
@@ -619,23 +568,19 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In readRegister()")
         argout = [0]
         #----- PROTECTED REGION ID(TPM_DS.readRegister) ENABLED START -----#
-        arguments = eval(argin)
-        device = arguments['device']
-        register = arguments['register']
-        words = arguments['words']
-        offset = arguments['offset']
-        argout = self.tpm_instance.readRegister(Device(device), register, words, offset)
+        state_ok = self.checkStateFlow(self.readRegister.__name__)
+        if state_ok:
+            arguments = eval(argin)
+            device = arguments['device']
+            register = arguments['register']
+            words = arguments['words']
+            offset = arguments['offset']
+            argout = self.tpm_instance.readRegister(Device(device), register, words, offset)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.readRegister
         return argout
-        
-    def is_readRegister_allowed(self):
-        self.debug_stream("In is_readRegister_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_readRegister_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.readRegister.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_readRegister_allowed
-        return state_ok
-        
+
     def removeCommand(self, argin):
         """ A generic command that removes a command entry from the Tango device driver.
         
@@ -646,26 +591,22 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In removeCommand()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.removeCommand) ENABLED START -----#
-        try:
-            del self.cmd_list[argin]
-            del self.state_list[argin]
-            argout = True
-        except DevFailed as df:
-            print("Failed to remove command entry in device server: \n%s" % df)
-            argout = False
-        finally:
-            return argout
+        state_ok = self.checkStateFlow(self.removeCommand.__name__)
+        if state_ok:
+            try:
+                del self.cmd_list[argin]
+                del self.state_list[argin]
+                argout = True
+            except DevFailed as df:
+                print("Failed to remove command entry in device server: \n%s" % df)
+                argout = False
+            finally:
+                return argout
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.removeCommand
         return argout
-        
-    def is_removeCommand_allowed(self):
-        self.debug_stream("In is_removeCommand_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_removeCommand_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.removeCommand.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_removeCommand_allowed
-        return state_ok
-        
+
     def setBoardState(self, argin):
         """ Sets the board status by passing in a value.
                 UNKNOWN	=  0
@@ -688,21 +629,6 @@ class TPM_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(TPM_DS.setBoardState) ENABLED START -----#
         self.attr_boardState_read = argin
 
-    def is_setBoardState_allowed(self):
-        self.debug_stream("In is_setBoardState_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_setBoardState_allowed) ENABLED START -----#
-        state_ok = True
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_setBoardState_allowed
-        
-    def is_setBoardState_allowed(self):
-        self.debug_stream("In is_setBoardState_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_setBoardState_allowed) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_setBoardState_allowed
-        return state_ok
-        
     def writeAddress(self, argin):
         """ Writes values to a register location. The actual physical address has to be provided.
         
@@ -713,21 +639,17 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In writeAddress()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.writeAddress) ENABLED START -----#
-        arguments = eval(argin)
-        address = arguments['address']
-        values = arguments['values']
-        argout = self.tpm_instance.writeAddress(address, values)
+        state_ok = self.checkStateFlow(self.writeAddress.__name__)
+        if state_ok:
+            arguments = eval(argin)
+            address = arguments['address']
+            values = arguments['values']
+            argout = self.tpm_instance.writeAddress(address, values)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.writeAddress
         return argout
-        
-    def is_writeAddress_allowed(self):
-        self.debug_stream("In is_writeAddress_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_writeAddress_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.writeAddress.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_writeAddress_allowed
-        return state_ok
-        
+
     def writeDevice(self, argin):
         """ Set device value.
         
@@ -742,22 +664,18 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In writeDevice()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.writeDevice) ENABLED START -----#
-        arguments = eval(argin)
-        device = arguments['device']
-        address = arguments['address']
-        value = arguments['value']
-        argout = self.tpm_instance.writeDevice(device, address, value)
+        state_ok = self.checkStateFlow(self.writeDevice.__name__)
+        if state_ok:
+            arguments = eval(argin)
+            device = arguments['device']
+            address = arguments['address']
+            value = arguments['value']
+            argout = self.tpm_instance.writeDevice(device, address, value)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.writeDevice
         return argout
-        
-    def is_writeDevice_allowed(self):
-        self.debug_stream("In is_writeDevice_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_writeDevice_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.writeDevice.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_writeDevice_allowed
-        return state_ok
-        
+
     def writeRegister(self, argin):
         """ Writes values from a register location.
         
@@ -768,23 +686,19 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In writeRegister()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.writeRegister) ENABLED START -----#
-        arguments = eval(argin)
-        device = arguments['device']
-        register = arguments['register']
-        values = arguments['values']
-        offset = arguments['offset']
-        argout = self.tpm_instance.writeRegister(Device(device), register, values, offset)
+        state_ok = self.checkStateFlow(self.writeRegister.__name__)
+        if state_ok:
+            arguments = eval(argin)
+            device = arguments['device']
+            register = arguments['register']
+            values = arguments['values']
+            offset = arguments['offset']
+            argout = self.tpm_instance.writeRegister(Device(device), register, values, offset)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.writeRegister
         return argout
-        
-    def is_writeRegister_allowed(self):
-        self.debug_stream("In is_writeRegister_allowed()")
-        state_ok = not(self.get_state() in [PyTango.DevState.UNKNOWN])
-        #----- PROTECTED REGION ID(TPM_DS.is_writeRegister_allowed) ENABLED START -----#
-        state_ok = self.checkStateFlow(self.writeRegister.__name__)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_writeRegister_allowed
-        return state_ok
-        
+
 
 class TPM_DSClass(PyTango.DeviceClass):
     #--------- Add you global class variables here --------------------------
