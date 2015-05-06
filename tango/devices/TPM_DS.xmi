@@ -122,7 +122,7 @@
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
-    <commands name="loadfirmwareblocking" description="Blocking call to load firmware." execMethod="loadfirmwareblocking" displayLevel="OPERATOR" polledPeriod="0">
+    <commands name="loadFirmwareBlocking" description="Blocking call to load firmware." execMethod="load_firmware_blocking" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="File path.">
         <type xsi:type="pogoDsl:StringType"/>
       </argin>

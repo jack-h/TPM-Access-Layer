@@ -1,4 +1,6 @@
 import PyTango
+from mercurial.store import fncache
+import pickle
 from enum import Enum
 
 class BoardState(Enum):
@@ -19,12 +21,19 @@ class BoardState(Enum):
 print BoardState.INIT.value
 print BoardState(1)
 
+def fnNameTest(self):
+    print 1+1
+
+
+print fnNameTest.__name__
+
 tpm_instance = PyTango.DeviceProxy("test/tpm_board/1")
 
 arguments = {}
 arguments['device'] = 2
 arguments['path'] = '/home/andrea/Documents/AAVS/xml/map.xml'
-args = str(arguments)
+args = pickle.dumps(arguments)
+#args = str(arguments)
 
 tpm_instance.command_inout("loadfirmwareblocking", args)
 tpm_instance.command_inout("getDeviceList")
