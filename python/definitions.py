@@ -25,14 +25,6 @@ class Error(Enum):
     Failure = -1
     NotImplemented = -2
 
-    def __str__(self):
-        if self.value == self.Success:
-            return None
-        elif self.value == self.Failure:
-            return "Function failed"
-        else:
-            return "Function not implemented"
-
 class Device(Enum):
     """ Device enumeration """
     Board = 1
@@ -128,6 +120,21 @@ class SPIDeviceInfoStruct(ctypes.Structure):
         ('spi_en',   ctypes.c_uint32)
     ]
 
+# ------------------- Exceptions -----------------------
+class BoardError(Exception):
+    """ Define an exception which occurs when an operation occuring
+        on an FPGA boards returns an error """
+    pass
+
+class LibraryError(Exception):
+    """ Define an exception which occurs when an operation occuring
+        within the library returns an error """
+    pass
+
+class PluginError(Exception):
+    """ Define an exception which occurs when an operation occuring
+        within a plugin returns an error """
+    pass
 
 # -------------- Device State Decorator ----------------
 def valid_states(*args):
@@ -147,22 +154,22 @@ def valid_states(*args):
 
     return decorator
 
-# -------------- Logging Functionality --------------------
-
-def configureLogging(filename = None, level = logging.INFO):
-    """ Basic logging configuration
-    :param filename: Log filename
-    :param level: Logging level
-    :return: Nothing
+# ----------- Board Compatibility Decorator --------------
+def compatible_boards(*args):
+    """ Add board compatability to funtion
+    :param args: Compatible boards
+    :return: Decorated class
     """
 
-    # If filename is not specified, create it
-    if filename is None:
-        from datetime import datetime
-        filename = "access_layer_%s.log" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-        logging.basicConfig(format='%(asctime)s:%(levelname)s: %(message)s', filename = filename, level = level)
-    else:
-        logging.basicConfig(format='%(asctime)s:%(levelname)s: %(message)s', filename = filename, level = level)
-    logging.info("Started log")
+    def decorator(func):
+        # Check if any boards were declared
+        if len(args) > 0 and all(type(x) == BoardMake for x in args):
+            # Add board make to class metadata
+            func.__dict__['_compatible_boards'] = args
+
+        # All done, return
+        return func
+
+    return decorator
 
 

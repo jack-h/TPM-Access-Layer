@@ -1,5 +1,6 @@
 from plugins import *
 from interface import *
+import logging
 import inspect
 import ctypes
 import sys
@@ -25,6 +26,7 @@ class FPGABoard(object):
         self.id            = None
         self.status        = Status.NotConnected
         self._programmed   = False
+        self._logger       = None
 
         # List all available subclasses of FirmwareBlock (plugins)
         self._availablePlugins = [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]
@@ -42,8 +44,7 @@ class FPGABoard(object):
         # Check if FPGA board type is specified
         self._fpgaBoard = kwargs.get('fpgaBoard', None)
         if self._fpgaBoard is None:
-            print "fpgaBoard type must be specified"
-            return
+            raise LibraryError("No BoarMake specified in FPGABoard initialiser")
 
         # Check if filepath is included in arguments
         filepath = kwargs.get('library', None)
@@ -55,7 +56,14 @@ class FPGABoard(object):
         ip   = kwargs.get('ip', None)
         port = kwargs.get('port', None)
 
+        # Configure logging
+        logfile = kwargs.get('logfile', None)
+        loglevel = kwargs.get('loglevel', logging.WARN)
+        self.configureLogging(filename = logfile, level = loglevel)
+
+
         # If so, the connect immediately
+        self._logger.debug("Succesfully initialised FPGABoard instance")
         if not (ip is None and port is None):
             self.connect(ip, port)
 
@@ -63,13 +71,19 @@ class FPGABoard(object):
     def loadPlugin(self, plugin):
         """ Loads a firmware block plugin and incorporates its functionality
         :param plugin: Plugin class name
-        :return: Success or Failure
         """
 
         # Check if module is available
         if plugin not in self._availablePlugins:
-            print "Module %s is not available" % plugin
-            return Error.Failure
+            raise LibraryError("Module %s is not available" % plugin)
+
+        # Check if plugin is compatible with board make
+        constr = eval(plugin).__init__.__dict__
+        if '_compatible_boards' in constr:
+            if self._fpgaBoard not in constr['_compatible_boards']:
+                raise LibraryError("Plugin %s is not compatible with %s" % (plugin, self._fpgaBoard))
+        else:
+            self._logger.warn("Plugin %s does not specify board compatability" % plugin)
 
         # Get list of class methods and remove those availale in superclass
         methods = [name for name, mtype in
@@ -93,15 +107,14 @@ class FPGABoard(object):
             self.__dict__[method].__dict__['_plugin_method'] = True
 
             # Bookeeping
+            self._logger.debug("Added method %d from plugin %s to board instance" % (method, plugin))
             self._loadedPlugins[plugin].append(method)
 
-        # All done, return
-        return Error.Success
+        self.logger.info("Added plugin %s to class instance" % plugin)
 
     def unloadPlugin(self, plugin):
         """ Unload plugin from instance
         :param plugin: Plugin name
-        :return: Success of Failure
         """
 
         # Check if plugin has been loaded
@@ -109,14 +122,14 @@ class FPGABoard(object):
             # Go over plugin methods and remove from instance
             for method in self._loadedPlugins[plugin]:
                 del self.__dict__[method]
+                self._logger.debug("Removed method %s of plugin %s from class instance" % (method, plugin))
 
             # Remove from list of loaded plugins
             del self._loadedPlugins[plugin]
+            self._logger.info("Removed plugin %s from class instance" % plugin)
 
-            return Error.Success
         else:
-            print "Plugin not loaded"
-            return Error.Failure
+            self._logger.info("Plugin %s was not loaded." % plugin)
 
     def getAvailablePlugins(self):
         """ Get list of availabe plugins
@@ -124,11 +137,41 @@ class FPGABoard(object):
         """
         return self._availablePlugins
 
-    def getLoadedPluging(self):
+    def getLoadedPlugins(self):
         """ Get the list of loaded plugins with associated methods
         :return: List of loaded plugins
         """
         return self._loadedPlugins
+
+    # ------------------------------------- Logging ---------------------------------
+    def configureLogging(self, filename = None, level = logging.INFO):
+        """ Basic logging configuration
+        :param filename: Log filename
+        :param level: Logging level
+        """
+
+        # If filename is not specified, create it
+        if filename is None:
+            from datetime import datetime
+            filename = "access_layer_%s.log" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+            logging.basicConfig(format='%(levelname)s\t%(asctime)s\t%(message)s', filename = filename, level = level)
+        else:
+            logging.basicConfig(format='%(levelname)s\t%(asctime)s\t%(message)s', filename = filename, level = level)
+
+        self._logger = logging.getLogger()
+        self._logger.info("Starting logging")
+
+    def getLogger(self):
+        """ Retrun logger instance to use the same file
+        :return: Logger
+        """
+        return self._logger
+
+    def setLogger(self, logger):
+        """ Use externally defined logger
+        :param logger: Logger to use
+        """
+        self._logger = logger
 
     # ---------------------------- FPBA Board functionality --------------------------
 
@@ -136,32 +179,29 @@ class FPGABoard(object):
         """ Connect to board
         :param ip: Board IP
         :param port: Port to connect to
-        :return: Success of Failure
         """
 
         board_id = callConnectBoard(self._fpgaBoard.value, ip, port)
         if board_id == 0:
-            print "Could not connect to board"
             self.status = Status.NetworkError
+            raise BoardError("Could not connect to board with ip %s" % ip)
         else:
+            self._logger.info("Connected to board %s, received ID %d" % (ip, board_id))
             self.id = board_id
             self.status = Status.OK
 
     def disconnect(self):
-        """ Disconnect from board
-        :return: Success or Failure
-        """
+        """ Disconnect from board """
 
         # Check if board is connected
         if self.id is None:
-            print "Board not connected"
-            return Error.Failure
+            self._logger.warn("Call disconnect on board which was not connected")
 
         ret = callDisconnectBoard(self.id)
         if ret == Error.Success:
-            self.id = None
             self._registerList = None
-        return ret
+            self._logger.info("Disconnected from board with ID %s" % self.id)
+            self.id = None
 
     def getFirmwareList(self, device):
         """ Get list of firmware on board
@@ -171,11 +211,11 @@ class FPGABoard(object):
 
         # Check if board is connected
         if self.id is None:
-            print "Board not connected"
-            return Error.Failure
+            raise LibraryError("Call getFirmwareList for board which is not connected")
 
         # Call getFirmware on board
         self._firmwareList = callGetFirmwareList(self.id, device)
+        self._logger.debug("Called getFirmwareList")
 
         return self._firmwareList
 
@@ -183,13 +223,11 @@ class FPGABoard(object):
         """ Blocking call to load firmware
          :param device: Device on board to load firmware to
          :param filepath: Path to firmware
-         :return: Success of Failure
          """
         
         # Check if device argument is of type Device
         if not type(device) is Device:
-            print "device argument should be of type Device"
-            return
+            raise LibraryError("Device argument for loadFirmwareBlocking should be of type Device")
 
         # All OK, call function
         err = callLoadFirmwareBlocking(self.id, device, filepath)
@@ -199,9 +237,10 @@ class FPGABoard(object):
             self._programmed = True
             self.getRegisterList()
             self.getDeviceList()
+            self._logger.info("Successfuly loaded firmware %s on board" % filepath)
         else:
             self._programmed = False
-            print "Failed to program Roach"
+            raise BoardError("loadFirmwareBlocking failed on board")
 
     def getRegisterList(self):
         """ Get list of registers """
@@ -212,11 +251,11 @@ class FPGABoard(object):
 
         # Check if device is programmed
         if not self._programmed:
-            print "Device must be programmed before register list can be loaded"
-            return
+            raise LibraryError("Cannot getRegisterList from board which has not been programmed")
 
         # Call function
         self._registerList = callGetRegisterList(self.id)
+        self._logger.debug("Called getRegisterList on board")
 
         # All done, return
         return self._registerList
@@ -230,6 +269,7 @@ class FPGABoard(object):
 
         # Call function
         self._deviceList = callGetDeviceList(self.id)
+        self._logger.debug("Called getDeviceList")
 
         # All done, return
         return self._deviceList
@@ -249,18 +289,19 @@ class FPGABoard(object):
 
         # Check if device argument is of type Device
         if not type(device) is Device:
-            print "device argument should be of type Device"
-            return
+            raise LibraryError("Device argument for readRegister should be of type Device")
 
         # Call function
         values = callReadRegister(self.id, device, register, n, offset)
 
         # Check if value succeeded, otherwise return
         if values.error == Error.Failure.value:
-            return Error.Failure
+            raise BoardError("Failed to readRegister %s from board" % register)
 
         # Read succeeded, wrap data and return
         valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
+
+        self._logger.debug("Called readRegister on board")
 
         if n == 1:
             return valPtr[0]
@@ -273,7 +314,6 @@ class FPGABoard(object):
          :param register: Register name
          :param values: Values to write
          :param offset: Memory address offset to write to
-         :return: Success or Failure
          """
 
         # Perform basic checks
@@ -282,11 +322,12 @@ class FPGABoard(object):
 
         # Check if device argument is of type Device
         if not type(device) is Device:
-            print "device argument should be of type Device"
-            return
+           raise LibraryError("Device argument for writeRegister should be of type Device")
 
         # Call function and return
-        return callWriteRegister(self.id, device, register, values, offset)
+        err = callWriteRegister(self.id, device, register, values, offset)
+        if err == Error.Failure:
+            raise BoardError("Failed to writeRegister %s on board" % register)
 
     def readAddress(self, address, n = 1):
         """" Get register value
@@ -296,17 +337,22 @@ class FPGABoard(object):
          """
 
         # Call function and return
-        return  callReadAddress(self.id, address, n)
+        ret = callReadAddress(self.id, address, n)
+        if ret == Error.Failure:
+            raise BoardError("Failed to readAddress %s on board" % hex(address))
+        else:
+            return ret
 
     def writeAddress(self, address, values):
         """ Set register value
          :param address: Memory address to write to
          :param values: Values to write
-         :return: Success of Failure
          """
 
         # Call function and return
-        return callWriteAddress(self.id, address, values)
+        err = callWriteAddress(self.id, address, values)
+        if err == Error.Failure:
+            raise BoardError("Failed to writeAddress %s on board" % hex(address))
 
     def readDevice(self, device, address):
         """" Get device value
@@ -317,27 +363,30 @@ class FPGABoard(object):
     
         # Check if device is in device list
         if device not in self._deviceList:
-            print "Device not found in device list"
-            return
+            raise LibraryError("Device argument for readDevice should be of type Device")
 
         # Call function and return
-        return callReadDevice(self.id, device, address)
+        ret = callReadDevice(self.id, device, address)
+        if ret == Error.Failure:
+            raise BoardError("Failed to readDevice %s, %s on board" % (device, hex(address)))
+        else:
+            return ret
 
     def writeDevice(self, device, address, value):
         """ Set device value
         :param device: SPI device to write to
         :param address: Address on device to write to
         :param value: Value to write
-        :return: Success or Failure
         """
 
         # Check if device is in device list
         if device not in self._deviceList:
-            print "Device not found in device list"
-            return
+            raise LibraryError("Device argument for writeDevice should be of type Device")
 
         # Call function and return
-        return callWriteDevice(self.id, device, address, value)
+        ret = callWriteDevice(self.id, device, address, value)
+        if ret == Error.Failure:
+            raise BoardError("Failed to writeDevice %s, %s on board" % (device, hex(address)))
 
     def listRegisterNames(self):
         """ Print list of register names """
@@ -447,13 +496,11 @@ class FPGABoard(object):
 
         # Check if board is connected
         if self.id is None:
-            print "Board not connected"
-            return False
+            raise LibraryError("Cannot perform operation on unconnected board")
 
         # Check if device is programmed
         if not self._programmed:
-            print "Device not programmed"
-            return False
+            raise LibraryError("Cannot getRegisterList from board which has not been programmed")
 
         # Check if register list has been populated
         if self._registerList is None:
@@ -503,7 +550,7 @@ class TPM(FPGABoard):
             if len(key) == 2:
                 return self.readDevice(key[0], key[1])
             else:
-                print "A device name and address need to be specified for reading SPI devices"
+                raise LibraryError("A device name and address need to be specified for writing to SPI devices")
 
         elif type(key) is str:
             # Check if a device is specified in the register name
@@ -513,11 +560,10 @@ class TPM(FPGABoard):
                 key = '.'.join(key.split('.')[1:])
                 return self.readRegister(device, key, reg['size'])
         else:
-            print "Unrecognised key type. Use register name or memory address"
-            return
+            raise LibraryError("Unrecognised key type, must be register name or memory address")
 
         # Register not found
-        print "Register '%s' not found" % key
+        raise LibraryError("Register %s not found" % key)
 
     def __setitem__(self, key, value):
         """ Override __setitem__, set value on board"""
@@ -535,7 +581,7 @@ class TPM(FPGABoard):
             if len(key) == 2:
                 return self.writeDevice(key[0], key[1], value)
             else:
-                print "A device name and address need to be specified for writing to SPI devices"
+                raise LibraryError("A device name and address need to be specified for writing to SPI devices")
 
         elif type(key) is str:      
             # Check if device is specified in the register name
@@ -544,11 +590,10 @@ class TPM(FPGABoard):
                 key = '.'.join(key.split('.')[1:])
                 return self.writeRegister(device, key, value)
         else:
-            print "Unrecognised key type. Use register name or memory address"
-            return
+            raise LibraryError("Unrecognised key type, must be register name or memory address")
 
         # Register not found
-        print "Register '%s' not found" % key   
+        raise LibraryError("Register %s not found" % key)
 
     def __str__(self):
         """ Override __str__ to print register information in a human readable format """
@@ -665,11 +710,10 @@ class Roach(FPGABoard):
             if self._registerList.has_key(key):
                 return self.readRegister(key, self._registerList[key]['size'])
         else:
-            print "Unrecognised key type. Use register name or memory address"
-            return
+            raise LibraryError("Unrecognised key type, must be register name or memory address")
 
         # Register not found
-        print "Register '%s' not found" % key
+        raise LibraryError("Register '%s' not found" % key)
 
     def __setitem__(self, key, value):
         """ Override __setitem__, set value on board"""
@@ -683,11 +727,10 @@ class Roach(FPGABoard):
             if self._registerList.has_key(key):
                 return self.writeRegister(key, value)
         else:
-            print "Unrecognised key type. Use register name or memory address"
-            return
+            raise LibraryError("Unrecognised key type, must be register name or memory address")
 
         # Register not found
-        print "Register '%s' not found" % key       
+        raise LibraryError("Register '%s' not found" % key)
 
     def __getattr__(self, name):
         """ Override __getattr__, get value from board """
@@ -696,8 +739,7 @@ class Roach(FPGABoard):
         elif self._registerList is not None and name in self._registerList:
             return self.readRegister(name)
         else:
-            print "Register %s not found" % name
-            raise AttributeError
+            raise AttributeError("Register %s not found" % name)
 
     def __setattr__(self, name, value):
         """ Override __setattr__, set value on board"""
@@ -709,28 +751,33 @@ class Roach(FPGABoard):
         elif self._registerList is not None and name in self._registerList:
             self.writeRegister(name, value)
         else:
-            print "Register %s not found" % name
-            raise AttributeError  
+            raise AttributeError("Register %s not found % name")
 
     def __str__(self):
         """ Override __str__ to print register information in a human readable format """
         super(Roach, self).listRegisterNames()
         return ""
 
+# -------------- Logging Functionality --------------------
+
 
 # Note: Do not run the code below! (temp)
 if __name__ == "__main__":
-    # Simple TPM test
-    tpm = TPM(ip="127.0.0.1", port=10000)
-    tpm.loadFirmwareBlocking(Device.FPGA_1, "/home/lessju/map.xml")
-    tpm['fpga1.regfile.block2048b'] = [1] * 512
-    print tpm['fpga1.regfile.block2048b']
-    tpm.disconnect()
+    # # Simple TPM test
+    # tpm = TPM(ip="127.0.0.1", port=10000)
+    # tpm.loadFirmwareBlocking(Device.FPGA_1, "/home/lessju/map.xml")
+    # tpm['fpga1.regfile.block2048b'] = [1] * 512
+    # print tpm['fpga1.regfile.block2048b']
+    # tpm.disconnect()
+    #
+    # # Simple ROACH test
+    # roach = Roach(ip="192.168.100.2", port=7147)
+    # roach.getFirmwareList()
+    # roach.loadFirmwareBlocking("fenggbe.bof")
+    # roach.amp_EQ0_coeff_bram = range(4096)
+    # print roach.readRegister('amp_EQ0_coeff_bram', 4096)
+    # roach.disconnect()
 
-    # Simple ROACH test
-    roach = Roach(ip="192.168.100.2", port=7147)
-    roach.getFirmwareList()
-    roach.loadFirmwareBlocking("fenggbe.bof")
-    roach.amp_EQ0_coeff_bram = range(4096)
-    print roach.readRegister('amp_EQ0_coeff_bram', 4096)
-    roach.disconnect()
+    tpm = TPM("127.0.0.1", port=10000)
+    tpm.loadFirmwareBlocking(Device.FPGA_1, "/home/lessju/map.xml")
+    tpm.loadPlugin("FirmwareTest")

@@ -19,7 +19,6 @@ class FirmwareBlock(object):
 
         # Plugins require access to board members to perform operations on the board
         # For this reason, the calling board instance has to be stored here
-        # TODO: Add type checks, since plugins can only be compatible with specific board types (presumably)
         self._board  = board
 
 

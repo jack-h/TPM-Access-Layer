@@ -4,6 +4,7 @@ from definitions import *
 class FirmwareTest(FirmwareBlock):
     """ FirmwareBlock test class """
 
+    @compatible_boards(BoardMake.TpmBoard)
     def __init__(self, board):
         """ FirmwareTest initialiser
         :param board: Pointer to board instance
@@ -46,6 +47,7 @@ class FirmwareTest(FirmwareBlock):
         """
         return self.readRegister(Device.Board, 'regfile.date_code')
 
+    @valid_states(BoardState.All)
     def write_date_code(self, value):
         """ Test method
         :param value: Value to write to date_code
