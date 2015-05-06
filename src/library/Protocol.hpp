@@ -35,10 +35,10 @@ class Protocol
     // Define functions to be implemented by derived classes
     public:
         // Create socket
-        virtual RETURN createSocket(const char *IP, int port) = 0;
+        virtual RETURN createConnection(const char *IP, int port) = 0;
 
         // Close socket
-        virtual RETURN closeSocket() = 0;
+        virtual RETURN closeConnection() = 0;
 
         // Read register/memory area capability
         // This will take care of issuing multiple requests if 

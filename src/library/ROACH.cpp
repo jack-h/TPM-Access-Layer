@@ -13,7 +13,7 @@ ROACH::ROACH(const char *ip, unsigned short port) : Board(ip, port)
     katcp    = static_cast<KATCP *>(protocol);
 
     // Create socket and connect to ROACH
-    RETURN ret = katcp -> createSocket(ip, port);
+    RETURN ret = katcp -> createConnection(ip, port);
 
     // Check if address is valid
     if (ret == FAILURE)
@@ -29,7 +29,7 @@ ROACH::ROACH(const char *ip, unsigned short port) : Board(ip, port)
 // Clear everything and remove connection
 void ROACH::disconnect()
 {
-    katcp -> closeSocket();
+    katcp -> closeConnection();
     katcp = NULL;
 }
 

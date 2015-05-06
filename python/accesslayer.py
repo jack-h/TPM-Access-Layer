@@ -7,7 +7,6 @@ import re
 
 # --------------- Helpers ------------------------------
 DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2" }
-
 # ------------------------------------------------------
 
 # Wrap functionality for a TPM board
@@ -29,6 +28,7 @@ class FPGABoard(object):
 
         # List all available subclasses of FirmwareBlock (plugins)
         self._availablePlugins = [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]
+        self._loadedPlugins = { }
 
         # Override to make this compatible with IPython
         self.__methods__        = None
@@ -77,25 +77,58 @@ class FPGABoard(object):
                    if name not in
                    [a for a, b in inspect.getmembers(FirmwareBlock, predicate=inspect.ismethod)] ]
 
-        print methods
-
         # Create plugin instances
         instance = globals()[plugin](self)
         self.__dict__[plugin] = instance
+
+        # Plugin loaded, add to list
+        self._loadedPlugins[plugin] = []
 
         # Import plugins function into this class
         for method in methods:
             # Link class method to function pointer
             self.__dict__[method] = getattr(instance, method)
 
+            # Add metadata to be able to distigiush class from plugin methods
+            self.__dict__[method].__dict__['_plugin_method'] = True
+
+            # Bookeeping
+            self._loadedPlugins[plugin].append(method)
+
         # All done, return
         return Error.Success
+
+    def unloadPlugin(self, plugin):
+        """ Unload plugin from instance
+        :param plugin: Plugin name
+        :return: Success of Failure
+        """
+
+        # Check if plugin has been loaded
+        if plugin in self._loadedPlugins.keys():
+            # Go over plugin methods and remove from instance
+            for method in self._loadedPlugins[plugin]:
+                del self.__dict__[method]
+
+            # Remove from list of loaded plugins
+            del self._loadedPlugins[plugin]
+
+            return Error.Success
+        else:
+            print "Plugin not loaded"
+            return Error.Failure
 
     def getAvailablePlugins(self):
         """ Get list of availabe plugins
         :return: List of plugins
         """
         return self._availablePlugins
+
+    def getLoadedPluging(self):
+        """ Get the list of loaded plugins with associated methods
+        :return: List of loaded plugins
+        """
+        return self._loadedPlugins
 
     # ---------------------------- FPBA Board functionality --------------------------
 
@@ -145,7 +178,7 @@ class FPGABoard(object):
         self._firmwareList = callGetFirmwareList(self.id, device)
 
         return self._firmwareList
-        
+
     def loadFirmwareBlocking(self, device, filepath):
         """ Blocking call to load firmware
          :param device: Device on board to load firmware to

@@ -5,6 +5,7 @@ Version 0.4
 - Refactored python wrapper
 - Defined base parent python class for firmware blocks
 - Added dynamic plugin loading in python wrapper
+- Added decorator to specify valid board states for plugin functions
 
 Version 0.3
 -----------

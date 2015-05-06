@@ -1,4 +1,5 @@
 #include "Board.hpp"
+#include "File.hpp"
 #include "TPM.hpp"
 #include "UCP.hpp"
 
@@ -14,28 +15,39 @@ TPM::TPM(const char *ip, unsigned short port) : Board(ip, port)
     this -> num_fpgas = 2;
 
     // Create protocol instance
-    protocol = new UCP();
+	if (USE_FILE_PROTOCOL)
+	{
+		// Create protocol instance
+		protocol = new FileProtocol();
+		
+		// Initialise protocol
+		protocol -> createConnection(ip, port);
+	}
+	else
+	{
+		protocol = new UCP();
 
-    // Create socket and set up TPM address structure
-    protocol -> createSocket(ip, port);
+		// Create socket and set up TPM address structure
+		protocol -> createConnection(ip, port);
 
-    // TODO: Make this better
-    // Simple test to check whether remote IP/port are reachable
-    VALUES vals = protocol -> readRegister(0x0, 1);
-    if (vals.error == FAILURE)
-    {
-        DEBUG_PRINT("TPM::TPM. Error during IP check.");
-        status = NETWORK_ERROR;
-        this -> disconnect();
-    }
-    else   
-        status = OK;
+		// TODO: Make this better
+		// Simple test to check whether remote IP/port are reachable
+		VALUES vals = protocol -> readRegister(0x0, 1);
+		if (vals.error == FAILURE)
+		{
+			DEBUG_PRINT("TPM::TPM. Error during IP check.");
+			status = NETWORK_ERROR;
+			this -> disconnect();
+		}
+		else   
+			status = OK;
+	}
 }
 
 // Disconnect from board
 void TPM::disconnect()
 {
-    protocol -> closeSocket();  
+    protocol -> closeConnection();  
     protocol = NULL;
 }
 

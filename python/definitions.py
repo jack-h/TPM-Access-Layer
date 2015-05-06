@@ -1,4 +1,5 @@
 from enum import Enum
+import logging
 import ctypes
 
 # --------------- Enumerations --------------------------
@@ -15,6 +16,7 @@ class BoardState(Enum):
     Maintenance = 8     # ???
     Low_Power = 9       # ???
     Safe_State = 10     # ???
+    All        = 20
 
 
 class Error(Enum):
@@ -22,6 +24,14 @@ class Error(Enum):
     Success = 0
     Failure = -1
     NotImplemented = -2
+
+    def __str__(self):
+        if self.value == self.Success:
+            return None
+        elif self.value == self.Failure:
+            return "Function failed"
+        else:
+            return "Function not implemented"
 
 class Device(Enum):
     """ Device enumeration """
@@ -117,3 +127,42 @@ class SPIDeviceInfoStruct(ctypes.Structure):
         ('spi_sclk', ctypes.c_uint32),
         ('spi_en',   ctypes.c_uint32)
     ]
+
+
+# -------------- Device State Decorator ----------------
+def valid_states(*args):
+    """ Add valid states meta data to function
+    :param args: Valid states
+    :return: Decorated function
+    """
+
+    def decorator(func):
+        # Check if any states were declared
+        if len(args) > 0 and all([type(x) == BoardState for x in args]):
+           # Add to function metadata
+           func.__dict__['_valid_states'] = args
+
+        # All done, return
+        return func
+
+    return decorator
+
+# -------------- Logging Functionality --------------------
+
+def configureLogging(filename = None, level = logging.INFO):
+    """ Basic logging configuration
+    :param filename: Log filename
+    :param level: Logging level
+    :return: Nothing
+    """
+
+    # If filename is not specified, create it
+    if filename is None:
+        from datetime import datetime
+        filename = "access_layer_%s.log" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+        logging.basicConfig(format='%(asctime)s:%(levelname)s: %(message)s', filename = filename, level = level)
+    else:
+        logging.basicConfig(format='%(asctime)s:%(levelname)s: %(message)s', filename = filename, level = level)
+    logging.info("Started log")
+
+

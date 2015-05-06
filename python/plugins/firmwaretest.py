@@ -39,6 +39,7 @@ class FirmwareTest(FirmwareBlock):
         print "Performed clean_up"
         return True
 
+    @valid_states(BoardState.All)
     def read_date_code(self):
         """ Test method
         :return: None

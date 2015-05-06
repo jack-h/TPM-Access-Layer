@@ -400,7 +400,7 @@ MemoryMap::RegisterInfo *MemoryMap::getRegisterInfo(DEVICE device, REGISTER reg)
         return NULL;
     }
 
-    // Check if device contain the register
+    // Check if device contains the register
     map<string, RegisterInfo *> ::iterator reg_it;
     string register_name(reg);
     reg_it = memory_map[device].find(register_name);
@@ -412,7 +412,7 @@ MemoryMap::RegisterInfo *MemoryMap::getRegisterInfo(DEVICE device, REGISTER reg)
         return NULL;
     }
 
-    DEBUG_PRINT("TPM::getRegisterValue. Register " << reg << " on device " 
+    DEBUG_PRINT("MemoryMap::getRegisterValue. Register " << reg << " on device " 
                  << device << " has address 0x" << hex << uppercase 
                  << (reg_it -> second) -> address << dec);
 

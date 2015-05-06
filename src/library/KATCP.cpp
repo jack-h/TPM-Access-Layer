@@ -172,7 +172,7 @@ KATCP::KATCP() : Protocol()
 }
 
 // Create and initialise socket
-RETURN KATCP::createSocket(const char *IP, int port)
+RETURN KATCP::createConnection(const char *IP, int port)
 {
     // Copy IP
     this -> ip = (char *) malloc(5 * sizeof(char));
@@ -220,7 +220,7 @@ RETURN KATCP::createSocket(const char *IP, int port)
 }
 
 // Close connection and socket
-RETURN KATCP::closeSocket()
+RETURN KATCP::closeConnection()
 {
     // Check if socket was created
     if (this -> sockfd == -1)

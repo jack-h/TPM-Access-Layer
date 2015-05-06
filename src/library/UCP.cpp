@@ -18,7 +18,7 @@ UCP::UCP() : Protocol()
 
 
 // Create and initialise socket
-RETURN UCP::createSocket(const char *IP, int port)
+RETURN UCP::createConnection(const char *IP, int port)
 {
     // TODO: Check if IP is valid
 
@@ -28,19 +28,7 @@ RETURN UCP::createSocket(const char *IP, int port)
 
     // Copy port
     this -> port = port; 
-
-    // If running under windows, we need to initialise the API
-    // TODO: Does not work yet
-    /* #if defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
-        WSADATA wsaData;
-        if(WSAStartup(MAKEWORD(2,0), &wsaData) != 0)
-        {
-            printf("An error occured during startup! \n");
-            WSACleanup();
-            return FAILURE;
-        }
-    #endif */
-
+	
     // Open socket
     if ((this -> sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
     {
@@ -67,7 +55,7 @@ RETURN UCP::createSocket(const char *IP, int port)
 }
 
 // Close network socket
-RETURN UCP::closeSocket()
+RETURN UCP::closeConnection()
 {
     return FAILURE;
 }
