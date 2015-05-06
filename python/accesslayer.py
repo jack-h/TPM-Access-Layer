@@ -57,10 +57,10 @@ class FPGABoard(object):
         port = kwargs.get('port', None)
 
         # Configure logging
-        logfile = kwargs.get('logfile', None)
+        log      = kwargs.get('log', False)
+        logfile  = kwargs.get('logfile', None)
         loglevel = kwargs.get('loglevel', logging.WARN)
-        self.configureLogging(filename = logfile, level = loglevel)
-
+        self.configureLogging(dummy = not log, filename = logfile, level = loglevel)
 
         # If so, the connect immediately
         self._logger.debug("Succesfully initialised FPGABoard instance")
@@ -144,14 +144,18 @@ class FPGABoard(object):
         return self._loadedPlugins
 
     # ------------------------------------- Logging ---------------------------------
-    def configureLogging(self, filename = None, level = logging.INFO):
+    def configureLogging(self, dummy = False, filename = None, level = logging.INFO):
         """ Basic logging configuration
+        :param dummy: True to create a dummy logger
         :param filename: Log filename
         :param level: Logging level
         """
+        # Check if dummy logger, and if so create a dummy
+        if dummy:
+            logging.getLogger("dummy")
 
         # If filename is not specified, create it
-        if filename is None:
+        elif filename is None:
             from datetime import datetime
             filename = "access_layer_%s.log" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
             logging.basicConfig(format='%(levelname)s\t%(asctime)s\t%(message)s', filename = filename, level = level)

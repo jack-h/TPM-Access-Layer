@@ -8,7 +8,7 @@ Version 0.4
 - Added decorator to specify valid board states for plugin functions
 - Added FileProtocol for debugging TPM read and write requests
 - Added decorator so specify board association for plugins
-- Added logging in Python wrapper
+- Added (optional) logging in Python wrapper
 
 Version 0.3
 -----------
