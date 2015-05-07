@@ -107,10 +107,10 @@ class FPGABoard(object):
             self.__dict__[method].__dict__['_plugin_method'] = True
 
             # Bookeeping
-            self._logger.debug("Added method %d from plugin %s to board instance" % (method, plugin))
+            self._logger.debug("Added method %s from plugin %s to board instance" % (method, plugin))
             self._loadedPlugins[plugin].append(method)
 
-        self.logger.info("Added plugin %s to class instance" % plugin)
+        self._logger.info("Added plugin %s to class instance" % plugin)
 
     def unloadPlugin(self, plugin):
         """ Unload plugin from instance

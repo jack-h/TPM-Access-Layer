@@ -94,7 +94,7 @@ class TPM_DS (PyTango.Device_4Impl):
         'removeCommand': all_states_list
     }
 
-    def callPluginCommand(self, argin):
+    def callPluginCommand(self, argin = None):
         """ This method is responsible for calling a command from attached plugins.
         The input to this command has to include a set of arguments required by the command to be called.
 
@@ -105,7 +105,7 @@ class TPM_DS (PyTango.Device_4Impl):
             An empty dictionary is returned for commands with no returned values.
         :rtype: PyTango.DevString """
         self.debug_stream("In callPluginCommand()")
-        argout = ''
+        argout = None
 
         command_name = inspect.stack()[2][3]
         if command_name in self.cmd_list:
@@ -113,7 +113,10 @@ class TPM_DS (PyTango.Device_4Impl):
             state_ok = self.checkStateFlow(command_name)
             if state_ok:
                 try:
-                    argout = getattr(self.tpm_instance, command_name)(argin)
+                    if argin is None:
+                        argout = getattr(self.tpm_instance, command_name)()
+                    else:
+                        argout = getattr(self.tpm_instance, command_name)(argin)
                 except DevFailed as df:
                     print("Failed to run plugin command")
                     argout = ''
@@ -137,9 +140,8 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: True if allowed, false if not.
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In checkStateFlow()")
-
         # get allowed states for this command
-        fnAllowedStates = self.state_list(fnName)
+        fnAllowedStates = self.state_list[fnName]
         allowed = self.get_state() in fnAllowedStates
         return allowed
 
@@ -253,7 +255,16 @@ class TPM_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
         self.info_stream("Starting device initialization...")
         self.setBoardState(BoardState.Init.value)
-        self.tpm_instance = TPM(ip="127.0.0.1", port=10000)
+        self.tpm_instance = TPM()
+        connect_args = pickle.dumps({'ip': "127.0.0.1", 'port': 10000})
+        self.Connect(connect_args)
+        #self.tpm_instance = TPM(ip="127.0.0.1", port=10000)
+
+        print self.tpm_instance.getAvailablePlugins()
+        self.tpm_instance.loadPlugin('FirmwareTest')
+        plugins_dict = self.tpm_instance.getLoadedPlugins()
+        print plugins_dict
+
         self.info_stream("Device has been initialized.")
         #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
 
@@ -299,6 +310,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In Connect()")
         #----- PROTECTED REGION ID(TPM_DS.Connect) ENABLED START -----#
+        #state_ok = self.checkStateFlow("Connect")
         state_ok = self.checkStateFlow(self.Connect.__name__)
         if state_ok:
             arguments = pickle.loads(argin)
@@ -437,26 +449,6 @@ class TPM_DS (PyTango.Device_4Impl):
             else:
                 self.debug_stream("Invalid state")
 
-    # def callCommand(self, name, argin):
-    #     #unpickle and get command name
-    #     state_ok = self.checkStateFlow("commandName")
-    #
-    #     # get params list to populate from xml
-    #
-    #     # unpickle depending on params list
-    #     params = loads(argin)
-    #
-    #     commandName(**kwargs) #order unimportant
-    #     getattr(self, commandName)(kwargs)
-    #
-    #     # Get list methods imported from plugins
-    #     methods = [name for name, mtype in inspect.getmembers(self.tpm_instance, predicate=inspect.ismethod)
-    #               if '_fromplugin' in getattr(self.tpm_instance, name).__dict__]
-    #
-    #     for method in methods:
-    #         self.__dict__[method] = lambda input: self.callCommand(input)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.generateAttributes
-        
     def getDeviceList(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
         

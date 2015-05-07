@@ -21,12 +21,6 @@ class BoardState(Enum):
 print BoardState.INIT.value
 print BoardState(1)
 
-def fnNameTest(self):
-    print 1+1
-
-
-print fnNameTest.__name__
-
 tpm_instance = PyTango.DeviceProxy("test/tpm_board/1")
 
 arguments = {}
