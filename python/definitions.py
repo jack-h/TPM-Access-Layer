@@ -131,6 +131,11 @@ class LibraryError(Exception):
         within the library returns an error """
     pass
 
+class InstrumentError(Exception):
+    """ Define an exception which occurs when an operation occuring
+        within the instrument returns an error """
+    pass
+
 class PluginError(Exception):
     """ Define an exception which occurs when an operation occuring
         within a plugin returns an error """

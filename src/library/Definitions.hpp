@@ -6,11 +6,6 @@
 // Enable or disable debugging
 #define DEBUG 1
 
-// This should ONLY be used for debugging, as it breaks some
-// components and doesn't conform to standard error generation
-// standards used in this library
-#define USE_FILE_PROTOCOL  0
-
 // ========================== DATA TYPE DEFINITIONS ==========================
 
 // Representation of board ID

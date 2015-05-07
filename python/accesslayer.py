@@ -57,15 +57,46 @@ class FPGABoard(object):
         port = kwargs.get('port', None)
 
         # Configure logging
-        log      = kwargs.get('log', False)
-        logfile  = kwargs.get('logfile', None)
-        loglevel = kwargs.get('loglevel', logging.WARN)
-        self.configureLogging(dummy = not log, filename = logfile, level = loglevel)
+    #    log = kwargs.get('log', False)
+#        if log:
+#            self._logger = logging.getLogger('instrument')  # Get default logger
+#            print self._logger.handlers
+#        else:
+#            self._logger = logging.getLogger('dummy')  # Dummy logger
 
         # If so, the connect immediately
-        self._logger.debug("Succesfully initialised FPGABoard instance")
-        if not (ip is None and port is None):
+        #self._logger.debug("Succesfully initialised FPGABoard instance")
+        if ip is not None and port is not None:
             self.connect(ip, port)
+
+    def initialise(self, config):
+        """ Method for explicit initialisation
+        :param config: Configuration dictionary
+        """
+
+        # Configure logging
+        if 'log' in config and eval(config['log']):
+            self._logger = logging.getLogger()  # Get default logger
+        else:
+            self._logger = logging.getLogger('dummy')
+
+        # Check if board is already connected, and if not, connect
+        if self.id is None:
+            if 'ip' not in config and 'port' not in config:
+                raise LibraryError("IP and port are required for initialisation")
+            self.connect(config['ip'], int(config['port']))
+
+        # Load plugins if not already loaded
+        if len(self._loadedPlugins) == 0:
+            # Check if any plugins are required
+            if 'plugin' in config:
+                for k, v in config['plugins']:
+                    if len(v) == 0:
+                        self.loadPlugin(k)
+                    else:
+                        self.loadPlugin(k, v)
+
+        # TODO: Continue board initialisation
 
     # ------------------------------- Firmware block functionality ----------------------------
     def loadPlugin(self, plugin):
@@ -142,40 +173,6 @@ class FPGABoard(object):
         :return: List of loaded plugins
         """
         return self._loadedPlugins
-
-    # ------------------------------------- Logging ---------------------------------
-    def configureLogging(self, dummy = False, filename = None, level = logging.INFO):
-        """ Basic logging configuration
-        :param dummy: True to create a dummy logger
-        :param filename: Log filename
-        :param level: Logging level
-        """
-        # Check if dummy logger, and if so create a dummy
-        if dummy:
-            logging.getLogger("dummy")
-
-        # If filename is not specified, create it
-        elif filename is None:
-            from datetime import datetime
-            filename = "access_layer_%s.log" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-            logging.basicConfig(format='%(levelname)s\t%(asctime)s\t%(message)s', filename = filename, level = level)
-        else:
-            logging.basicConfig(format='%(levelname)s\t%(asctime)s\t%(message)s', filename = filename, level = level)
-
-        self._logger = logging.getLogger()
-        self._logger.info("Starting logging")
-
-    def getLogger(self):
-        """ Retrun logger instance to use the same file
-        :return: Logger
-        """
-        return self._logger
-
-    def setLogger(self, logger):
-        """ Use externally defined logger
-        :param logger: Logger to use
-        """
-        self._logger = logger
 
     # ---------------------------- FPBA Board functionality --------------------------
 

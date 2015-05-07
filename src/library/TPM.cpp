@@ -1,5 +1,4 @@
 #include "Board.hpp"
-#include "File.hpp"
 #include "TPM.hpp"
 #include "UCP.hpp"
 
@@ -14,34 +13,22 @@ TPM::TPM(const char *ip, unsigned short port) : Board(ip, port)
     // Set number of FPGAs
     this -> num_fpgas = 2;
 
-    // Create protocol instance
-	if (USE_FILE_PROTOCOL)
-	{
-		// Create protocol instance
-		protocol = new FileProtocol();
-		
-		// Initialise protocol
-		protocol -> createConnection(ip, port);
-	}
-	else
-	{
-		protocol = new UCP();
+	protocol = new UCP();
 
-		// Create socket and set up TPM address structure
-		protocol -> createConnection(ip, port);
+	// Create socket and set up TPM address structure
+	protocol -> createConnection(ip, port);
 
-		// TODO: Make this better
-		// Simple test to check whether remote IP/port are reachable
-		VALUES vals = protocol -> readRegister(0x0, 1);
-		if (vals.error == FAILURE)
-		{
-			DEBUG_PRINT("TPM::TPM. Error during IP check.");
-			status = NETWORK_ERROR;
-			this -> disconnect();
-		}
-		else   
-			status = OK;
+	// TODO: Make this better
+	// Simple test to check whether remote IP/port are reachable
+	VALUES vals = protocol -> readRegister(0x0, 1);
+	if (vals.error == FAILURE)
+	{
+		DEBUG_PRINT("TPM::TPM. Error during IP check.");
+		status = NETWORK_ERROR;
+		this -> disconnect();
 	}
+	else   
+		status = OK;
 }
 
 // Disconnect from board
@@ -180,32 +167,28 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
         return {0, FAILURE};
     }
 
-    // TODO: Check address
-
-    UINT base_address = spi_devices -> spi_address;
-
     // Wait for SPI switch to be ready
     // TODO: Make nicer
     for(;;)
     {
-        VALUES vals = protocol -> readRegister(base_address + spi_devices -> cmd_address);
+        VALUES vals = protocol -> readRegister(spi_devices -> cmd_address);
         printf("First Value: %d\n", (vals.values[0] & (spi_devices -> cmd_start_mask)));
         if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
             break;
         sleep(1);
     }
 
-    // All system go, issue request as an array of values
+    // All systems go, issue request as an array of values
     UINT values[6];
     values[0] = address;  // Address
     values[1] = 0;        // Applicable only to write operations
     values[2] = 0;        // Skip
-    values[3] = info.first;   // spi_en
-    values[4] = info.second;  // spi_sclk   
+    values[3] = 1 << info.first;   // spi_en
+    values[4] = 1 << info.second;  // spi_sclk 
     values[5] = 0x03;     // Read operation    
     
     // Issue request
-    if (protocol -> writeRegister(base_address + spi_devices -> cmd_address, values, 6) == FAILURE)
+    if (protocol -> writeRegister(0x2000000, values, 6) == FAILURE)
     {
         DEBUG_PRINT("TPM::readDevice. Failed to read from device " << device);
         return {0, FAILURE};
@@ -214,7 +197,7 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
     // Wait for request to be completed on board
     for(;;)
     {
-        VALUES vals = protocol -> readRegister(base_address + spi_devices -> cmd_address);
+        VALUES vals = protocol -> readRegister(spi_devices -> cmd_address);
         printf("Second Value: %d\n", (vals.values[0] & (spi_devices -> cmd_start_mask)));
         if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
             break;
@@ -222,9 +205,10 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
     }
 
     // Request ready on device, grab data
-    VALUES vals = protocol -> readRegister(base_address + spi_devices -> read_data);
-    vals.values[0] = vals.values[0] & spi_devices -> read_data_mask;
-
+    VALUES vals = protocol -> readRegister(spi_devices -> read_data);
+    printf("%#010x\n", spi_devices -> read_data);
+    vals.values[0] = vals.values[0] & 0xFF;
+    printf("%#010x\n", vals.values[0]);
     // All done
     return vals;
 }
@@ -242,15 +226,11 @@ RETURN TPM::writeDevice(REGISTER device, UINT address, UINT value)
         return FAILURE;
     }
 
-    // TODO: Check address
-
-    UINT base_address = spi_devices -> spi_address;
-
     // Wait for SPI switch to be ready
     // TODO: Make nicer
     for(;;)
     {
-        VALUES vals = protocol -> readRegister(base_address + spi_devices -> cmd_address);
+        VALUES vals = protocol -> readRegister(spi_devices -> cmd_address);
         if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
             break;
     }
@@ -258,14 +238,14 @@ RETURN TPM::writeDevice(REGISTER device, UINT address, UINT value)
     // All system go, issue request as an array of values
     UINT values[6];
     values[0] = address;  // Address
-    values[1] = value & spi_devices -> write_data_mask;  // Value to write
+    values[1] = (value & 0xFF) << 8;  // Value to write
     values[2] = 0;        // Skip
-    values[3] = info.first;   // spi_en
-    values[4] = info.second;  // spi_sclk   
+    values[3] = 1 << info.first;   // spi_en
+    values[4] = 1 << info.second;  // spi_sclk   
     values[5] = 0x01;     // Write operation    
-    
+     
     // Issue request
-    if (protocol -> writeRegister(base_address + spi_devices -> cmd_address, values, 6) == FAILURE)
+    if (protocol -> writeRegister(0x20000000, values, 6) == FAILURE)
     {
         DEBUG_PRINT("TPM::readDevice. Failed to read from device " << device);
         return FAILURE;
@@ -274,7 +254,7 @@ RETURN TPM::writeDevice(REGISTER device, UINT address, UINT value)
     // Wait for request to be completed on board
     for(;;)
     {
-        VALUES vals = protocol -> readRegister(base_address + spi_devices -> cmd_address);
+        VALUES vals = protocol -> readRegister(spi_devices -> cmd_address);
         if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
             break;
     }

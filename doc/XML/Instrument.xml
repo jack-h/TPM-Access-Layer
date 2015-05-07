@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<instrument>
+
+  <logging enabled="True" filename="test.log" level='WARN' />
+
+  <boards>
+
+    <TPM id="tpm1" ip="127.0.0.1" port="10000" firmware="/home/lessju/map.xml">
+      <init param1="This" param2="is" param3="Sparta" />
+      <test param1="aaaaahhhhh" />
+      <plugins>
+        <FirmwareTest param1="Hello" param2="World" />
+      </plugins>
+    </TPM>
+
+    <TPM id="tpm2" ip="10.62.14.234" port="10000" firmware="/home/lessju/map.xml" log="True">
+      <init param1="This" param2="is" param3="Sparta" />
+      <test param1="aaaaahhhhh" />
+      <plugins>
+        <FirmwareTest param1="Hello" param2="World" />
+      </plugins>
+    </TPM>
+
+  </boards>
+
+</instrument>
+

@@ -12,7 +12,7 @@ class FirmwareTest(FirmwareBlock):
         """
         super(FirmwareTest, self).__init__(board)
 
-    def initialise(self):
+    def initialise(self, **kwargs):
         """ Initialise FirmwareTest
         :return: Success
         """
