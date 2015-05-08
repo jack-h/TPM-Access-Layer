@@ -6,12 +6,16 @@ import ctypes
 # Global store for interface object
 library = None
 
-def initialiseLibrary(filepath = None):
+def initialise_library(filepath = None):
     """ Wrap access library shared library functionality in ctypes
     :param filepath: Path to library path
     :return: None
     """
     global library
+
+    # This only need to be done once
+    if library is not None:
+        return
 
     # Load access layer shared library
     if filepath is None:
@@ -79,7 +83,7 @@ def initialiseLibrary(filepath = None):
 
 # ------------- Function wrappers to library ---------------------------
 
-def callConnectBoard(board_type, ip, port):
+def call_connect_board(board_type, ip, port):
     """ Call connect board
     :param board_type: Board type to connect to
     :param ip: IP address of board
@@ -89,7 +93,7 @@ def callConnectBoard(board_type, ip, port):
     global library
     return library.connectBoard(board_type, ip, port)
 
-def callDisconnectBoard(board_id):
+def call_disconnect_board(board_id):
     """
     :param board_id: ID of board to disconnect from
     :return: Success or Failure
@@ -97,7 +101,7 @@ def callDisconnectBoard(board_id):
     global library
     return Error(library.disconnectBoard(board_id))
 
-def callGetFirmwareList(board_id, device):
+def call_get_firmware_list(board_id, device):
     """
     :param board_id: ID of board to query
     :param device: Device on board to query
@@ -122,7 +126,7 @@ def callGetFirmwareList(board_id, device):
 
     return firmwareList
 
-def callLoadFirmwareBlocking(board_id, device, filepath):
+def call_load_firmware_blocking(board_id, device, filepath):
     """ Load firmware on board in blocking mode
     :param board_id: ID of board to communicate with
     :param device: Device on board to load firmware onto
@@ -132,7 +136,7 @@ def callLoadFirmwareBlocking(board_id, device, filepath):
     global library
     return Error(library.loadFirmwareBlocking(board_id, device.value, filepath))
 
-def callLoadFirmware(board_id, device, filepath):
+def call_load_firmware(board_id, device, filepath):
     """ Load firmware on board in async mode
     :param board_id: ID of board to communicate with
     :param device: Device on board to load firmware onto
@@ -142,7 +146,7 @@ def callLoadFirmware(board_id, device, filepath):
     global library
     return Error(library.loadFirmware(board_id, device.value, filepath))
 
-def callGetRegisterList(board_id):
+def call_get_register_list(board_id):
     """ Get list of available registers on board
     :param board_id: ID of board to query
     :return: List of registers
@@ -184,7 +188,7 @@ def callGetRegisterList(board_id):
 
     return registerList
 
-def callGetDeviceList(board_id):
+def call_get_device_list(board_id):
     """
     :param board_id: ID of board to query
     :return: List of devices
@@ -215,7 +219,7 @@ def callGetDeviceList(board_id):
 
     return deviceList
 
-def callReadRegister(board_id, device, register, n = 1, offset = 0):
+def call_read_register(board_id, device, register, n = 1, offset = 0):
     """
     :param board_id: ID of board to operate upon
     :param device: Device on board to operate upon
@@ -230,7 +234,7 @@ def callReadRegister(board_id, device, register, n = 1, offset = 0):
     return library.readRegister(board_id, device.value, register, n, offset)
 
 
-def callWriteRegister(board_id, device, register, values, offset = 0):
+def call_write_register(board_id, device, register, values, offset = 0):
     """
     :param board_id: ID of board to operate upon
     :param device: Device on board to operate upon
@@ -260,7 +264,7 @@ def callWriteRegister(board_id, device, register, values, offset = 0):
     else:
         return Error.Failure
 
-def callReadAddress(board_id, address, n = 1):
+def call_read_address(board_id, address, n = 1):
     """ Read form address on board
     :param board_id: ID of board to operate upon
     :param address: Memory address to read from
@@ -284,7 +288,7 @@ def callReadAddress(board_id, address, n = 1):
     else:
         return [valPtr[i] for i in range(n)]
 
-def callWriteAddress(board_id, address, values):
+def call_write_address(board_id, address, values):
     """ Write to address on board
     :param board_id: ID of board to operate upon
     :param address: Memory address to write to
@@ -311,7 +315,7 @@ def callWriteAddress(board_id, address, values):
     else:
         return Error.Failure
 
-def callReadDevice(board_id, device, address):
+def call_read_device(board_id, device, address):
     """ Read from an SPI device
     :param board_id: ID of board to operate upon
     :param device: Device on board to operate upon
@@ -321,7 +325,7 @@ def callReadDevice(board_id, device, address):
     global library
 
     # Call function
-    values = library.readDevice(board_id, device, address)
+    values = library.read_device(board_id, device, address)
 
     # Check if value succeeded, otherwise reture
     if values.error == Error.Failure.value:
@@ -333,7 +337,7 @@ def callReadDevice(board_id, device, address):
     # Return value
     return valPtr[0]
 
-def callWriteDevice(board_id, device, address, value):
+def call_write_device(board_id, device, address, value):
     """
     :param board_id: ID of board to operate upon
     :param device: Device on board to operate upon

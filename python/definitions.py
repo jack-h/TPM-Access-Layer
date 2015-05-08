@@ -142,7 +142,7 @@ class PluginError(Exception):
     pass
 
 # -------------- Device State Decorator ----------------
-def valid_states(*args):
+def validstates(*args):
     """ Add valid states meta data to function
     :param args: Valid states
     :return: Decorated function
@@ -160,7 +160,7 @@ def valid_states(*args):
     return decorator
 
 # ----------- Board Compatibility Decorator --------------
-def compatible_boards(*args):
+def compatibleboards(*args):
     """ Add board compatability to funtion
     :param args: Compatible boards
     :return: Decorated class

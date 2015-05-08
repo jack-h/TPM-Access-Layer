@@ -21,10 +21,10 @@ class FirmwareBlock(object):
         # For this reason, the calling board instance has to be stored here
         self._board  = board
 
-
     @abstractmethod
-    def initialise(self):
+    def initialise(self, **kwargs):
         """ Abstract method where all firmware block initialisation should be performed
+        :param kwargs: Initialisation arguments
         :return: True or Flase, depending on whether initialisation was successful
         """
         pass
@@ -50,7 +50,7 @@ class FirmwareBlock(object):
         """
 
     # ------------------------ Access Layer function wrappers ----------------------------
-    def readRegister(self, device, register, n = 1, offset = 0):
+    def read_register(self, device, register, n = 1, offset = 0):
         """ Read register on board
         :param device: Device on board
         :param register: Register name
@@ -58,9 +58,9 @@ class FirmwareBlock(object):
         :param offset: Offset at which to read
         :return: read data
         """
-        return self._board.readRegister(device, register, n, offset)
+        return self._board.read_register(device, register, n, offset)
 
-    def writeRegister(self, device, register, values, offset = 0):
+    def write_register(self, device, register, values, offset = 0):
         """ Write register on board
         :param device: Device on board
         :param register: Register name
@@ -68,9 +68,9 @@ class FirmwareBlock(object):
         :param offset: Offset at which to write
         :return: Success or Failure
         """
-        return self._board.writeRegister(device, register, values, offset)
+        return self._board.write_register(device, register, values, offset)
 
-    def readAddress(self, address, n = 1):
+    def read_address(self, address, n = 1):
         """ Read address on board
         :param address: Address
         :param n: Number of wrods to read
@@ -78,7 +78,7 @@ class FirmwareBlock(object):
         """
         self._board(address, n)
 
-    def writeAddress(self, address, values):
+    def write_address(self, address, values):
         """ Write address on board
         :param address: Address
         :param values: Values to write
@@ -86,19 +86,19 @@ class FirmwareBlock(object):
         """
         self._board(address, values)
 
-    def readDevice(self, device, address):
+    def read_device(self, device, address):
         """ Read from SPI device on board
         :param device: SPI device
         :param address: Address
         :return: Values
         """
-        self._board.readDevice(device, address)
+        self._board.read_device(device, address)
 
-    def writeDevice(self, device, address, value):
+    def write_device(self, device, address, value):
         """ Write to SPI device on board
         :param device: SPI device
         :param address: Address
         :param value: Value to write
         :return: Success or Failure
         """
-        self._board.writeDevice(device, address, value)
+        self._board.write_device(device, address, value)

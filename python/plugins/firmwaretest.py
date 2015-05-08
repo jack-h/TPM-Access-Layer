@@ -1,10 +1,11 @@
 from firmwareblock import FirmwareBlock
 from definitions import *
+import logging
 
 class FirmwareTest(FirmwareBlock):
     """ FirmwareBlock test class """
 
-    @compatible_boards(BoardMake.TpmBoard)
+    @compatibleboards(BoardMake.TpmBoard)
     def __init__(self, board):
         """ FirmwareTest initialiser
         :param board: Pointer to board instance
@@ -14,9 +15,16 @@ class FirmwareTest(FirmwareBlock):
 
     def initialise(self, **kwargs):
         """ Initialise FirmwareTest
-        :return: Success
+        :param kwargs:
         """
-        print "FirmwareTest has been initialised"
+        if len(kwargs) == 0:
+            raise PluginError("FirmwareTest initialiser requires some arguments")
+
+        for k, v in kwargs.iteritems():
+            print v,
+        print
+
+        logging.info("FirmwareTest has been initialised")
         return True
 
     def status_check(self):
@@ -24,7 +32,7 @@ class FirmwareTest(FirmwareBlock):
         :return: Status
         """
         print "Checking status"
-        return True
+        return Status.OK
 
     def test(self):
         """ Test firmware
@@ -40,17 +48,17 @@ class FirmwareTest(FirmwareBlock):
         print "Performed clean_up"
         return True
 
-    @valid_states(BoardState.All)
+    @validstates(BoardState.All)
     def read_date_code(self):
         """ Test method
         :return: None
         """
-        return self.readRegister(Device.Board, 'regfile.date_code')
+        return self.read_register(Device.Board, 'regfile.date_code')
 
-    @valid_states(BoardState.All)
+    @validstates(BoardState.All)
     def write_date_code(self, value):
         """ Test method
         :param value: Value to write to date_code
         :return: None
         """
-        return self.writeRegister(Device.Board, 'regfile.date_code', value)
+        return self.write_register(Device.Board, 'regfile.date_code', value)

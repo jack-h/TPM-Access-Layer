@@ -7,16 +7,16 @@
   <boards>
 
     <TPM id="tpm1" ip="127.0.0.1" port="10000" firmware="/home/lessju/map.xml" log="True">
-      <init param1="This" param2="is" param3="Sparta" />
-      <test param1="aaaaahhhhh" />
+      <init />
+      <test />
       <plugins>
-        <FirmwareTest param1="Hello" param2="World" />
+        <FirmwareTest param1="This" param2="is" param3="Sparta" />
       </plugins>
     </TPM>
 
     <TPM id="tpm2" ip="10.62.14.234" port="10000" firmware="/home/lessju/map.xml" log="True">
-      <init param1="This" param2="is" param3="Sparta" />
-      <test param1="aaaaahhhhh" />
+      <init />
+      <test />
       <plugins>
         <FirmwareTest param1="Hello" param2="World" />
       </plugins>

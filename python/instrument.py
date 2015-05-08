@@ -23,7 +23,7 @@ class ConfigHandler(object):
         root = tree.getroot()
 
         # Get list of board types implemented in the access layer
-        availableBoards = [cls.__name__ for cls in sys.modules['accesslayer'].FPGABoard.__subclasses__()]
+        available_boards = [cls.__name__ for cls in sys.modules['accesslayer'].FPGABoard.__subclasses__()]
 
         # Set class attributes to be populated
         self.instrument = { }
@@ -39,7 +39,7 @@ class ConfigHandler(object):
                 # the tag name should represent a board type implemented in the access layer
                 for board in child:
                     # Check if board is supported
-                    if board.tag not in availableBoards:
+                    if board.tag not in available_boards:
                         raise InstrumentError("Board %s is not supported" % board)
 
                     # Add board to instance dictionary
@@ -85,17 +85,17 @@ class Instrument(object):
                                      else getattr(logging, self._config.instrument['logging']['level'].upper())
                 filename =  None if 'filename' not in self._config.instrument['logging'] \
                                  else self._config.instrument['logging']['filename']
-                self.configureLogging(log_level= level, log_filename= filename)
+                self.configure_logging(log_level= level, log_filename= filename)
 
-        # Create board instances
-        self.board_instances = { }
+        # Create board and initialise instances
+        self.boards = { }
         for k, v in self._config.boards.iteritems():
-            board_instances = { k : eval(v['board_class'])() }
-            board_instances[k].initialise(v)
+            self.boards[k] = eval(v['board_class'])()
+            self.boards[k].initialise(v)
 
         self._logger.info("Initialised intrument")
 
-    def configureLogging(self, log_filename = None, log_level = logging.INFO):
+    def configure_logging(self, log_filename = None, log_level = logging.INFO):
         """ Basic logging configuration
         :param log_filename: Log filename
         :param log_level: Logging level
@@ -130,10 +130,3 @@ class Instrument(object):
 
 if __name__ == "__main__":
     test = Instrument("/home/lessju/Code/TPM-Access-Layer/doc/XML/Instrument.xml")
-
-
-
-
-
-
-
