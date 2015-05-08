@@ -66,40 +66,72 @@ class ConfigHandler(object):
             else:
                 self.instrument[child.tag ] = child.attrib
 
-# --------------------------- Logger -----------------------
-def configureLogging(log_filename = None, log_level = logging.INFO):
-    """ Basic logging configuration
-    :param log_filename: Log filename
-    :param log_level: Logging level
-    """
+# --------------------------- Instrument -----------------------
 
-    # If filename is not specified, create it
-    if log_filename is None:
-        from datetime import datetime
-        log_filename = "instrument_%s.log" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+class Instrument(object):
+    """ Instrument class """
 
-    # Create logger
-    logging.basicConfig(format='%(levelname)s\t%(asctime)s\t%(message)s', filename = log_filename, level = log_level)
-    logging.info("Starting logging")
+    def __init__(self, config_file):
+        """ Initialise instrument
+        :param config_file: Configuration file
+        """
+        # Parse configuration
+        self._config = ConfigHandler(config_file)
+        self._logger = logging.getLogger('dummy')
 
-# ------------------------------------------------------------
+        # Check if logging is required, and if so configure
+        if 'logging' in self._config.instrument.keys() and eval(self._config.instrument['logging']['enabled']):
+                level = logging.WARN if  'level' not in self._config.instrument['logging'] \
+                                     else getattr(logging, self._config.instrument['logging']['level'].upper())
+                filename =  None if 'filename' not in self._config.instrument['logging'] \
+                                 else self._config.instrument['logging']['filename']
+                self.configureLogging(log_level= level, log_filename= filename)
+
+        # Create board instances
+        self.board_instances = { }
+        for k, v in self._config.boards.iteritems():
+            board_instances = { k : eval(v['board_class'])() }
+            board_instances[k].initialise(v)
+
+        self._logger.info("Initialised intrument")
+
+    def configureLogging(self, log_filename = None, log_level = logging.INFO):
+        """ Basic logging configuration
+        :param log_filename: Log filename
+        :param log_level: Logging level
+        """
+
+        # If filename is not specified, create it
+        if log_filename is None:
+            from datetime import datetime
+            log_filename = "instrument_%s.log" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+
+        # Create logger
+        self._logger = logging.getLogger()
+
+        # Create file handler which logs all messages
+        fh = logging.FileHandler(log_filename, mode='w')
+        fh.setLevel(log_level)
+
+        # Create console handler with a higher log level
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.WARN)
+
+        # Create formatter and add it to the handlers
+        formatter = logging.Formatter('%(levelname)s\t%(asctime)s\t%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        ch.setFormatter(formatter)
+        fh.setFormatter(formatter)
+
+        # Add the handlers to logger
+        self._logger.addHandler(ch)
+        self._logger.addHandler(fh)
+        self._logger.info("Starting logging")
+
 
 if __name__ == "__main__":
+    test = Instrument("/home/lessju/Code/TPM-Access-Layer/doc/XML/Instrument.xml")
 
-    # Parse configuration
-    c = ConfigHandler("/home/lessju/Code/TPM-Access-Layer/doc/XML/Instrument.xml")
 
-    # Check if logging is required, and if so configure
-    if 'logging' in c.instrument.keys() and eval(c.instrument['logging']['enabled']):
-            level = logging.WARN if  'level' not in c.instrument['logging'] else getattr(logging, c.instrument['logging']['level'].upper())
-            filename =  None if 'filename' not in c.instrument['logging'] else c.instrument['logging']['filename']
-            configureLogging(log_level= level, log_filename= filename)
-
-    # Create board instances
-    board_instances = { }
-    for k, v in c.boards.iteritems():
-        board_instances = { k : eval(v['board_class'])() }
-        board_instances[k].initialise(v)
 
 
 

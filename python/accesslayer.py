@@ -52,25 +52,20 @@ class FPGABoard(object):
         # Initialise library
         initialiseLibrary(filepath)
 
+        # Initialise logging (use default logger which can be set externally)
+        self._logger = logging.getLogger()
+
         # Check if ip and port are defined in arguments
         ip   = kwargs.get('ip', None)
         port = kwargs.get('port', None)
 
-        # Configure logging
-    #    log = kwargs.get('log', False)
-#        if log:
-#            self._logger = logging.getLogger('instrument')  # Get default logger
-#            print self._logger.handlers
-#        else:
-#            self._logger = logging.getLogger('dummy')  # Dummy logger
-
         # If so, the connect immediately
-        #self._logger.debug("Succesfully initialised FPGABoard instance")
         if ip is not None and port is not None:
             self.connect(ip, port)
 
     def initialise(self, config):
-        """ Method for explicit initialisation
+        """ Method for explicit initialisation. This is called by instrument when
+            a configuration file is provided
         :param config: Configuration dictionary
         """
 

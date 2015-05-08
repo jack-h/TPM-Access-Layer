@@ -2,11 +2,11 @@
 
 <instrument>
 
-  <logging enabled="True" filename="test.log" level='WARN' />
+  <logging enabled="True" filename="test.log" level='DEBUG' />
 
   <boards>
 
-    <TPM id="tpm1" ip="127.0.0.1" port="10000" firmware="/home/lessju/map.xml">
+    <TPM id="tpm1" ip="127.0.0.1" port="10000" firmware="/home/lessju/map.xml" log="True">
       <init param1="This" param2="is" param3="Sparta" />
       <test param1="aaaaahhhhh" />
       <plugins>
