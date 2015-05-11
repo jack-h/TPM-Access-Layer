@@ -1,3 +1,9 @@
+Version 0.5
+-----------
+
+- Tango driver: New plugin loading flow
+- Tango driver: New connection code with IP/Port attributes
+
 
 Version 0.4
 -----------
