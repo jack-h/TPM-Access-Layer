@@ -53,7 +53,7 @@ class FPGABoard(object):
         initialise_library(filepath)
 
         # Initialise logging (use default logger which can be set externally)
-        # self._logger = logging.getLogger()
+        self._logger = logging.getLogger()
 
         # Check if ip and port are defined in arguments
         ip   = kwargs.get('ip', None)
