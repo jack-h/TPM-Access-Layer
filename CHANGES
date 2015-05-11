@@ -9,6 +9,10 @@ Version 0.4
 - Added decorator so specify board association for plugins
 - Started XML config schema and basic instrument script
 - Updated and tested SPI functionality
+- Tango driver: Refactored method names
+- Tango driver: set up custom state flow
+- Tango driver: added dynamic attributes
+- Tango driver: added dynamic commands
 
 Version 0.3
 -----------
