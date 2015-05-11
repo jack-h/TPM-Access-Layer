@@ -1,7 +1,5 @@
 import PyTango
-from mercurial.store import fncache
 import pickle
-from enum import Enum
 
 # class BoardState(Enum):
 #     """ Board State enumeration """
@@ -21,27 +19,38 @@ from enum import Enum
 # print BoardState.INIT.value
 # print BoardState(1)
 
+# INIT device
 tpm_instance = PyTango.DeviceProxy("test/tpm_board/1")
+tpm_instance.ip_address = "127.0.0.1"
+tpm_instance.port = 10000
 
+# Connect to device
+tpm_instance.command_inout("connect")
+
+# Load firmware
 arguments = {}
 arguments['device'] = 2
 arguments['path'] = '/home/andrea/Documents/AAVS/xml/map.xml'
 args = pickle.dumps(arguments)
-#args = str(arguments)
+tpm_instance.command_inout("load_firmware_blocking", args)
 
-tpm_instance.command_inout("loadfirmwareblocking", args)
-tpm_instance.command_inout("getDeviceList")
-tpm_instance.command_inout("getRegisterList")
-args = 'fpga1.regfile.jesd_ctrl.ext_trig_en'
-tpm_instance.command_inout("getRegisterInfo", args)
-print '============================================'
+# Load plugin
+tpm_instance.command_inout("load_plugin", 'FirmwareTest')
 
+# Run plugin command
 arguments = {}
 arguments['fnName'] = 'read_date_code'
 arguments['fnInput'] = pickle.dumps({})
 args = pickle.dumps(arguments)
-tpm_instance.command_inout("runPluginCommand", args)
+tpm_instance.command_inout("run_plugin_command", args)
 print '============================================'
+
+# tpm_instance.command_inout("getDeviceList")
+# tpm_instance.command_inout("getRegisterList")
+# args = 'fpga1.regfile.jesd_ctrl.ext_trig_en'
+# tpm_instance.command_inout("getRegisterInfo", args)
+# print '============================================'
+
 
 # arguments = {}
 # arguments['device'] = 2
