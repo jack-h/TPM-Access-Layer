@@ -29,8 +29,6 @@ class ConfigHandler(object):
         self.instrument = { }
         self.boards = { }
 
-        # Root element can have any tag, depending on the instrument.
-        # This will be ignored for now...
         # Nodes within root can vary, for now we skip unneedeg nodes and
         # only process the <boards> tag
         for child in root:
@@ -64,7 +62,7 @@ class ConfigHandler(object):
                     else:
                         raise InstrumentError("Each board must have an associated id tag")
             else:
-                self.instrument[child.tag ] = child.attrib
+                self.instrument[child.tag] = child.attrib
 
 # --------------------------- Instrument -----------------------
 
@@ -77,7 +75,6 @@ class Instrument(object):
         """
         # Parse configuration
         self._config = ConfigHandler(config_file)
-        self._logger = logging.getLogger('dummy')
 
         # Check if logging is required, and if so configure
         if 'logging' in self._config.instrument.keys() and eval(self._config.instrument['logging']['enabled']):
@@ -86,28 +83,32 @@ class Instrument(object):
                 filename =  None if 'filename' not in self._config.instrument['logging'] \
                                  else self._config.instrument['logging']['filename']
                 self.configure_logging(log_level= level, log_filename= filename)
+        else:
+            self._logger = logging.getLogger('dummy')
 
         # Create board and initialise instances
         self.boards = { }
         for k, v in self._config.boards.iteritems():
             self.boards[k] = eval(v['board_class'])()
             self.boards[k].initialise(v)
+            self._logger.info("Initialised board %s, has internal id %d" % (k, self.boards[k].id))
 
         self._logger.info("Initialised intrument")
 
-    def configure_logging(self, log_filename = None, log_level = logging.INFO):
+    def configure_logging(self, log_filename = None, log_level = logging.DEBUG):
         """ Basic logging configuration
         :param log_filename: Log filename
         :param log_level: Logging level
         """
 
-        # If filename is not specified, create it
+        # If filename is not specified, create one
         if log_filename is None:
             from datetime import datetime
             log_filename = "instrument_%s.log" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
 
         # Create logger
         self._logger = logging.getLogger()
+        self._logger.setLevel(log_level)
 
         # Create file handler which logs all messages
         fh = logging.FileHandler(log_filename, mode='w')
@@ -115,10 +116,10 @@ class Instrument(object):
 
         # Create console handler with a higher log level
         ch = logging.StreamHandler()
-        ch.setLevel(logging.WARN)
+        ch.setLevel(logging.WARNING)
 
         # Create formatter and add it to the handlers
-        formatter = logging.Formatter('%(levelname)s\t%(asctime)s\t%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        formatter = logging.Formatter('%(levelname)s\t%(asctime)s\t %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         ch.setFormatter(formatter)
         fh.setFormatter(formatter)
 
@@ -126,7 +127,6 @@ class Instrument(object):
         self._logger.addHandler(ch)
         self._logger.addHandler(fh)
         self._logger.info("Starting logging")
-
 
 if __name__ == "__main__":
     test = Instrument("/home/lessju/Code/TPM-Access-Layer/doc/XML/Instrument.xml")

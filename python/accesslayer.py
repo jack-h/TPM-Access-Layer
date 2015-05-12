@@ -27,6 +27,7 @@ class FPGABoard(object):
         self.status        = Status.NotConnected
         self._programmed   = False
         self._logger       = None
+        self._string_id    = "Board"
 
         # List all available subclasses of FirmwareBlock (plugins)
         self._available_plugins = [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]
@@ -68,6 +69,8 @@ class FPGABoard(object):
             a configuration file is provided
         :param config: Configuration dictionary
         """
+
+        self._string_id = config['id']
 
         # Configure logging
         if 'log' in config and eval(config['log']):
@@ -115,7 +118,7 @@ class FPGABoard(object):
             if self._fpga_board not in constr['_compatible_boards']:
                 raise LibraryError("Plugin %s is not compatible with %s" % (plugin, self._fpga_board))
         else:
-            self._logger.warn("Plugin %s does not specify board compatability" % plugin)
+            self._logger.warn(self.log("Plugin %s does not specify board compatability" % plugin))
 
         # Get list of class methods and remove those availale in superclass
         methods = [name for name, mtype in
@@ -139,10 +142,10 @@ class FPGABoard(object):
             self.__dict__[method].__dict__['_plugin_method'] = True
 
             # Bookeeping
-            self._logger.debug("Added method %s from plugin %s to board instance" % (method, plugin))
+            self._logger.debug(self.log("Added method %s from plugin %s to board instance" % (method, plugin)))
             self._loaded_plugins[plugin].append(method)
 
-        self._logger.info("Added plugin %s to class instance" % plugin)
+        self._logger.info(self.log("Added plugin %s to class instance" % plugin))
 
     def unload_plugin(self, plugin):
         """ Unload plugin from instance
@@ -154,14 +157,14 @@ class FPGABoard(object):
             # Go over plugin methods and remove from instance
             for method in self._loaded_plugins[plugin]:
                 del self.__dict__[method]
-                self._logger.debug("Removed method %s of plugin %s from class instance" % (method, plugin))
+                self._logger.debug(self.log("Removed method %s of plugin %s from class instance" % (method, plugin)))
 
             # Remove from list of loaded plugins
             del self._loaded_plugins[plugin]
-            self._logger.info("Removed plugin %s from class instance" % plugin)
+            self._logger.info(self.log("Removed plugin %s from class instance" % plugin))
 
         else:
-            self._logger.info("Plugin %s was not loaded." % plugin)
+            self._logger.info(self.log("Plugin %s was not loaded." % plugin))
 
     def get_available_plugins(self):
         """ Get list of availabe plugins
@@ -188,7 +191,7 @@ class FPGABoard(object):
             self.status = Status.NetworkError
             raise BoardError("Could not connect to board with ip %s" % ip)
         else:
-            self._logger.info("Connected to board %s, received ID %d" % (ip, board_id))
+            self._logger.info(self.log("Connected to board %s, received ID %d" % (ip, board_id)))
             self.id = board_id
             self.status = Status.OK
 
@@ -197,12 +200,12 @@ class FPGABoard(object):
 
         # Check if board is connected
         if self.id is None:
-            self._logger.warn("Call disconnect on board which was not connected")
+            self._logger.warn(self.log("Call disconnect on board which was not connected"))
 
         ret = call_disconnect_board(self.id)
         if ret == Error.Success:
             self._registerList = None
-            self._logger.info("Disconnected from board with ID %s" % self.id)
+            self._logger.info(self.log("Disconnected from board with ID %s" % self.id))
             self.id = None
 
     def get_firmware_list(self, device):
@@ -213,11 +216,11 @@ class FPGABoard(object):
 
         # Check if board is connected
         if self.id is None:
-            raise LibraryError("Call getFirmwareList for board which is not connected")
+            raise LibraryError("Call get_firmware_list for board which is not connected")
 
         # Call getFirmware on board
         self._firmwareList = call_get_firmware_list(self.id, device)
-        self._logger.debug("Called getFirmwareList")
+        self._logger.debug(self.log("Called get_firmware_list"))
 
         return self._firmwareList
 
@@ -229,20 +232,21 @@ class FPGABoard(object):
         
         # Check if device argument is of type Device
         if not type(device) is Device:
-            raise LibraryError("Device argument for loadFirmwareBlocking should be of type Device")
+            raise LibraryError("Device argument for load_firmware_blocking should be of type Device")
 
         # All OK, call function
         err = call_load_firmware_blocking(self.id, device, filepath)
+        self._logger.debug(self.log("Called load_firmware_blocking"))
 
         # If call succeeded, get register and device list
         if err == Error.Success:
             self._programmed = True
             self.get_register_list()
             self.get_device_list()
-            self._logger.info("Successfuly loaded firmware %s on board" % filepath)
+            self._logger.info(self.log("Successfuly loaded firmware %s on board" % filepath))
         else:
             self._programmed = False
-            raise BoardError("loadFirmwareBlocking failed on board")
+            raise BoardError("load_firmware_blocking failed on board")
 
     def get_register_list(self):
         """ Get list of registers """
@@ -253,11 +257,11 @@ class FPGABoard(object):
 
         # Check if device is programmed
         if not self._programmed:
-            raise LibraryError("Cannot getRegisterList from board which has not been programmed")
+            raise LibraryError("Cannot get_register_list from board which has not been programmed")
 
         # Call function
         self._registerList = call_get_register_list(self.id)
-        self._logger.debug("Called getRegisterList on board")
+        self._logger.debug(self.log("Called get_register_list on board"))
 
         # All done, return
         return self._registerList
@@ -271,7 +275,7 @@ class FPGABoard(object):
 
         # Call function
         self._deviceList = call_get_device_list(self.id)
-        self._logger.debug("Called getDeviceList")
+        self._logger.debug(self.log("Called get_device_list"))
 
         # All done, return
         return self._deviceList
@@ -291,19 +295,20 @@ class FPGABoard(object):
 
         # Check if device argument is of type Device
         if not type(device) is Device:
-            raise LibraryError("Device argument for readRegister should be of type Device")
+            raise LibraryError("Device argument for read_register should be of type Device")
 
         # Call function
         values = call_read_register(self.id, device, register, n, offset)
+        self._logger.debug(self.log("Called read_register"))
 
         # Check if value succeeded, otherwise return
         if values.error == Error.Failure.value:
-            raise BoardError("Failed to readRegister %s from board" % register)
+            raise BoardError("Failed to read_register %s from board" % register)
 
         # Read succeeded, wrap data and return
         valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
 
-        self._logger.debug("Called readRegister on board")
+        self._logger.debug(self.log("Called read_register on board"))
 
         if n == 1:
             return valPtr[0]
@@ -324,12 +329,13 @@ class FPGABoard(object):
 
         # Check if device argument is of type Device
         if not type(device) is Device:
-           raise LibraryError("Device argument for writeRegister should be of type Device")
+           raise LibraryError("Device argument for write_register should be of type Device")
 
         # Call function and return
         err = call_write_register(self.id, device, register, values, offset)
+        self._logger.debug(self.log("Called write_register"))
         if err == Error.Failure:
-            raise BoardError("Failed to writeRegister %s on board" % register)
+            raise BoardError("Failed to write_register %s on board" % register)
 
     def read_address(self, address, n = 1):
         """" Get register value
@@ -340,8 +346,9 @@ class FPGABoard(object):
 
         # Call function and return
         ret = call_read_address(self.id, address, n)
+        self._logger.debug(self.log("Called read_address"))
         if ret == Error.Failure:
-            raise BoardError("Failed to readAddress %s on board" % hex(address))
+            raise BoardError("Failed to read_address %s on board" % hex(address))
         else:
             return ret
 
@@ -353,8 +360,9 @@ class FPGABoard(object):
 
         # Call function and return
         err = call_write_address(self.id, address, values)
+        self._logger.debug(self.log("Called write_address"))
         if err == Error.Failure:
-            raise BoardError("Failed to writeAddress %s on board" % hex(address))
+            raise BoardError("Failed to write_address %s on board" % hex(address))
 
     def read_device(self, device, address):
         """" Get device value
@@ -365,12 +373,13 @@ class FPGABoard(object):
     
         # Check if device is in device list
         if device not in self._deviceList:
-            raise LibraryError("Device argument for readDevice should be of type Device")
+            raise LibraryError("Device argument for read_device should be of type Device")
 
         # Call function and return
         ret = call_read_device(self.id, device, address)
+        self._logger.debug(self.log("Called read_device"))
         if ret == Error.Failure:
-            raise BoardError("Failed to readDevice %s, %s on board" % (device, hex(address)))
+            raise BoardError("Failed to read_device %s, %s on board" % (device, hex(address)))
         else:
             return ret
 
@@ -383,12 +392,13 @@ class FPGABoard(object):
 
         # Check if device is in device list
         if device not in self._deviceList:
-            raise LibraryError("Device argument for writeDevice should be of type Device")
+            raise LibraryError("Device argument for write_device should be of type Device")
 
         # Call function and return
         ret = call_write_device(self.id, device, address, value)
+        self._logger.debug(self.log("Called write_device"))
         if ret == Error.Failure:
-            raise BoardError("Failed to writeDevice %s, %s on board" % (device, hex(address)))
+            raise BoardError("Failed to write_device %s, %s on board" % (device, hex(address)))
 
     def list_register_names(self):
         """ Print list of register names """
@@ -509,6 +519,13 @@ class FPGABoard(object):
             self.get_register_list()
 
         return True
+
+    def log(self, string):
+        """ Format string for logging output
+        :param string: String to log
+        :return: Formatted string
+        """
+        return "%s (%s)" % (string, self._string_id)
 
     @staticmethod
     def _get_device(name):
