@@ -20,7 +20,7 @@ class FirmwareTest(FirmwareBlock):
         if len(kwargs) == 0:
             raise PluginError("FirmwareTest initialiser requires some arguments")
 
-        print kwargs
+        #print kwargs
 
         logging.info("FirmwareTest has been initialised")
         return True
@@ -29,21 +29,14 @@ class FirmwareTest(FirmwareBlock):
         """ Perform status check
         :return: Status
         """
-        print "Checking status"
+        logging.info("FirmwareTest: Checking status")
         return Status.OK
-
-    def test(self):
-        """ Test firmware
-        :return: Success or Failure
-        """
-        print "Testing firmware"
-        return True
 
     def clean_up(self):
         """ Perform cleanup
         :return: Success
         """
-        print "Performed clean_up"
+        logging.info("FirmwareTest: Cleaning up")
         return True
 
     @validstates(BoardState.All)

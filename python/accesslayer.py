@@ -64,6 +64,8 @@ class FPGABoard(object):
         if ip is not None and port is not None:
             self.connect(ip, port)
 
+    # ----------------------------- High-level functionality -------------------------
+
     def initialise(self, config):
         """ Method for explicit initialisation. This is called by instrument when
             a configuration file is provided
@@ -102,7 +104,25 @@ class FPGABoard(object):
                     self.load_plugin(k)
                     getattr(self, k).initialise(**v)
 
-    # ------------------------------- Firmware block functionality ----------------------------
+    def status_check(self):
+        """ Perform board and firmware status checks
+        :return: Status
+        """
+
+        # Run generic board test
+        status = self.get_status()
+        if status is not Status.OK:
+            return status
+
+        # Loop over all plugins and perform checks
+        if not all([getattr(self, plugin).status_check() == Status.OK
+                    for plugin in self._loaded_plugins  ]):
+            return Status.FirmwareError
+
+        # All check succesful, return
+        return Status.OK
+
+    # -------------------------- Firmware plugin functionality -----------------------
     def load_plugin(self, plugin):
         """ Loads a firmware block plugin and incorporates its functionality
         :param plugin: Plugin class name
@@ -208,6 +228,12 @@ class FPGABoard(object):
             self._logger.info(self.log("Disconnected from board with ID %s" % self.id))
             self.id = None
 
+    def get_status(self):
+        """ Get board status
+        :return: Status
+        """
+        return call_get_status(self.id)
+
     def get_firmware_list(self, device):
         """ Get list of firmware on board
         :param device: Device on board to get list of firmware
@@ -235,17 +261,20 @@ class FPGABoard(object):
             raise LibraryError("Device argument for load_firmware_blocking should be of type Device")
 
         # All OK, call function
+        self.status = Status.LoadingFirmware
         err = call_load_firmware_blocking(self.id, device, filepath)
         self._logger.debug(self.log("Called load_firmware_blocking"))
 
         # If call succeeded, get register and device list
         if err == Error.Success:
             self._programmed = True
+            self.status = Status.OK
             self.get_register_list()
             self.get_device_list()
             self._logger.info(self.log("Successfuly loaded firmware %s on board" % filepath))
         else:
             self._programmed = False
+            self.status = Status.LoadingFirmwareError
             raise BoardError("load_firmware_blocking failed on board")
 
     def get_register_list(self):

@@ -78,6 +78,10 @@ def initialise_library(filepath = None):
     library.writeDevice.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_uint32, ctypes.c_uint32]
     library.writeDevice.restype = ctypes.c_int
 
+    # Define getStatus function
+    library.getStatus.argtype = [ctypes.c_uint32]
+    library.getStatus.restype = Status
+
     # Define freeMemory function
     library.freeMemory.argtypes = [ctypes.c_void_p]
 
@@ -100,6 +104,14 @@ def call_disconnect_board(board_id):
     """
     global library
     return Error(library.disconnectBoard(board_id))
+
+def call_get_status(board_id):
+    """ Call getStatus on board
+    :param board_id: ID of board to query
+    :return: Status
+    """
+    global library
+    return Status(library.getStatus(board_id))
 
 def call_get_firmware_list(board_id, device):
     """

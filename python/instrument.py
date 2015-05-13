@@ -119,6 +119,10 @@ class Instrument(object):
         """ Initialise instrument
         :param config_file: Configuration file
         """
+
+        # Set instrument status
+        self.status = Status.LoadingFirmware
+
         # Parse configuration
         self._config = ConfigHandler(config_file)
 
@@ -140,6 +144,25 @@ class Instrument(object):
             self._logger.info("Initialised board %s, has internal id %d" % (k, self.boards[k].id))
 
         self._logger.info("Initialised intrument")
+
+    def status_check(self):
+        """ Check instrument status
+        :return: Status
+        """
+
+        # Check status of all boards
+        status = { }
+        for k, v in self.boards.iteritems():
+            status[k] = self.boards[k].status_check()
+
+        # Set instrument status
+        stat = set([v for k, v in status.iteritems()]) - set([Status.OK])
+        if len(stat) == 0:
+            self.status = Status.OK
+        else:
+            self.status = stat.pop()
+
+        return status
 
     def configure_logging(self, log_filename = None, log_level = logging.DEBUG):
         """ Basic logging configuration
@@ -175,9 +198,10 @@ class Instrument(object):
         self._logger.info("Starting logging")
 
 if __name__ == "__main__":
-    test = Instrument("/home/lessju/Code/TPM-Access-Layer/doc/XML/Instrument.xml")
 
-    # tree = ET.parse('text_xml.xml')
-    # root = tree.getroot()
-    # conf =  ConfigHandler.parse_config_node(root)
-    # print conf
+    # Create instrument
+    instrument = Instrument("/home/lessju/Code/TPM-Access-Layer/doc/XML/Instrument.xml")
+
+    # Check instrument status
+    print instrument.status_check()
+
