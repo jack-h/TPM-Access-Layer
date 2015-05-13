@@ -490,6 +490,24 @@ class TPM_DS (PyTango.Device_4Impl):
             else:
                 self.debug_stream("Invalid state")
 
+    # def get_device_list(self):
+    #     """ Returns a list of devices, as a serialized python dictionary, stored as a string.
+    #
+    #     :param :
+    #     :type: PyTango.DevVoid
+    #     :return: Dictionary of devices.
+    #     :rtype: PyTango.DevString """
+    #     self.debug_stream("In get_device_list()")
+    #     argout = ''
+    #     #----- PROTECTED REGION ID(TPM_DS.get_device_list) ENABLED START -----#
+    #     state_ok = self.check_state_flow(self.get_device_list.__name__)
+    #     if state_ok:
+    #         devlist = self.tpm_instance.get_device_list()
+    #         argout = pickle.dumps(devlist)
+    #     else:
+    #         self.debug_stream("Invalid state")
+    #     #----- PROTECTED REGION END -----#	//	TPM_DS.get_device_list
+        
     def get_device_list(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
         
@@ -801,6 +819,26 @@ class TPM_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(TPM_DS.set_board_state) ENABLED START -----#
         self.attr_board_state_read = argin
 
+    # def write_address(self, argin):
+    #     """ Writes values to a register location. The actual physical address has to be provided.
+    #
+    #     :param argin: Associated register information.
+    #     :type: PyTango.DevString
+    #     :return: True if successful, false if not.
+    #     :rtype: PyTango.DevBoolean """
+    #     self.debug_stream("In write_address()")
+    #     argout = False
+    #     #----- PROTECTED REGION ID(TPM_DS.write_address) ENABLED START -----#
+    #     state_ok = self.check_state_flow(self.write_address.__name__)
+    #     if state_ok:
+    #         arguments = pickle.loads(argin)
+    #         address = arguments['address']
+    #         values = arguments['values']
+    #         argout = self.tpm_instance.write_address(address, values)
+    #     else:
+    #         self.debug_stream("Invalid state")
+    #     #----- PROTECTED REGION END -----#	//	TPM_DS.write_address
+        
     def write_address(self, argin):
         """ Writes values to a register location. The actual physical address has to be provided.
         
