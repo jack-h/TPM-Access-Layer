@@ -52,9 +52,9 @@ class ConfigHandler(object):
                         if node.tag.lower() == "plugins":
                             current_board['plugins'] = { }
                             for plugin in node:
-                                current_board['plugins'][plugin.tag] = plugin.attrib
+                                current_board['plugins'][plugin.tag] = self.parse_config_node(plugin)
                         else:
-                            current_board[node.tag] = node.attrib
+                            current_board[node.tag] = self.parse_config_node(node)
 
                     # Check if board has an id, and is so add to list of boards
                     if 'id' in current_board.keys():
@@ -62,7 +62,53 @@ class ConfigHandler(object):
                     else:
                         raise InstrumentError("Each board must have an associated id tag")
             else:
-                self.instrument[child.tag] = child.attrib
+                self.instrument[child.tag] = self.parse_config_node(child)
+
+    @staticmethod
+    def parse_config_node(node):
+        """ Parse an XML configuration node
+        :param node: The XML node
+        :return: Dictionary representing the configuration
+        """
+        # Add top node attributes to dictionary
+        config  = node.attrib
+
+        # Loop over all children
+        for n in node:
+            # Check if node has children
+            if len(n) > 0:
+                # Check if tag is already in config
+                c = ConfigHandler.parse_config_node(n)
+                if n.tag in config.keys():
+                    # If tag is already a list, append to it
+                    if type(config[n.tag]) is list:
+                        config[n.tag].append(c)
+                    # Otherwise, convert dict to list
+                    else:
+                        config[n.tag] = [c, config[n.tag]]
+                else:
+                    config[n.tag] = c
+            else:
+                # Check if node contains attributes. If so, then the nodes content
+                # will be added as content
+                if len(n.attrib) > 0:
+                    v = n.attrib
+                    v['text'] = n.text
+                else:
+                    v = n.text
+
+                # Check if tag is already in config
+                if n.tag in config.keys():
+                    if type(config[n.tag]) is list:
+                        config[n.tag].append(v)
+                    else:
+                        config[n.tag] = [v, config[n.tag]]
+                else:
+                    config[n.tag] = v
+
+        # All done, return configuration
+        return config
+
 
 # --------------------------- Instrument -----------------------
 
@@ -130,3 +176,8 @@ class Instrument(object):
 
 if __name__ == "__main__":
     test = Instrument("/home/lessju/Code/TPM-Access-Layer/doc/XML/Instrument.xml")
+
+    # tree = ET.parse('text_xml.xml')
+    # root = tree.getroot()
+    # conf =  ConfigHandler.parse_config_node(root)
+    # print conf

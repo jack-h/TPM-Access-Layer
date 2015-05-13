@@ -20,9 +20,7 @@ class FirmwareTest(FirmwareBlock):
         if len(kwargs) == 0:
             raise PluginError("FirmwareTest initialiser requires some arguments")
 
-        for k, v in kwargs.iteritems():
-            print v,
-        print
+        print kwargs
 
         logging.info("FirmwareTest has been initialised")
         return True
