@@ -23,30 +23,21 @@
       </argout>
       <status abstract="true" inherited="true" concrete="true"/>
     </commands>
-    <commands name="connect" description="Opens the connection to the device." execMethod="connect" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="">
-        <type xsi:type="pogoDsl:VoidType"/>
-      </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
-      </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-    </commands>
-    <commands name="disconnect" description="Disconnect this device." execMethod="disconnect" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="">
-        <type xsi:type="pogoDsl:VoidType"/>
-      </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
-      </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-    </commands>
     <commands name="add_command" description="A generic command that adds a new command entry to the Tango device driver." execMethod="add_command" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="A string containing a dictionary for fields required for command creation.">
         <type xsi:type="pogoDsl:StringType"/>
       </argin>
       <argout description="True if command creation was successful, false if not.">
         <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <commands name="connect" description="Opens the connection to the device." execMethod="connect" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="">
+        <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
@@ -62,6 +53,15 @@
     <commands name="create_vector_attribute" description="A method that creates a new vector attribute." execMethod="create_vector_attribute" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="New attribute name.">
         <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <commands name="disconnect" description="Disconnect this device." execMethod="disconnect" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="">
+        <type xsi:type="pogoDsl:VoidType"/>
       </argin>
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
@@ -131,6 +131,15 @@
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
+    <commands name="load_plugin" description="Loads a plugin in device server." execMethod="load_plugin" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="Name of plugin. Case sensitive.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
     <commands name="read_address" description="Reads values from a register location. Instead of a register name, the actual physical address has to be provided." execMethod="read_address" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
         <type xsi:type="pogoDsl:StringType"/>
@@ -164,6 +173,24 @@
       </argin>
       <argout description="True if command removal was successful, false otherwise.">
         <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <commands name="run_plugin_command" description="Proxy to run a particular plugin command." execMethod="run_plugin_command" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="Dictionary with name of command to run, and arguments.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="Any output from the command.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <commands name="set_attribute_levels" description="Set alarm levels for a particular attribute.&#xA;1) min_value : (str) minimum allowed value&#xA;2 )max_value : (str) maximum allowed value&#xA;3) min_alarm : (str) low alarm level&#xA;4) max_alarm : (str) high alarm level" execMethod="set_attribute_levels" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="A pickled string storing a dictionary with the required alarm levels, and name of attribute.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="">
+        <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
@@ -203,24 +230,6 @@
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
-    <commands name="run_plugin_command" description="Proxy to run a particular plugin command." execMethod="run_plugin_command" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="Dictionary with name of command to run, and arguments.">
-        <type xsi:type="pogoDsl:StringType"/>
-      </argin>
-      <argout description="Any output from the command.">
-        <type xsi:type="pogoDsl:StringType"/>
-      </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-    </commands>
-    <commands name="load_plugin" description="Loads a plugin in device server." execMethod="load_plugin" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="Name of plugin. Case sensitive.">
-        <type xsi:type="pogoDsl:StringType"/>
-      </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
-      </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-    </commands>
     <attributes name="board_state" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
       <dataType xsi:type="pogoDsl:IntType"/>
       <changeEvent fire="false" libCheckCriteria="false"/>
@@ -253,6 +262,12 @@
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
       <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
+    <states name="ON" description="Device is ON for alarm/event handling.">
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </states>
+    <states name="ALARM" description="Device is ALARM for alarm/event handling.">
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </states>
     <preferences docHome="./doc_html" makefileHome="/usr/share/pogo/preferences"/>
   </classes>
 </pogoDsl:PogoSystem>

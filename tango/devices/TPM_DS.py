@@ -50,7 +50,7 @@ import PyTango
 import sys
 # Add additional import
 #----- PROTECTED REGION ID(TPM_DS.additionnal_import) ENABLED START -----#
-from PyTango import Util, Attr, SpectrumAttr
+from PyTango import DevState, Util, Attr, SpectrumAttr, Attribute, MultiAttribute
 from PyTango._PyTango import DevFailed
 from accesslayer import *
 from definitions import *
@@ -59,7 +59,8 @@ import pickle
 #----- PROTECTED REGION END -----#	//	TPM_DS.additionnal_import
 
 ## Device States Description
-## No states for this device
+## ON : Device is ON for alarm/event handling.
+## ALARM : Device is ALARM for alarm/event handling.
 
 class TPM_DS (PyTango.Device_4Impl):
 
@@ -259,6 +260,7 @@ class TPM_DS (PyTango.Device_4Impl):
         self.attr_port_read = 0
         #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
         self.info_stream("Starting device initialization...")
+        self.set_state(DevState.ON)
         self.set_board_state(BoardState.Init.value)
         self.tpm_instance = TPM()
         #connect_args = pickle.dumps({'ip': "127.0.0.1", 'port': 10000})
@@ -282,6 +284,7 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In read_board_state()")
         #----- PROTECTED REGION ID(TPM_DS.board_state_read) ENABLED START -----#
         attr.set_value(self.attr_board_state_read)
+        self.info_stream(BoardState(self.attr_board_state_read))
         #----- PROTECTED REGION END -----#	//	TPM_DS.board_state_read
         
     def read_is_programmed(self, attr):
@@ -310,14 +313,14 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In read_port()")
         #----- PROTECTED REGION ID(TPM_DS.port_read) ENABLED START -----#
         attr.set_value(self.attr_port_read)
-        
+        self.info_stream("Attribute: %s has quality: %s" %(attr.get_name(), attr.get_quality()))
         #----- PROTECTED REGION END -----#	//	TPM_DS.port_read
         
     def write_port(self, attr):
         self.debug_stream("In write_port()")
         data=attr.get_write_value()
         #----- PROTECTED REGION ID(TPM_DS.port_write) ENABLED START -----#
-        self.info_stream("Port set up.")
+        #self.info_stream("Port set up.")
         self.attr_port_read = data
         #----- PROTECTED REGION END -----#	//	TPM_DS.port_write
         
@@ -338,41 +341,6 @@ class TPM_DS (PyTango.Device_4Impl):
     #    TPM_DS command methods
     #-----------------------------------------------------------------------------
     
-    def connect(self):
-        """ Opens the connection to the device.
-        
-        :param : 
-        :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
-        self.debug_stream("In connect()")
-        #----- PROTECTED REGION ID(TPM_DS.connect) ENABLED START -----#
-        state_ok = self.check_state_flow(self.connect.__name__)
-        if state_ok:
-            try:
-                self.tpm_instance.connect(self.attr_ip_address_read, self.attr_port_read)
-            except DevFailed as df:
-                self.debug_stream("Failed to connect: %s" % df)
-        else:
-            self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.connect
-        
-    def disconnect(self):
-        """ Disconnect this device.
-        
-        :param : 
-        :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
-        self.debug_stream("In disconnect()")
-        #----- PROTECTED REGION ID(TPM_DS.disconnect) ENABLED START -----#
-        state_ok = self.check_state_flow(self.disconnect.__name__)
-        if state_ok:
-            self.tpm_instance.disconnect()
-        else:
-            self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.disconnect
-        
     def add_command(self, argin):
         """ A generic command that adds a new command entry to the Tango device driver.
         
@@ -406,6 +374,25 @@ class TPM_DS (PyTango.Device_4Impl):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.add_command
         return argout
+        
+    def connect(self):
+        """ Opens the connection to the device.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In connect()")
+        #----- PROTECTED REGION ID(TPM_DS.connect) ENABLED START -----#
+        state_ok = self.check_state_flow(self.connect.__name__)
+        if state_ok:
+            try:
+                self.tpm_instance.connect(self.attr_ip_address_read, self.attr_port_read)
+            except DevFailed as df:
+                self.debug_stream("Failed to connect: %s" % df)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.connect
         
     def create_scalar_attribute(self, argin):
         """ A method that creates a new scalar attribute.
@@ -443,6 +430,22 @@ class TPM_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.create_vector_attribute
+        
+    def disconnect(self):
+        """ Disconnect this device.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In disconnect()")
+        #----- PROTECTED REGION ID(TPM_DS.disconnect) ENABLED START -----#
+        state_ok = self.check_state_flow(self.disconnect.__name__)
+        if state_ok:
+            self.tpm_instance.disconnect()
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.disconnect
         
     def flush_attributes(self):
         """ A method that removes all attributes for the current firmware.
@@ -503,19 +506,6 @@ class TPM_DS (PyTango.Device_4Impl):
             argout = pickle.dumps(devlist)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_device_list
-        
-    def get_device_list(self):
-        """ Returns a list of devices, as a serialized python dictionary, stored as a string.
-        
-        :param : 
-        :type: PyTango.DevVoid
-        :return: Dictionary of devices.
-        :rtype: PyTango.DevString """
-        self.debug_stream("In get_device_list()")
-        argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.get_device_list) ENABLED START -----#
-        
         #----- PROTECTED REGION END -----#	//	TPM_DS.get_device_list
         return argout
         
@@ -600,6 +590,42 @@ class TPM_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.load_firmware_blocking
+        
+    def load_plugin(self, argin):
+        """ Loads a plugin in device server.
+        
+        :param argin: Name of plugin. Case sensitive.
+        :type: PyTango.DevString
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In load_plugin()")
+        #----- PROTECTED REGION ID(TPM_DS.load_plugin) ENABLED START -----#
+        state_ok = self.check_state_flow(self.load_plugin.__name__)
+        if state_ok:
+            plugin_list = self.tpm_instance.get_available_plugins()
+            if argin in plugin_list:
+                try:
+                    #self.tpm_instance.load_plugin('FirmwareTest')
+                    self.tpm_instance.load_plugin(argin)
+                    plugins_dict = self.tpm_instance.get_loaded_plugins()
+                    for command in plugins_dict[argin]:
+                        arguments = {}
+                        arguments['commandName'] = command
+                        arguments['inDesc'] = ''
+                        arguments['outDesc'] = ''
+                        arguments['states'] = self.all_states_list
+                        args = pickle.dumps(arguments)
+                        result = self.add_command(args)
+                        if result == True:
+                            self.info_stream("Command [%s].[%s] created successfully in device server." % (argin, command))
+                            self.__dict__[command] = lambda input: self.call_plugin_command(input)
+                        else:
+                            self.info_stream("Command [%s].[%s] not created" % command)
+                except DevFailed as df:
+                    self.debug_stream("Failed to load plugin: %s" % df)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.load_plugin
         
     def read_address(self, argin):
         """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
@@ -695,6 +721,64 @@ class TPM_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION END -----#	//	TPM_DS.remove_command
         return argout
         
+    def run_plugin_command(self, argin):
+        """ Proxy to run a particular plugin command.
+        
+        :param argin: Dictionary with name of command to run, and arguments.
+        :type: PyTango.DevString
+        :return: Any output from the command.
+        :rtype: PyTango.DevString """
+        self.debug_stream("In run_plugin_command()")
+        argout = ''
+        #----- PROTECTED REGION ID(TPM_DS.run_plugin_command) ENABLED START -----#
+        arguments = pickle.loads(argin)
+        fnName = arguments['fnName']
+        self.info_stream("Running: %s" % fnName)
+        fnInput = arguments['fnInput']
+        self.info_stream("Input: %s" % fnInput)
+        #self.info_stream("Cmd_list: %s" % self.plugin_cmd_list)
+        if fnName in self.plugin_cmd_list:
+            self.info_stream("Plugin command found!")
+            methodCalled = getattr(self, fnName)
+            self.info_stream("%s" % methodCalled)
+            argout = methodCalled(argin)
+            argout = pickle.dumps(argout)
+            # if not isinstance(argout, str):
+            #     argout = pickle.dumps(argout)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.run_plugin_command
+        return argout
+        
+    def set_attribute_levels(self, argin):
+        """ Set alarm levels for a particular attribute.
+        1) min_value : (str) minimum allowed value
+        2 )max_value : (str) maximum allowed value
+        3) min_alarm : (str) low alarm level
+        4) max_alarm : (str) high alarm level
+        
+        :param argin: A pickled string storing a dictionary with the required alarm levels, and name of attribute.
+        :type: PyTango.DevString
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In set_attribute_levels()")
+        #----- PROTECTED REGION ID(TPM_DS.set_attribute_levels) ENABLED START -----#
+        arguments = pickle.loads(argin)
+        attr_name = arguments.get('name')
+        min_value = arguments.get('min_value')
+        max_value = arguments.get('max_value')
+        min_alarm = arguments.get('min_alarm')
+        max_alarm = arguments.get('max_alarm')
+
+        #multi_prop = PyTango.MultiAttrProp()
+        multi_attr = self.get_device_attr()
+        attribute = multi_attr.get_attr_by_name(attr_name)
+        multi_prop = attribute.get_properties()
+        multi_prop.min_value = min_value
+        multi_prop.max_value = max_value
+        multi_prop.min_alarm = min_alarm
+        multi_prop.max_alarm = max_alarm
+        attribute.set_properties(multi_prop)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.set_attribute_levels
+        
     def set_board_state(self, argin):
         """ Sets the board status by passing in a value.
                 UNKNOWN	=  0
@@ -735,19 +819,6 @@ class TPM_DS (PyTango.Device_4Impl):
             argout = self.tpm_instance.write_address(address, values)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.write_address
-        
-    def write_address(self, argin):
-        """ Writes values to a register location. The actual physical address has to be provided.
-        
-        :param argin: Associated register information.
-        :type: PyTango.DevString
-        :return: True if successful, false if not.
-        :rtype: PyTango.DevBoolean """
-        self.debug_stream("In write_address()")
-        argout = False
-        #----- PROTECTED REGION ID(TPM_DS.write_address) ENABLED START -----#
-        
         #----- PROTECTED REGION END -----#	//	TPM_DS.write_address
         return argout
         
@@ -800,69 +871,6 @@ class TPM_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION END -----#	//	TPM_DS.write_register
         return argout
         
-    def run_plugin_command(self, argin):
-        """ Proxy to run a particular plugin command.
-        
-        :param argin: Dictionary with name of command to run, and arguments.
-        :type: PyTango.DevString
-        :return: Any output from the command.
-        :rtype: PyTango.DevString """
-        self.debug_stream("In run_plugin_command()")
-        argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.run_plugin_command) ENABLED START -----#
-        arguments = pickle.loads(argin)
-        fnName = arguments['fnName']
-        self.info_stream("Running: %s" % fnName)
-        fnInput = arguments['fnInput']
-        self.info_stream("Input: %s" % fnInput)
-        #self.info_stream("Cmd_list: %s" % self.plugin_cmd_list)
-        if fnName in self.plugin_cmd_list:
-            self.info_stream("Plugin command found!")
-            methodCalled = getattr(self, fnName)
-            self.info_stream("%s" % methodCalled)
-            argout = methodCalled(argin)
-            if not isinstance(argout, str):
-                argout = pickle.dumps(argout)
-            #argout = getattr(self, fnName)(fnInput)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.run_plugin_command
-        return argout
-        
-    def load_plugin(self, argin):
-        """ Loads a plugin in device server.
-        
-        :param argin: Name of plugin. Case sensitive.
-        :type: PyTango.DevString
-        :return: 
-        :rtype: PyTango.DevVoid """
-        self.debug_stream("In load_plugin()")
-        #----- PROTECTED REGION ID(TPM_DS.load_plugin) ENABLED START -----#
-        state_ok = self.check_state_flow(self.load_plugin.__name__)
-        if state_ok:
-            plugin_list = self.tpm_instance.get_available_plugins()
-            if argin in plugin_list:
-                try:
-                    #self.tpm_instance.load_plugin('FirmwareTest')
-                    self.tpm_instance.load_plugin(argin)
-                    plugins_dict = self.tpm_instance.get_loaded_plugins()
-                    for command in plugins_dict[argin]:
-                        arguments = {}
-                        arguments['commandName'] = command
-                        arguments['inDesc'] = ''
-                        arguments['outDesc'] = ''
-                        arguments['states'] = self.all_states_list
-                        args = pickle.dumps(arguments)
-                        result = self.add_command(args)
-                        if result == True:
-                            self.info_stream("Command [%s].[%s] created successfully in device server." % (argin, command))
-                            self.__dict__[command] = lambda input: self.call_plugin_command(input)
-                        else:
-                            self.info_stream("Command [%s].[%s] not created" % command)
-                except DevFailed as df:
-                    self.debug_stream("Failed to load plugin: %s" % df)
-        else:
-            self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.load_plugin
-        
 
 class TPM_DSClass(PyTango.DeviceClass):
     #--------- Add you global class variables here --------------------------
@@ -901,20 +909,20 @@ class TPM_DSClass(PyTango.DeviceClass):
 
     #    Command definitions
     cmd_list = {
-        'connect':
-            [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
-        'disconnect':
-            [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
         'add_command':
             [[PyTango.DevString, "A string containing a dictionary for fields required for command creation."],
             [PyTango.DevBoolean, "True if command creation was successful, false if not."]],
+        'connect':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVoid, "none"]],
         'create_scalar_attribute':
             [[PyTango.DevString, "New attribute name."],
             [PyTango.DevVoid, "none"]],
         'create_vector_attribute':
             [[PyTango.DevString, "New attribute name."],
+            [PyTango.DevVoid, "none"]],
+        'disconnect':
+            [[PyTango.DevVoid, "none"],
             [PyTango.DevVoid, "none"]],
         'flush_attributes':
             [[PyTango.DevVoid, "none"],
@@ -937,6 +945,9 @@ class TPM_DSClass(PyTango.DeviceClass):
         'load_firmware_blocking':
             [[PyTango.DevString, "File path."],
             [PyTango.DevVoid, "none"]],
+        'load_plugin':
+            [[PyTango.DevString, "Name of plugin. Case sensitive."],
+            [PyTango.DevVoid, "none"]],
         'read_address':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevVarULongArray, "Register values."]],
@@ -949,6 +960,12 @@ class TPM_DSClass(PyTango.DeviceClass):
         'remove_command':
             [[PyTango.DevString, "Command name."],
             [PyTango.DevBoolean, "True if command removal was successful, false otherwise."]],
+        'run_plugin_command':
+            [[PyTango.DevString, "Dictionary with name of command to run, and arguments."],
+            [PyTango.DevString, "Any output from the command."]],
+        'set_attribute_levels':
+            [[PyTango.DevString, "A pickled string storing a dictionary with the required alarm levels, and name of attribute."],
+            [PyTango.DevVoid, "none"]],
         'set_board_state':
             [[PyTango.DevLong, "Board status value."],
             [PyTango.DevVoid, "none"]],
@@ -961,12 +978,6 @@ class TPM_DSClass(PyTango.DeviceClass):
         'write_register':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevBoolean, "True if successful, false if not."]],
-        'run_plugin_command':
-            [[PyTango.DevString, "Dictionary with name of command to run, and arguments."],
-            [PyTango.DevString, "Any output from the command."]],
-        'load_plugin':
-            [[PyTango.DevString, "Name of plugin. Case sensitive."],
-            [PyTango.DevVoid, "none"]],
         }
 
 

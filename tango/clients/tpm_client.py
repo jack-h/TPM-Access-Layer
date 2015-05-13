@@ -43,6 +43,22 @@ arguments['fnName'] = 'read_date_code'
 arguments['fnInput'] = pickle.dumps({})
 args = pickle.dumps(arguments)
 tpm_instance.command_inout("run_plugin_command", args)
+
+
+# Try change attribute alarms
+arguments = {}
+arguments['name'] = 'port'
+arguments['min_value'] = '1'
+arguments['max_value'] = '50000'
+arguments['min_alarm'] = '10'
+arguments['max_alarm'] = '30000'
+args = pickle.dumps(arguments)
+tpm_instance.command_inout("set_attribute_levels", args)
+
+
+# Start polling port
+tpm_instance.poll_attribute('port', 2000)
+#tpm_instance.poll_attribute('port', 0) #to stop polling
 print '============================================'
 
 # tpm_instance.command_inout("getDeviceList")
