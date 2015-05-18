@@ -44,7 +44,6 @@ arguments['fnInput'] = pickle.dumps({})
 args = pickle.dumps(arguments)
 tpm_instance.command_inout("run_plugin_command", args)
 
-
 # Try change attribute alarms
 arguments = {}
 arguments['name'] = 'port'
@@ -55,10 +54,36 @@ arguments['max_alarm'] = '30000'
 args = pickle.dumps(arguments)
 tpm_instance.command_inout("set_attribute_levels", args)
 
-
 # Start polling port
 tpm_instance.poll_attribute('port', 2000)
-#tpm_instance.poll_attribute('port', 0) #to stop polling
+tpm_instance.poll_attribute('port', 0) #to stop polling
+
+# Read from register
+arguments={}
+arguments['device'] = 2
+arguments['register'] = 'fpga1.regfile.block2048b'
+arguments['words'] = 512
+arguments['offset'] = 0
+args = pickle.dumps(arguments)
+print tpm_instance.read_register(args)
+
+# Write to vector register
+arguments = {}
+arguments['device'] = 2
+arguments['register'] = 'fpga1.regfile.block2048b'
+arguments['values'] = [100,1,2,3]
+arguments['offset'] = 512-4
+args = pickle.dumps(arguments)
+tpm_instance.write_register(args)
+
+# Read from register
+arguments={}
+arguments['device'] = 2
+arguments['register'] = 'fpga1.regfile.block2048b'
+arguments['words'] = 4
+arguments['offset'] = 512-4
+args = pickle.dumps(arguments)
+print tpm_instance.read_register(args)
 print '============================================'
 
 # tpm_instance.command_inout("getDeviceList")

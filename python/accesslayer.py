@@ -294,7 +294,7 @@ class FPGABoard(object):
             raise LibraryError("Device argument for readRegister should be of type Device")
 
         # Call function
-        values = call_read_register(self.id, device, register, n, offset)
+        values = call_read_register(self.id, device, self._remove_device(register), n, offset)
 
         # Check if value succeeded, otherwise return
         if values.error == Error.Failure.value:
@@ -327,7 +327,7 @@ class FPGABoard(object):
            raise LibraryError("Device argument for writeRegister should be of type Device")
 
         # Call function and return
-        err = call_write_register(self.id, device, register, values, offset)
+        err = call_write_register(self.id, device, self._remove_device(register), values, offset)
         if err == Error.Failure:
             raise BoardError("Failed to writeRegister %s on board" % register)
 
@@ -526,6 +526,22 @@ class FPGABoard(object):
                 return None
         except:
             return None
+            
+    @staticmethod
+    def _remove_device(name):
+        """ Extract device name from register
+            :param name: Register name
+            :return: Register name without device
+        """
+
+        try:
+            device = name.split('.')[0].upper()
+            if device in ["BOARD", "FPGA1", "FPGA2"]:
+                return '.'.join(name.split('.')[1:])
+            else:
+                return name
+        except Exception:
+            return name
 
 # ================================== TPM Board ======================================
 class TPM(FPGABoard):

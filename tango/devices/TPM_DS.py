@@ -56,6 +56,7 @@ from accesslayer import *
 from definitions import *
 from types import *
 import pickle
+import inspect
 #----- PROTECTED REGION END -----#	//	TPM_DS.additionnal_import
 
 ## Device States Description
@@ -72,27 +73,29 @@ class TPM_DS (PyTango.Device_4Impl):
 
     # State flow definitions - allowed states for each command
     state_list = {
-        'load_firmware_blocking': all_states_list,
-        'get_register_list': all_states_list,
-        'get_device_list': all_states_list,
+        'add_command': all_states_list,
         'connect': all_states_list,
-        'disconnect': all_states_list,
-        'get_firmware_list': all_states_list,
-        'get_register_info': all_states_list,
         'create_scalar_attribute': all_states_list,
         'create_vector_attribute': all_states_list,
-        'read_register': all_states_list,
-        'write_register': all_states_list,
-        'generate_attributes': all_states_list,
+        'disconnect': all_states_list,
         'flush_attributes': all_states_list,
+        'generate_attributes': all_states_list,
+        'get_device_list': all_states_list,
+        'get_firmware_list': all_states_list,
+        'get_register_info': all_states_list,
+        'get_register_list': all_states_list,
+        'load_firmware_blocking': all_states_list,
+        'load_plugin': all_states_list,
         'read_address': all_states_list,
-        'write_address': all_states_list,
         'read_device': all_states_list,
-        'write_device': all_states_list,
-        'set_board_state': all_states_list,
-        'add_command': all_states_list,
+        'read_register': all_states_list,
         'remove_command': all_states_list,
-        'load_plugin': all_states_list
+        'run_plugin_command': all_states_list,
+        'set_attribute_levels': all_states_list,
+        'set_board_state': all_states_list,
+        'write_address': all_states_list,
+        'write_device': all_states_list,
+        'write_register': all_states_list
     }
 
     def call_plugin_command(self, argin = None):
@@ -141,12 +144,19 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: True if allowed, false if not.
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In check_state_flow()")
+        argout = False
         # get allowed states for this command
-        fnAllowedStates = self.state_list[fnName]
-        allowed = self.attr_board_state_read in fnAllowedStates
-        if not allowed:
-            self.info_stream("Current state allowed: %s" % allowed)
-        return allowed
+        try:
+            fnAllowedStates = self.state_list[fnName]
+            allowed = self.attr_board_state_read in fnAllowedStates
+            if not allowed:
+                self.info_stream("Current state allowed: %s" % allowed)
+            argout = allowed
+        except DevFailed as df:
+            self.info_stream("Failed to check state flow: %s" % df)
+            argout = False
+        finally:
+            return argout
 
     def get_device(self, name):
         """ Extract device name from provided register name, if present """
@@ -336,7 +346,6 @@ class TPM_DS (PyTango.Device_4Impl):
         
         #----- PROTECTED REGION END -----#	//	TPM_DS.read_attr_hardware
 
-
     #-----------------------------------------------------------------------------
     #    TPM_DS command methods
     #-----------------------------------------------------------------------------
@@ -351,7 +360,8 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In add_command()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.add_command) ENABLED START -----#
-        state_ok = self.check_state_flow(self.add_command.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        #state_ok = self.check_state_flow(self.add_command.__name__)
         if state_ok:
             #  Protect the script from exceptions raised by Tango
             try:
@@ -384,7 +394,10 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In connect()")
         #----- PROTECTED REGION ID(TPM_DS.connect) ENABLED START -----#
-        state_ok = self.check_state_flow(self.connect.__name__)
+        #info = inspect.stack()
+        #self.info_stream(info[0][3])
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        #state_ok = self.check_state_flow(self.connect.__name__)
         if state_ok:
             try:
                 self.tpm_instance.connect(self.attr_ip_address_read, self.attr_port_read)
@@ -403,7 +416,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In create_scalar_attribute()")
         #----- PROTECTED REGION ID(TPM_DS.create_scalar_attribute) ENABLED START -----#
-        state_ok = self.check_state_flow(self.create_scalar_attribute.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             attr = Attr(argin, PyTango.DevULong)
             self.add_attribute(attr, self.read_general_scalar, self.write_general_scalar)
@@ -420,11 +433,11 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In create_vector_attribute()")
         #----- PROTECTED REGION ID(TPM_DS.create_vector_attribute) ENABLED START -----#
-        arguments = pickle.loads(argin)
-        name = arguments['name']
-        length = arguments['length']
-        state_ok = self.check_state_flow(self.create_vector_attribute.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            arguments = pickle.loads(argin)
+            name = arguments['name']
+            length = arguments['length']
             attr = SpectrumAttr(name, PyTango.DevULong, PyTango.READ_WRITE, length)
             self.add_attribute(attr, self.read_general_vector, self.write_general_vector)
         else:
@@ -440,7 +453,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In disconnect()")
         #----- PROTECTED REGION ID(TPM_DS.disconnect) ENABLED START -----#
-        state_ok = self.check_state_flow(self.disconnect.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.tpm_instance.disconnect()
         else:
@@ -456,13 +469,15 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In flush_attributes()")
         #----- PROTECTED REGION ID(TPM_DS.flush_attributes) ENABLED START -----#
-        state_ok = self.check_state_flow(self.flush_attributes.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             if self.attr_is_programmed_read:
                 register_dict = self.tpm_instance.get_register_list()
                 if not register_dict: #if dict is empty
                     for reg_name, entries in register_dict.iteritems():
                         self.remove_attribute(reg_name)
+            else:
+                self.info_stream("Device not programmed. No attributes removed.")
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.flush_attributes
@@ -476,17 +491,21 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In generate_attributes()")
         #----- PROTECTED REGION ID(TPM_DS.generate_attributes) ENABLED START -----#
-        state_ok = self.check_state_flow(self.generate_attributes.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             register_dict = self.tpm_instance.get_register_list()
-            for reg_name, entries in register_dict.iteritems():
-                size = entries.get('size')
-                #print reg_name, size
-                if size > 1:
-                    args = {'name': reg_name, 'length': size}
-                    self.create_vector_attribute(pickle.dumps(args))
-                else:
-                    self.create_scalar_attribute(reg_name)
+            try:
+                for reg_name, entries in register_dict.iteritems():
+                    size = entries.get('size')
+                    #print reg_name, size
+                    if size > 1:
+                        args = {'name': reg_name, 'length': size}
+                        self.create_vector_attribute(pickle.dumps(args))
+                        self.info_stream("Name: %s - Size: %s" % (reg_name, size))
+                    else:
+                        self.create_scalar_attribute(reg_name)
+            except DevFailed as df:
+                self.debug_stream("Firmware attribute generation failed for: %s - Error: %s" % (reg_name, df))
             else:
                 self.debug_stream("Invalid state")
 
@@ -518,10 +537,14 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In get_device_list()")
         argout = ''
         #----- PROTECTED REGION ID(TPM_DS.get_device_list) ENABLED START -----#
-        state_ok = self.check_state_flow(self.get_device_list.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            devlist = self.tpm_instance.get_device_list()
-            argout = pickle.dumps(devlist)
+            try:
+                devlist = self.tpm_instance.get_device_list()
+                argout = pickle.dumps(devlist)
+            except DevFailed as df:
+                self.debug_stream("Failed to get device list: %s" % df)
+                argout = ''
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.get_device_list
@@ -537,12 +560,16 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In get_firmware_list()")
         argout = ''
         #----- PROTECTED REGION ID(TPM_DS.get_firmware_list) ENABLED START -----#
-        state_ok = self.check_state_flow(self.get_firmware_list.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            arguments = pickle.loads(argin)
-            device = arguments['device']
-            firmware_list = self.tpm_instance.get_firmware_list(Device(device))
-            argout = pickle.dumps(firmware_list)
+            try:
+                arguments = pickle.loads(argin)
+                device = arguments['device']
+                firmware_list = self.tpm_instance.get_firmware_list(Device(device))
+                argout = pickle.dumps(firmware_list)
+            except DevFailed as df:
+                self.debug_stream("Failed to get firmware list: %s" % df)
+                argout = ''
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.get_firmware_list
@@ -558,11 +585,15 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In get_register_info()")
         argout = ''
         #----- PROTECTED REGION ID(TPM_DS.get_register_info) ENABLED START -----#
-        state_ok = self.check_state_flow(self.get_register_info.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            reglist = self.tpm_instance.get_register_list()
-            value = reglist.get(argin)
-            argout = pickle.dumps(value)
+            try:
+                reglist = self.tpm_instance.get_register_list()
+                value = reglist.get(argin)
+                argout = pickle.dumps(value)
+            except DevFailed as df:
+                self.debug_stream("Failed to get register info: %s" % df)
+                argout = ''
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_info
@@ -578,10 +609,14 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In get_register_list()")
         argout = ['']
         #----- PROTECTED REGION ID(TPM_DS.get_register_list) ENABLED START -----#
-        state_ok = self.check_state_flow(self.get_register_list.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            register_dict = self.tpm_instance.get_register_list()
-            argout = register_dict.keys()
+            try:
+                register_dict = self.tpm_instance.get_register_list()
+                argout = register_dict.keys()
+            except DevFailed as df:
+                self.debug_stream("Failed to get register list: %s" % df)
+                argout = ''
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_list
@@ -596,15 +631,20 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In load_firmware_blocking()")
         #----- PROTECTED REGION ID(TPM_DS.load_firmware_blocking) ENABLED START -----#
-        state_ok = self.check_state_flow(self.load_firmware_blocking.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
             device = arguments['device']
             filepath = arguments['path']
             self.flush_attributes()
-            self.tpm_instance.load_firmware_blocking(Device(device), filepath)
-            self.generate_attributes()
-            self.attr_is_programmed_read = True
+            try:
+                self.tpm_instance.load_firmware_blocking(Device(device), filepath)
+                self.generate_attributes()
+                self.attr_is_programmed_read = True
+            except DevFailed as df:
+                self.debug_stream("Failed to load firmware: %s" % df)
+                self.attr_is_programmed_read = False
+                self.flush_attributes()
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.load_firmware_blocking
@@ -618,7 +658,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In load_plugin()")
         #----- PROTECTED REGION ID(TPM_DS.load_plugin) ENABLED START -----#
-        state_ok = self.check_state_flow(self.load_plugin.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             plugin_list = self.tpm_instance.get_available_plugins()
             if argin in plugin_list:
@@ -636,7 +676,11 @@ class TPM_DS (PyTango.Device_4Impl):
                         result = self.add_command(args)
                         if result == True:
                             self.info_stream("Command [%s].[%s] created successfully in device server." % (argin, command))
-                            self.__dict__[command] = lambda input: self.call_plugin_command(input)
+                            try:
+                                self.__dict__[command] = lambda input: self.call_plugin_command(input)
+                            except DevFailed as df:
+                                self.debug_stream("Failed to create lambda expression: %s" % df)
+                                self.info_stream("Command [%s].[%s] not created" % command)
                         else:
                             self.info_stream("Command [%s].[%s] not created" % command)
                 except DevFailed as df:
@@ -655,12 +699,16 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In read_address()")
         argout = [0]
         #----- PROTECTED REGION ID(TPM_DS.read_address) ENABLED START -----#
-        state_ok = self.check_state_flow(self.read_address.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
             address = arguments['address']
             words = arguments['words']
-            argout = self.tpm_instance.read_address(address, words)
+            try:
+                argout = self.tpm_instance.read_address(address, words)
+            except DevFailed as df:
+                self.debug_stream("Failed to read address: %s" % df)
+                argout = ''
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.read_address
@@ -679,12 +727,16 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In read_device()")
         argout = 0
         #----- PROTECTED REGION ID(TPM_DS.read_device) ENABLED START -----#
-        state_ok = self.check_state_flow(self.read_device.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
             device = arguments['device']
             address = arguments['address']
-            argout = self.tpm_instance.read_device(device, address)
+            try:
+                argout = self.tpm_instance.read_device(device, address)
+            except DevFailed as df:
+                self.debug_stream("Failed to read device: %s" % df)
+                argout = 0
         else:
            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.read_device
@@ -700,14 +752,24 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In read_register()")
         argout = [0]
         #----- PROTECTED REGION ID(TPM_DS.read_register) ENABLED START -----#
-        state_ok = self.check_state_flow(self.read_register.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
             device = arguments['device']
             register = arguments['register']
             words = arguments['words']
             offset = arguments['offset']
-            argout = self.tpm_instance.read_register(Device(device), register, words, offset)
+
+            reg_info = pickle.loads(self.get_register_info(register))
+            length_register = reg_info['size']
+            if words+offset <= length_register:
+                try:
+                    argout = self.tpm_instance.read_register(Device(device), register, words, offset)
+                except DevFailed as df:
+                    self.debug_stream("Failed to read register: %s" % df)
+                    argout = [0]
+            else:
+                self.info_stream("Register size limit exceeded, no values read.")
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.read_register
@@ -723,7 +785,7 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In remove_command()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.remove_command) ENABLED START -----#
-        state_ok = self.check_state_flow(self.remove_command.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
                 del self.plugin_cmd_list[argin]
@@ -749,20 +811,27 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In run_plugin_command()")
         argout = ''
         #----- PROTECTED REGION ID(TPM_DS.run_plugin_command) ENABLED START -----#
-        arguments = pickle.loads(argin)
-        fnName = arguments['fnName']
-        self.info_stream("Running: %s" % fnName)
-        fnInput = arguments['fnInput']
-        self.info_stream("Input: %s" % fnInput)
-        #self.info_stream("Cmd_list: %s" % self.plugin_cmd_list)
-        if fnName in self.plugin_cmd_list:
-            self.info_stream("Plugin command found!")
-            methodCalled = getattr(self, fnName)
-            self.info_stream("%s" % methodCalled)
-            argout = methodCalled(argin)
-            argout = pickle.dumps(argout)
-            # if not isinstance(argout, str):
-            #     argout = pickle.dumps(argout)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            fnName = arguments['fnName']
+            self.info_stream("Running: %s" % fnName)
+            fnInput = arguments['fnInput']
+            self.info_stream("Input: %s" % fnInput)
+            #self.info_stream("Cmd_list: %s" % self.plugin_cmd_list)
+            if fnName in self.plugin_cmd_list:
+                methodCalled = getattr(self, fnName)
+                self.info_stream("Calling method: %s" % methodCalled)
+                try:
+                    argout = methodCalled(argin)
+                    argout = pickle.dumps(argout)
+                except DevFailed as df:
+                    self.debug_stream("Failed to run plugin command: %s" % df)
+                    argout = ''
+                finally:
+                    return argout
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.run_plugin_command
         return argout
         
@@ -779,22 +848,29 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In set_attribute_levels()")
         #----- PROTECTED REGION ID(TPM_DS.set_attribute_levels) ENABLED START -----#
-        arguments = pickle.loads(argin)
-        attr_name = arguments.get('name')
-        min_value = arguments.get('min_value')
-        max_value = arguments.get('max_value')
-        min_alarm = arguments.get('min_alarm')
-        max_alarm = arguments.get('max_alarm')
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            attr_name = arguments.get('name')
+            min_value = arguments.get('min_value')
+            max_value = arguments.get('max_value')
+            min_alarm = arguments.get('min_alarm')
+            max_alarm = arguments.get('max_alarm')
 
-        #multi_prop = PyTango.MultiAttrProp()
-        multi_attr = self.get_device_attr()
-        attribute = multi_attr.get_attr_by_name(attr_name)
-        multi_prop = attribute.get_properties()
-        multi_prop.min_value = min_value
-        multi_prop.max_value = max_value
-        multi_prop.min_alarm = min_alarm
-        multi_prop.max_alarm = max_alarm
-        attribute.set_properties(multi_prop)
+            #multi_prop = PyTango.MultiAttrProp()
+            multi_attr = self.get_device_attr()
+            attribute = multi_attr.get_attr_by_name(attr_name)
+            multi_prop = attribute.get_properties()
+            multi_prop.min_value = min_value
+            multi_prop.max_value = max_value
+            multi_prop.min_alarm = min_alarm
+            multi_prop.max_alarm = max_alarm
+            try:
+                attribute.set_properties(multi_prop)
+            except DevFailed as df:
+                self.debug_stream("Failed to set attribute levels: %s" % df)
+        else:
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.set_attribute_levels
         
     def set_board_state(self, argin):
@@ -817,7 +893,10 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In set_board_state()")
         #----- PROTECTED REGION ID(TPM_DS.set_board_state) ENABLED START -----#
-        self.attr_board_state_read = argin
+        if argin in self.all_states_list:
+            self.attr_board_state_read = argin
+        else:
+            self.info_stream("Wrong state given. Expected one of: %s" % self.all_states_list)
 
     # def write_address(self, argin):
     #     """ Writes values to a register location. The actual physical address has to be provided.
@@ -849,12 +928,16 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In write_address()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.write_address) ENABLED START -----#
-        state_ok = self.check_state_flow(self.write_address.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
             address = arguments['address']
             values = arguments['values']
-            argout = self.tpm_instance.write_address(address, values)
+            try:
+                argout = self.tpm_instance.write_address(address, values)
+            except DevFailed as df:
+                self.debug_stream("Failed to write address: %s" % df)
+                argout = False
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.write_address
@@ -874,13 +957,17 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In write_device()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.write_device) ENABLED START -----#
-        state_ok = self.check_state_flow(self.writeDevice.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
             device = arguments['device']
             address = arguments['address']
             value = arguments['value']
-            argout = self.tpm_instance.write_device(device, address, value)
+            try:
+                argout = self.tpm_instance.write_device(device, address, value)
+            except DevFailed as df:
+                self.debug_stream("Failed to write device: %s" % df)
+                argout = False
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.write_device
@@ -896,14 +983,25 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In write_register()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.write_register) ENABLED START -----#
-        state_ok = self.check_state_flow(self.write_register.__name__)
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
             device = arguments['device']
             register = arguments['register']
             values = arguments['values']
             offset = arguments['offset']
-            argout = self.tpm_instance.write_register(Device(device), register, values, offset)
+
+            reg_info = pickle.loads(self.get_register_info(register))
+            length_register = reg_info['size']
+            length_values = len(values)
+            if length_values+offset <= length_register:
+                try:
+                    argout = self.tpm_instance.write_register(Device(device), register, values, offset)
+                except DevFailed as df:
+                    self.debug_stream("Failed to write register: %s" % df)
+                    argout = False
+            else:
+                self.info_stream("Register size limit exceeded, no changes committed.")
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.write_register
