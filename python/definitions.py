@@ -46,6 +46,8 @@ class Status(Enum):
     BoardError = -3
     NotConnected = -4
     NetworkError = -5
+    FirmwareError = -6
+    LoadingFirmwareError = -7
 
 class RegisterType(Enum):
     """ RegisterType enumeration """

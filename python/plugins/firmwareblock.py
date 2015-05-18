@@ -37,13 +37,6 @@ class FirmwareBlock(object):
         pass
 
     @abstractmethod
-    def test(self):
-        """ Test firmware block
-        :return: Success or Failure
-        """
-        pass
-
-    @abstractmethod
     def clean_up(self):
         """ Abstract method where all cleaning up should be performed when unload firmware
         :return: True or Flase, depending on whether call was successful
