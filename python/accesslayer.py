@@ -327,12 +327,9 @@ class FPGABoard(object):
             raise LibraryError("Device argument for read_register should be of type Device")
 
         # Call function
-<<<<<<< HEAD
         values = call_read_register(self.id, device, self._remove_device(register), n, offset)
-=======
         values = call_read_register(self.id, device, register, n, offset)
         self._logger.debug(self.log("Called read_register"))
->>>>>>> 40b6bd698d5ef10a0dad5e357d8f20b3fd2d110b
 
         # Check if value succeeded, otherwise return
         if values.error == Error.Failure.value:
@@ -365,12 +362,9 @@ class FPGABoard(object):
            raise LibraryError("Device argument for write_register should be of type Device")
 
         # Call function and return
-<<<<<<< HEAD
         err = call_write_register(self.id, device, self._remove_device(register), values, offset)
-=======
         err = call_write_register(self.id, device, register, values, offset)
         self._logger.debug(self.log("Called write_register"))
->>>>>>> 40b6bd698d5ef10a0dad5e357d8f20b3fd2d110b
         if err == Error.Failure:
             raise BoardError("Failed to write_register %s on board" % register)
 
