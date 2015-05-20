@@ -255,7 +255,7 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
     bool processed = false;
     while (!processed)
     {
-        // Four bytes per word + buffer
+        // Four bytes per word * 2 for escape characters + buffer
         char *buffer = readReply(n * 4 * 2 + 15); 
         string reply = string(buffer); 
         istringstream inputStream;
@@ -311,7 +311,7 @@ VALUES KATCP::readRegister(UINT address, UINT n, UINT offset)
                 processInforms(line);
         }
 
-        free(buffer);
+		 free(buffer);
     }
 
     // Create VALUES result

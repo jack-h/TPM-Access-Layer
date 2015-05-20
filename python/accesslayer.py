@@ -206,6 +206,18 @@ class FPGABoard(object):
         :param port: Port to connect to
         """
 
+        # Check if IP is valid, and if a hostname is provided, check whether it
+        # exists and get IP address
+        import socket
+        try:
+            socket.inet_aton(ip)
+        except socket.error:
+            try:
+                ip = socket.gethostbyname(ip)
+            except socket.gaierror:
+                raise BoardError("Provided IP address (%s) is invalid or does not exist")
+
+        # Connect to board
         board_id = call_connect_board(self._fpga_board.value, ip, port)
         if board_id == 0:
             self.status = Status.NetworkError
@@ -328,7 +340,6 @@ class FPGABoard(object):
 
         # Call function
         values = call_read_register(self.id, device, self._remove_device(register), n, offset)
-        values = call_read_register(self.id, device, register, n, offset)
         self._logger.debug(self.log("Called read_register"))
 
         # Check if value succeeded, otherwise return
@@ -433,7 +444,10 @@ class FPGABoard(object):
 
     def list_register_names(self):
         """ Print list of register names """
-        
+
+        if not self._programmed:
+            return
+
         # Run checks
         if not self._checks():
             return
@@ -663,7 +677,10 @@ class TPM(FPGABoard):
 
     def __str__(self):
         """ Override __str__ to print register information in a human readable format """
-        
+
+        if not self._programmed:
+            return ""
+
         # Run checks
         if not self._checks():
             return
@@ -704,6 +721,21 @@ class Roach(FPGABoard):
         """ Class constructor """
         kwargs['fpgaBoard'] = BoardMake.RoachBoard
         super(Roach, self).__init__(**kwargs)
+
+    def connect(self, ip, port):
+        """ Add functionality to connect in order to check whether the
+            roach is already programmed
+        :param ip: ROACH IP
+        :param port: port
+        """
+
+        # Connect to board
+        super(Roach, self).connect(ip, port)
+
+        # Check if ROACH is programmed (has any registers loaded)
+        self._programmed = True
+        if len(self.get_register_list()) == 0:
+            self._programmed = False
 
     def get_register_list(self):
         """ Add functionality to getRegisterList in order to map register names 
