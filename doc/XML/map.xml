@@ -42,7 +42,7 @@
             <node id="ada_a_ada4961"                     mask="0x00000008" permission="rw" rst="0"           description=""/>
             <node id="ada_fa_ada4961"                    mask="0x00000008" permission="rw" rst="0"           description=""/></node>
       </node>
-      <node id="spi" address="0x20000000" description="SPI interface" byte_size="256">
+      <node id="spi" address="0x20000000" description="SPI interface" byte_size="256" module="devices.xml">
          <node id="address"               address="0x0"  mask="0x0000FFFF" permission="rw"  rst="0"          description=""/>
          <node id="write_data"            address="0x4"  mask="0x0000FFFF" permission="rw"  rst="0"          description=""/>
          <node id="read_data"             address="0x8"  mask="0x0000FFFF" permission="rw"  rst="0"          description=""/>

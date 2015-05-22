@@ -54,7 +54,12 @@ class FPGABoard(object):
         initialise_library(filepath)
 
         # Initialise logging (use default logger which can be set externally)
-        self._logger = logging.getLogger()
+        self._logger = logging.getLogger('dummy')
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.WARNING)
+        formatter = logging.Formatter('%(levelname)s\t%(asctime)s\t %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        ch.setFormatter(formatter)
+        self._logger.addHandler(ch)
 
         # Check if ip and port are defined in arguments
         ip   = kwargs.get('ip', None)
@@ -134,11 +139,18 @@ class FPGABoard(object):
 
         # Check if plugin is compatible with board make
         constr = eval(plugin).__init__.__dict__
-        if '_compatible_boards' in constr:
+        if "_compatible_boards" in constr:
             if self._fpga_board not in constr['_compatible_boards']:
                 raise LibraryError("Plugin %s is not compatible with %s" % (plugin, self._fpga_board))
         else:
             self._logger.warn(self.log("Plugin %s does not specify board compatability" % plugin))
+
+        # Check if friendly name was defined for this plugin
+        friendly_name = plugin
+        if "_friendly_name" not in constr:
+            self._logger.warn(self.log("Plugin %s does not specify a friendly name" % plugin))
+        else:
+            friendly_name = constr['_friendly_name']
 
         # Get list of class methods and remove those availale in superclass
         methods = [name for name, mtype in
@@ -148,22 +160,22 @@ class FPGABoard(object):
 
         # Create plugin instances
         instance = globals()[plugin](self)
-        self.__dict__[plugin] = instance
+        self.__dict__[friendly_name] = instance
 
         # Plugin loaded, add to list
-        self._loaded_plugins[plugin] = []
+        self._loaded_plugins[friendly_name] = []
 
-        # Import plugins function into this class
+        # Import plugin function
         for method in methods:
             # Link class method to function pointer
-            self.__dict__[method] = getattr(instance, method)
+            # self.__dict__[method] = getattr(instance, method)
 
             # Add metadata to be able to distigiush class from plugin methods
-            self.__dict__[method].__dict__['_plugin_method'] = True
+            # self.__dict__[method].__dict__['_plugin_method'] = True
 
             # Bookeeping
-            self._logger.debug(self.log("Added method %s from plugin %s to board instance" % (method, plugin)))
-            self._loaded_plugins[plugin].append(method)
+            self._logger.debug(self.log("Detected method %s from plugin %s" % (method, plugin)))
+            self._loaded_plugins[friendly_name].append(method)
 
         self._logger.info(self.log("Added plugin %s to class instance" % plugin))
 

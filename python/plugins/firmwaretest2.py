@@ -1,18 +1,21 @@
 from firmwareblock import FirmwareBlock
+from firmwaretest import FirmwareTest
 from definitions import *
 import logging
 
-class FirmwareTest(FirmwareBlock):
+class FirmwareTest2(FirmwareBlock):
     """ FirmwareBlock test class """
 
     @compatibleboards(BoardMake.TpmBoard)
-    @friendlyname('firmware_test')
+  #  @friendlyname('firmware_test2')
     def __init__(self, board):
         """ FirmwareTest initialiser
         :param board: Pointer to board instance
         :return: Nothing
         """
-        super(FirmwareTest, self).__init__(board)
+        super(FirmwareTest2, self).__init__(board)
+
+        self._test = FirmwareTest(board)
 
     def initialise(self, **kwargs):
         """ Initialise FirmwareTest

@@ -179,4 +179,26 @@ def compatibleboards(*args):
 
     return decorator
 
+# ------------- Friendly Name Decorator ----------------
+def friendlyname(*args):
+    """ Add board compatability to funtion
+    :param args: Compatible boards
+    :return: Decorated class
+    """
+
+    def decorator(func):
+        # Add friendly name to class metadata
+        arg = args
+        if len(args) > 0:
+            arg = args[0]
+        if type(arg) is str:
+            func.__dict__['_friendly_name'] = args[0]
+        else:
+            raise PluginError("Invalid friendly name in pluging friendlyname decorator")
+
+        # All done, return
+        return func
+
+    return decorator
+
 

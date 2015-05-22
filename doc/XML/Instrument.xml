@@ -7,9 +7,13 @@
   <boards>
 
     <TPM id="tpm1" ip="127.0.0.1" port="10000" firmware="/home/lessju/map.xml" log="True">
+
       <init />
+
       <test />
+
       <plugins>
+
         <FirmwareTest param1="This" param2="is" param3="Sparta">
             <n_bits>4</n_bits>
             <binary_point>3</binary_point>
@@ -58,10 +62,21 @@
                 800 800 800 800 800 800 800 800 800 800 800 800 800 800 800 800
             </eq_coeff>
         </FirmwareTest>
+
       </plugins>
+
     </TPM>
 
     <TPM id="tpm2" ip="10.62.14.234" port="10000" firmware="/home/lessju/map.xml" log="True">
+      <init />
+      <test />
+      <plugins>
+        <FirmwareTest param1="Hello" param2="World" />
+      </plugins>
+    </TPM>
+
+
+    <TPM id="tpm3" ip="192.168.100.1" port="10000" firmware="/home/lessju/map.xml" log="True">
       <init />
       <test />
       <plugins>

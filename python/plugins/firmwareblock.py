@@ -19,7 +19,8 @@ class FirmwareBlock(object):
 
         # Plugins require access to board members to perform operations on the board
         # For this reason, the calling board instance has to be stored here
-        self._board  = board
+        # self._board  = board
+        self.board = board
 
     @abstractmethod
     def initialise(self, **kwargs):
@@ -41,57 +42,3 @@ class FirmwareBlock(object):
         """ Abstract method where all cleaning up should be performed when unload firmware
         :return: True or Flase, depending on whether call was successful
         """
-
-    # ------------------------ Access Layer function wrappers ----------------------------
-    def read_register(self, device, register, n = 1, offset = 0):
-        """ Read register on board
-        :param device: Device on board
-        :param register: Register name
-        :param n: Number of values to read
-        :param offset: Offset at which to read
-        :return: read data
-        """
-        return self._board.read_register(device, register, n, offset)
-
-    def write_register(self, device, register, values, offset = 0):
-        """ Write register on board
-        :param device: Device on board
-        :param register: Register name
-        :param values: Values to write
-        :param offset: Offset at which to write
-        :return: Success or Failure
-        """
-        return self._board.write_register(device, register, values, offset)
-
-    def read_address(self, address, n = 1):
-        """ Read address on board
-        :param address: Address
-        :param n: Number of wrods to read
-        :return: Values
-        """
-        self._board(address, n)
-
-    def write_address(self, address, values):
-        """ Write address on board
-        :param address: Address
-        :param values: Values to write
-        :return: Success or Failure
-        """
-        self._board(address, values)
-
-    def read_device(self, device, address):
-        """ Read from SPI device on board
-        :param device: SPI device
-        :param address: Address
-        :return: Values
-        """
-        self._board.read_device(device, address)
-
-    def write_device(self, device, address, value):
-        """ Write to SPI device on board
-        :param device: SPI device
-        :param address: Address
-        :param value: Value to write
-        :return: Success or Failure
-        """
-        self._board.write_device(device, address, value)

@@ -143,6 +143,9 @@ class Instrument(object):
             self.boards[k].initialise(v)
             self._logger.info("Initialised board %s, has internal id %d" % (k, self.boards[k].id))
 
+        # Check status
+        self.status_check()
+
         self._logger.info("Initialised intrument")
 
     def status_check(self):
