@@ -7,7 +7,7 @@ class FirmwareTest2(FirmwareBlock):
     """ FirmwareBlock test class """
 
     @compatibleboards(BoardMake.TpmBoard)
-  #  @friendlyname('firmware_test2')
+    @friendlyname('firmware_test2')
     def __init__(self, board):
         """ FirmwareTest initialiser
         :param board: Pointer to board instance

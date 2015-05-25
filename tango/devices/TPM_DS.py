@@ -124,10 +124,14 @@ class TPM_DS (PyTango.Device_4Impl):
                     #self.info_stream("Input to command: %s" % argin_dict)
                     if argin_dict:
                         #self.info_stream("Call with parameters")
-                        argout = getattr(self.tpm_instance, command_name)(arginput)
+                        command_trace = command_name.split('.')
+                        argout = getattr(getattr(self.tpm_instance, command_trace[0]), command_trace[1])(arginput)
+                        #argout = getattr(self.tpm_instance, command_name)(arginput)
                     else:
                         #self.info_stream("Call without parameters")
-                        argout = getattr(self.tpm_instance, command_name)()
+                        #argout = getattr(self.tpm_instance, command_name) ()
+                        command_trace = command_name.split('.')
+                        argout = getattr(getattr(self.tpm_instance, command_trace[0]), command_trace[1])()
                 except DevFailed as df:
                     self.info_stream("Failed to run plugin command: %s" % df)
                     argout = ''
@@ -641,6 +645,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 self.tpm_instance.load_firmware_blocking(Device(device), filepath)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
+                self.info_stream("Firmware loaded.")
             except DevFailed as df:
                 self.debug_stream("Failed to load firmware: %s" % df)
                 self.attr_is_programmed_read = False
@@ -661,30 +666,41 @@ class TPM_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             plugin_list = self.tpm_instance.get_available_plugins()
-            if argin in plugin_list:
+            class_names = [plugin[0] for plugin in plugin_list]
+            friendly_names = [plugin[1] for plugin in plugin_list]
+            #self.info_stream("Plugins: %s" % class_names)
+            if argin in class_names:
                 try:
-                    #self.tpm_instance.load_plugin('FirmwareTest')
-                    self.tpm_instance.load_plugin(argin)
+                    plugin_index = class_names.index(argin)
+                    plugin_friendly_name = friendly_names[plugin_index]
+                    plugin_class_name = class_names[plugin_index]
+                    self.tpm_instance.load_plugin(plugin_class_name)
                     plugins_dict = self.tpm_instance.get_loaded_plugins()
-                    for command in plugins_dict[argin]:
+                    #self.info_stream("Plugin dictionary: %s" % plugins_dict)
+                    self.info_stream("Plugin pre-loaded: %s at index: %s" % (plugin_friendly_name, plugin_index))
+                    for command in plugins_dict[plugin_friendly_name]:
+                        full_command_name = plugin_friendly_name+'.'+command
+                        self.info_stream("Adding commands: %s" % full_command_name)
                         arguments = {}
-                        arguments['commandName'] = command
+                        arguments['commandName'] = full_command_name
                         arguments['inDesc'] = ''
                         arguments['outDesc'] = ''
                         arguments['states'] = self.all_states_list
                         args = pickle.dumps(arguments)
                         result = self.add_command(args)
                         if result == True:
-                            self.info_stream("Command [%s].[%s] created successfully in device server." % (argin, command))
+                            self.info_stream("Command [%s].[%s] created successfully in device server." % (argin, full_command_name))
                             try:
-                                self.__dict__[command] = lambda input: self.call_plugin_command(input)
+                                self.__dict__[full_command_name] = lambda input: self.call_plugin_command(input)
                             except DevFailed as df:
                                 self.debug_stream("Failed to create lambda expression: %s" % df)
-                                self.info_stream("Command [%s].[%s] not created" % command)
+                                self.info_stream("Command [%s].[%s] not created" % full_command_name)
                         else:
-                            self.info_stream("Command [%s].[%s] not created" % command)
+                            self.info_stream("Command [%s].[%s] not created" % full_command_name)
                 except DevFailed as df:
                     self.debug_stream("Failed to load plugin: %s" % df)
+            else:
+                 self.info_stream("Plugin not found.")
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.load_plugin
@@ -817,7 +833,7 @@ class TPM_DS (PyTango.Device_4Impl):
             fnName = arguments['fnName']
             self.info_stream("Running: %s" % fnName)
             fnInput = arguments['fnInput']
-            self.info_stream("Input: %s" % fnInput)
+            #self.info_stream("Input: %s" % fnInput)
             #self.info_stream("Cmd_list: %s" % self.plugin_cmd_list)
             if fnName in self.plugin_cmd_list:
                 methodCalled = getattr(self, fnName)

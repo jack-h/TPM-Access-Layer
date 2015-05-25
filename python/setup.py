@@ -6,5 +6,6 @@ setup(name='TPM',
       description='Python wrapper for FPGA-board access layer',
       author='Alessio Magro',
       py_modules=['accesslayer', 'interface', 'definitions',
-                  'plugins.firmwareblock', 'plugins.firmwaretest'],
+                  'plugins.firmwareblock', 'plugins.firmwaretest',
+                  'plugins.firmwaretest2'],
      )

@@ -39,7 +39,7 @@ tpm_instance.command_inout("load_plugin", 'FirmwareTest')
 
 # Run plugin command
 arguments = {}
-arguments['fnName'] = 'read_date_code'
+arguments['fnName'] = 'firmware_test.read_date_code'
 arguments['fnInput'] = pickle.dumps({})
 args = pickle.dumps(arguments)
 tpm_instance.command_inout("run_plugin_command", args)

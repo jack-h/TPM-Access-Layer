@@ -30,7 +30,14 @@ class FPGABoard(object):
         self._string_id    = "Board"
 
         # List all available subclasses of FirmwareBlock (plugins)
-        self._available_plugins = [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]
+        self._available_plugins = []
+        for plugin in [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]:
+            constr = eval(plugin).__init__.__dict__
+            friendly_name = plugin
+            if "_friendly_name" in constr:
+                friendly_name = constr['_friendly_name']
+            self._available_plugins.append((plugin, friendly_name))
+            
         self._loaded_plugins = { }
 
         # Override to make this compatible with IPython
@@ -134,7 +141,7 @@ class FPGABoard(object):
         """
 
         # Check if module is available
-        if plugin not in self._available_plugins:
+        if plugin not in [a for a,b in self._available_plugins]:
             raise LibraryError("Module %s is not available" % plugin)
 
         # Check if plugin is compatible with board make
@@ -386,7 +393,6 @@ class FPGABoard(object):
 
         # Call function and return
         err = call_write_register(self.id, device, self._remove_device(register), values, offset)
-        err = call_write_register(self.id, device, register, values, offset)
         self._logger.debug(self.log("Called write_register"))
         if err == Error.Failure:
             raise BoardError("Failed to write_register %s on board" % register)
