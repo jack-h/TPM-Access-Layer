@@ -95,7 +95,8 @@ class TPM_DS (PyTango.Device_4Impl):
         'set_board_state': all_states_list,
         'write_address': all_states_list,
         'write_device': all_states_list,
-        'write_register': all_states_list
+        'write_register': all_states_list,
+        'sink_alarm_state': all_states_list
     }
 
     def call_plugin_command(self, argin = None):
@@ -327,7 +328,7 @@ class TPM_DS (PyTango.Device_4Impl):
         self.debug_stream("In read_port()")
         #----- PROTECTED REGION ID(TPM_DS.port_read) ENABLED START -----#
         attr.set_value(self.attr_port_read)
-        self.info_stream("Attribute: %s has quality: %s" %(attr.get_name(), attr.get_quality()))
+        #self.info_stream("Attribute: %s has quality: %s" %(attr.get_name(), attr.get_quality()))
         #----- PROTECTED REGION END -----#	//	TPM_DS.port_read
         
     def write_port(self, attr):
@@ -349,6 +350,7 @@ class TPM_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(TPM_DS.read_attr_hardware) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	TPM_DS.read_attr_hardware
+
 
     #-----------------------------------------------------------------------------
     #    TPM_DS command methods
@@ -1023,6 +1025,22 @@ class TPM_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION END -----#	//	TPM_DS.write_register
         return argout
         
+    def sink_alarm_state(self):
+        """ This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In sink_alarm_state()")
+        #----- PROTECTED REGION ID(TPM_DS.sink_alarm_state) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            self.set_state(DevState.ON)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	TPM_DS.sink_alarm_state
+        
 
 class TPM_DSClass(PyTango.DeviceClass):
     #--------- Add you global class variables here --------------------------
@@ -1130,6 +1148,9 @@ class TPM_DSClass(PyTango.DeviceClass):
         'write_register':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevBoolean, "True if successful, false if not."]],
+        'sink_alarm_state':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVoid, "none"]],
         }
 
 
