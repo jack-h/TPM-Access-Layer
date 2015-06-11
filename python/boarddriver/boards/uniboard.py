@@ -1,5 +1,5 @@
-from boards.fpgaboard import FPGABoard
-from base.definitions import *
+from boarddriver.boards.fpgaboard import FPGABoard
+from boarddriver.base.definitions import *
 
 class UniBoard(FPGABoard):
     """ FPGABoard subclass for communicating with a UniBoard """

@@ -1,21 +1,18 @@
-from plugins.firmwareblock import FirmwareBlock
-from plugins.firmwaretest import FirmwareTest
-from base.definitions import *
+from boarddriver.plugins.firmwareblock import FirmwareBlock
+from boarddriver.base.definitions import *
 
 
-class FirmwareTest2(FirmwareBlock):
+class FirmwareTest(FirmwareBlock):
     """ FirmwareBlock test class """
 
     @compatibleboards(BoardMake.TpmBoard)
-    @friendlyname('firmware_test2')
+    @friendlyname('firmware_test')
     def __init__(self, board):
         """ FirmwareTest initialiser
         :param board: Pointer to board instance
         :return: Nothing
         """
-        super(FirmwareTest2, self).__init__(board)
-
-        self._test = FirmwareTest(board)
+        super(FirmwareTest, self).__init__(board)
 
     def initialise(self, **kwargs):
         """ Initialise FirmwareTest

@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 
-from boards.fpgaboard import *
-from base.definitions import *
+from boarddriver.boards.fpgaboard import *
+from boarddriver.base.definitions import *
 
 
 # ----------------------- Config Handler --------------------

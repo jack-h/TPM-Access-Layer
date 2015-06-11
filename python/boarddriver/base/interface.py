@@ -1,4 +1,4 @@
-from base.definitions import *
+from boarddriver.base.definitions import *
 
 # ------------- Wrap library calls ---------------------------
 
