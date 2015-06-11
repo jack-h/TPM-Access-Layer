@@ -11,15 +11,15 @@
 
 #include "AccessLayer.hpp"
 #include "ROACH.hpp"
-#include "Board.hpp"
-#include "Utils.hpp"
 #include "TPM.hpp"
+
+#include "UniBoard.hpp"
 
 using namespace std;
 
 // The global boards map. Each board is identified via an IP address, which
-// is translated into a board ID. All operation on the board are perofmed 
-// through the same instance (similiar to the Singleton design pattern)make
+// is translated into a board ID. All operation on the board are performed
+// through the same instance (similar to the Singleton design pattern)
 map<unsigned int, Board *> boards;
 
 // Set up internal structures to be able to communicate with a processing board
@@ -61,12 +61,20 @@ ID  connectBoard(BOARD_MAKE boardMake, const char* IP, unsigned short port)
             break;
         }
         case ROACH2_BOARD:
+        {
+            board = new ROACH(IP, port);
             break;
+        };
         case UNIBOARD_BOARD:
+        {
+            board = new UniBoard(IP, port);
+            break;
+        };
+        case UNIBOARD2_BOARD:
             break;
     }
 
-    // Check if board connected succesfully
+    // Check if board connected successfully
     if (board -> getStatus() == NETWORK_ERROR)
         return 0;
 
@@ -77,7 +85,7 @@ ID  connectBoard(BOARD_MAKE boardMake, const char* IP, unsigned short port)
 }
 
 // Clear up internal network structures for board in question
-RETURN  disconnectBoard(ID id)
+RETURN disconnectBoard(ID id)
 {    
     // Check if board exists, and if not, return
     if (boards.size() == 0)
@@ -115,12 +123,25 @@ RETURN  resetBoard(ID id)
 
 // Get board status
 STATUS  getStatus(ID id)
-{    
-    return OK;
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end())
+    {
+        DEBUG_PRINT("AccessLayer::getStatus. " << id << " not connected");
+        return NOT_CONNECTED;
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Return register list
+    return board -> getStatus();
 }
 
 // Get list of registers
-REGISTER_INFO*  getRegisterList(ID id, UINT *num_registers)
+REGISTER_INFO* getRegisterList(ID id, UINT *num_registers)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;

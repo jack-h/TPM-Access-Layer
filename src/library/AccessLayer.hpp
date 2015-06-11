@@ -13,9 +13,6 @@
          change.
 */
 
-// _TODO: Define data tap mechanism
-//        Check whether bit-wise register access will be permitted, and how
-
 #include "Definitions.hpp"
 
 // Callback function definition for asynchronous updates
@@ -127,7 +124,7 @@ extern "C" RETURN writeAddress(ID id, UINT address, UINT *values, UINT n = 1);
 //   reg      Register to query
 //   period   Periodicity of checks in seconds
 //   low      Lowest acceptable register value
-//   high     Highst acceptable register value
+//   high     Highest acceptable register value
 //   callback Callback function to send periodic updates
 // Returns:
 //   RETURN
@@ -173,14 +170,14 @@ extern "C" RETURN writeDevice(ID id, REGISTER device, UINT address, UINT value);
 // ======================== FIRMWARE RELATED FUNCTIONS ========================
 
 // NOTE: Currently it is assumed that the memory map will be located in the same
-//       directory as the bitstream, with the same name (except the extention, which
+//       directory as the bitstream, with the same name (except the extension, which
 //       will be .XML. It is also assumed that the file will contain the mapping for
 //       the CPLD, FPGA1 and FPGA2, and that no additional module files are required
 
 // Get list of firmware preset on the board
 // Arguments:
 //    id            Board ID
-//    device        Sepcify to which DEVICE this applies
+//    device        Sepicfy to which DEVICE this applies
 //    num_firmware  Return number of firmware on board
 extern "C" FIRMWARE getFirmware(ID id, DEVICE device, UINT *num_firmware);
 

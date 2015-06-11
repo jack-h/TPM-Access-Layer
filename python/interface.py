@@ -19,7 +19,7 @@ def initialise_library(filepath = None):
 
     # Load access layer shared library
     if filepath is None:
-        _library = "libboard"
+        _library = "libaccesslayer"
     else:
         _library = filepath
 

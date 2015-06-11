@@ -13,8 +13,11 @@ Version 0.4
 - Added dynamic plugin loading in python wrapper
 - Added decorator to specify valid board states for plugin functions
 - Added decorator so specify board association for plugins
+- Added decorator to specify friendly board names for plugins
 - Started XML config schema and basic instrument script
+- Automatic initialisation and configuration of instruments
 - Updated and tested SPI functionality
+- Test KATCP client implementation for ROACH2
 - Tango driver: Refactored method names
 - Tango driver: set up custom state flow
 - Tango driver: added dynamic attributes

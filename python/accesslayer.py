@@ -30,13 +30,13 @@ class FPGABoard(object):
         self._string_id    = "Board"
 
         # List all available subclasses of FirmwareBlock (plugins)
-        self._available_plugins = []
+        self._available_plugins = {}
         for plugin in [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]:
             constr = eval(plugin).__init__.__dict__
             friendly_name = plugin
             if "_friendly_name" in constr:
                 friendly_name = constr['_friendly_name']
-            self._available_plugins.append((plugin, friendly_name))
+            self._available_plugins[plugin] = friendly_name
             
         self._loaded_plugins = { }
 
@@ -114,7 +114,7 @@ class FPGABoard(object):
                 for k, v in config['plugins'].iteritems():
                     # Load and initialise plugins
                     self.load_plugin(k)
-                    getattr(self, k).initialise(**v)
+                    getattr(self, self._available_plugins[k]).initialise(**v)
 
     def status_check(self):
         """ Perform board and firmware status checks
@@ -141,7 +141,7 @@ class FPGABoard(object):
         """
 
         # Check if module is available
-        if plugin not in [a for a,b in self._available_plugins]:
+        if plugin not in self._available_plugins.keys():
             raise LibraryError("Module %s is not available" % plugin)
 
         # Check if plugin is compatible with board make

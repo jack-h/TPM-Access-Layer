@@ -21,13 +21,16 @@ typedef uint32_t UINT;
 typedef char** FIRMWARE;
 
 // Device types
-typedef enum { BOARD = 1, FPGA_1 = 2, FPGA_2 = 4 } DEVICE;
+typedef enum { FPGA_1 = 0, FPGA_2 = 1, FPGA_3 = 2, FPGA_4 = 3,
+               FPGA_5 = 4, FPGA_6 = 5, FPGA_7 = 6, FPGA_8 = 7,
+               BOARD = 50 } DEVICE;
 
 // Implemented board types
-typedef enum { TPM_BOARD = 1, 
-               ROACH_BOARD = 2, 
-               ROACH2_BOARD = 3, 
-               UNIBOARD_BOARD = 4 } BOARD_MAKE;
+typedef enum { TPM_BOARD       = 1, 
+               ROACH_BOARD     = 2, 
+               ROACH2_BOARD    = 3, 
+               UNIBOARD_BOARD  = 4,
+               UNIBOARD2_BOARD = 5 } BOARD_MAKE;
 
 // Return type for most of the function calls, specifying whether the call
 // succeeded or failed
@@ -55,7 +58,7 @@ typedef enum {READ = 1, WRITE = 2, READWRITE = 3} PERMISSION;
 
 // Encapsulate a register or sensor value. This structure is require to avoid
 // assigning a particular value as the error value, or avoid using reference
-// varaibles in the parameter list. This structure can be extended if 
+// variables in the parameter list. This structure can be extended if
 // additional functionality is required
 typedef struct VALUES {
     UINT      *values;     // Sensor or register value

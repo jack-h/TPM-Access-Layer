@@ -10,6 +10,8 @@
 
 #include <string.h>
 
+class UCP;
+
 // Board derived class representing a Tile Processing Modules
 class TPM: public Board
 {

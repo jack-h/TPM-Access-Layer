@@ -1,22 +1,23 @@
-#ifndef ROACH_CLASS
-#define ROACH_CLASS
+#ifndef UNIBOARD_CLASS
+#define UNIBOARD_CLASS
 
 #include "Definitions.hpp"
-#include "KATCP.hpp"
+#include "MemoryMap.hpp"
 #include "Board.hpp"
 #include "Utils.hpp"
-#include "SPI.hpp"  
+#include "SPI.hpp"
+#include "UCP.hpp"
 
 #include <string.h>
 
-class KATCP;
+class UCP;
 
-// Board derived class representing a ROACH
-class ROACH: public Board
+// Board derived class representing a UniBoard
+class UniBoard: public Board
 {
     public:
-        // ROACH constructor
-        ROACH(const char *ip, unsigned short port);
+        // UniBoard constructor
+        UniBoard(const char *ip, unsigned short port);
 
     public:
         // Clear everything and remove connection
@@ -55,8 +56,13 @@ class ROACH: public Board
         RETURN          writeDevice(REGISTER device, UINT address, UINT value);
 
     protected:
+        // From Board base class, we will use the following variable as is:
+        // id, ip, port, num_fpgas, status, memory_map
 
-        KATCP   *katcp; 
+        // On the UniBoard, each node has it's own UCP implementation, and therefore
+        // we need to create at most 8 UCP connections for each UniBoard. The base class
+        // protocol variables is ignored, and instead an array of protocol instances is used
+        UCP *connections[8];
 };
 
-#endif // ROACH_CLASS
+#endif // UNIBOARD_CLASS

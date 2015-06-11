@@ -90,7 +90,7 @@ class UCP: public Protocol
             UINT data[MAX_PAYLOAD_SIZE];
         } __attribute__ ((__packed__));
 
-        // Declare and initiaslie packet once (hopefully for speed)
+        // Declare and initialise packet once (hopefully for speed)
         ucp_command_header *header;
         ucp_command_packet *packet;
         ucp_read_reply     *read_reply;

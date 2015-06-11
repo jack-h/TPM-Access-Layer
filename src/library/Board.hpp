@@ -70,7 +70,6 @@ class Board
         unsigned short  num_fpgas;  // Number of FPGAs on board
         STATUS          status; // Board status
 
-
         Protocol        *protocol;    // Protocol instance to communicate with board
         MemoryMap       *memory_map;  // Memory map instance
         SPI             *spi_devices; // SPI devices map

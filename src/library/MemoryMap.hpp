@@ -13,6 +13,7 @@ class MemoryMap
     // Make TPM a friend class so that it can access private methods 
     // within the memory map (to access RegisterInfo items)
     friend class TPM;
+    friend class UniBoard;
 
     public:
         // MemoryMap constructor accepting filepath

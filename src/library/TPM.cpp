@@ -2,10 +2,7 @@
 #include "TPM.hpp"
 #include "UCP.hpp"
 
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <stdio.h>
 
 // TPM constructor
 TPM::TPM(const char *ip, unsigned short port) : Board(ip, port)
@@ -60,7 +57,7 @@ REGISTER_INFO* TPM::getRegisterList(UINT *num_registers)
 // Get register value
 VALUES TPM::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
 {  
-    // Get register address from 
+    // Get register address from memory map
     MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(device, reg);
 
     // If register was not found, return error
@@ -91,10 +88,10 @@ VALUES TPM::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
     return vals;
 }
 
-// Get register value
+// Set register value
 RETURN TPM::writeRegister(DEVICE device, REGISTER reg, UINT *values, UINT n, UINT offset)
 {  
-    // Get register address from 
+    // Get register address from memory map
     MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(device, reg);
 
     // If register was not found, return error
@@ -241,7 +238,7 @@ RETURN TPM::writeDevice(REGISTER device, UINT address, UINT value)
     values[1] = (value & 0xFF) << 8;  // Value to write
     values[2] = 0;        // Skip
     values[3] = 1 << info.first;   // spi_en
-    values[4] = 1 << info.second;  // spi_sclk   
+    values[4] = 1 << info.second;  // spi_sclk
     values[5] = 0x01;     // Write operation    
      
     // Issue request
