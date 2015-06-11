@@ -1,11 +1,12 @@
 from distutils.core import setup
 
-# Setup information (basic setup)
-setup(name='TPM',
-      version='0.2',
-      description='Python wrapper for FPGA-board access layer',
-      author='Alessio Magro',
-      py_modules=['accesslayer', 'interface', 'definitions',
-                  'plugins.firmwareblock', 'plugins.firmwaretest',
-                  'plugins.firmwaretest2'],
-     )
+setup(
+    name='AccessLayer',
+    version='0.4',
+    packages=['base', 'boards', 'boards.plugins', 'boards.plugins.tpm'],
+    url='https://github.com/lessju/TPM-Access-Layer/tree/master/python',
+    license='',
+    author='Alessio Magro',
+    author_email='alessio.magro@um.edu.mt',
+    description=''
+)

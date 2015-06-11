@@ -1,5 +1,4 @@
-from definitions import *
-import ctypes
+from base.definitions import *
 
 # ------------- Wrap library calls ---------------------------
 

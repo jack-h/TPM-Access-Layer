@@ -1,6 +1,8 @@
-from accesslayer import *
-from definitions import *
 import xml.etree.ElementTree as ET
+
+from boards.fpgaboard import *
+from base.definitions import *
+
 
 # ----------------------- Config Handler --------------------
 class ConfigHandler(object):

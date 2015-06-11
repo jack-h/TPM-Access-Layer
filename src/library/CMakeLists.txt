@@ -30,4 +30,4 @@ set(SOURCE_FILES
 
 add_library(accesslayer SHARED ${SOURCE_FILES})
 
-install(TARGETS "accesslayer" DESTINATION /usr/local)
+install(TARGETS "accesslayer" DESTINATION /usr/local/lib)

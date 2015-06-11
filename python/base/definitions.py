@@ -1,6 +1,6 @@
-from enum import Enum
-import logging
 import ctypes
+
+from enum import Enum
 
 # --------------- Enumerations --------------------------
 class BoardState(Enum):
@@ -27,9 +27,15 @@ class Error(Enum):
 
 class Device(Enum):
     """ Device enumeration """
-    Board = 1
-    FPGA_1 = 2
-    FPGA_2 = 4
+    FPGA_1 = 1
+    FPGA_2 = 2
+    FPGA_3 = 4
+    FPGA_4 = 8
+    FPGA_5 = 16
+    FPGA_6 = 32
+    FPGA_7 = 64
+    FPGA_8 = 128
+    Board  = 65536
 
 class BoardMake(Enum):
     """ BoardMake enumeration """

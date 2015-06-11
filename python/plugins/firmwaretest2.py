@@ -1,7 +1,7 @@
-from firmwareblock import FirmwareBlock
-from firmwaretest import FirmwareTest
-from definitions import *
-import logging
+from plugins.firmwareblock import FirmwareBlock
+from plugins.firmwaretest import FirmwareTest
+from base.definitions import *
+
 
 class FirmwareTest2(FirmwareBlock):
     """ FirmwareBlock test class """

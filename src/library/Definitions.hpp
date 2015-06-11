@@ -21,9 +21,9 @@ typedef uint32_t UINT;
 typedef char** FIRMWARE;
 
 // Device types
-typedef enum { FPGA_1 = 0, FPGA_2 = 1, FPGA_3 = 2, FPGA_4 = 3,
-               FPGA_5 = 4, FPGA_6 = 5, FPGA_7 = 6, FPGA_8 = 7,
-               BOARD = 50 } DEVICE;
+typedef enum { FPGA_1 = 1, FPGA_2 = 2, FPGA_3 = 4, FPGA_4 = 8,
+               FPGA_5 = 16, FPGA_6 = 32, FPGA_7 = 64, FPGA_8 = 128,
+               BOARD = 65536 } DEVICE;
 
 // Implemented board types
 typedef enum { TPM_BOARD       = 1, 
