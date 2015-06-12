@@ -83,8 +83,6 @@ class TPM_DS (FPGA_DS):
         self.debug_stream("In init_device()")
         self.get_device_properties(self.get_device_class())
         #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
-        #self.set_state(DevState.ON)
-        #self.set_board_state(BoardState.Init.value)
         self.fpga_instance = TPM()
         #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
 
