@@ -52,7 +52,7 @@ import sys
 #----- PROTECTED REGION ID(FPGA_DS.additionnal_import) ENABLED START -----#
 from PyTango import DevState, Util, Attr, SpectrumAttr, Attribute, MultiAttribute
 from PyTango._PyTango import DevFailed
-from pyfabil import FPGA, Device, BoardState
+from pyfabil import Device, BoardState
 from types import *
 import pickle
 import inspect
@@ -125,13 +125,13 @@ class FPGA_DS (PyTango.Device_4Impl):
                     if argin_dict:
                         #self.info_stream("Call with parameters")
                         command_trace = command_name.split('.')
-                        argout = getattr(getattr(self.tpm_instance, command_trace[0]), command_trace[1])(arginput)
-                        #argout = getattr(self.tpm_instance, command_name)(arginput)
+                        argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])(arginput)
+                        #argout = getattr(self.fpga_instance, command_name)(arginput)
                     else:
                         #self.info_stream("Call without parameters")
-                        #argout = getattr(self.tpm_instance, command_name) ()
+                        #argout = getattr(self.fpga_instance, command_name) ()
                         command_trace = command_name.split('.')
-                        argout = getattr(getattr(self.tpm_instance, command_trace[0]), command_trace[1])()
+                        argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])()
                 except DevFailed as df:
                     self.info_stream("Failed to run plugin command: %s" % df)
                     argout = ''
@@ -256,7 +256,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         self.debug_stream("In __init__()")
         FPGA_DS.init_device(self)
         #----- PROTECTED REGION ID(FPGA_DS.__init__) ENABLED START -----#
-        #self.tpm_instance = None
+        #self.fpga_instance = None
         #----- PROTECTED REGION END -----#	//	FPGA_DS.__init__
         
     def delete_device(self):
@@ -276,11 +276,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         self.info_stream("Starting device initialization...")
         self.set_state(DevState.ON)
         self.set_board_state(BoardState.Init.value)
-        self.tpm_instance = FPGA()
-        #connect_args = pickle.dumps({'ip': "127.0.0.1", 'port': 10000})
-        #self.connect(connect_args)
-        #self.tpm_instance = FPGA(ip="127.0.0.1", port=10000)
-
+        self.fpga_instance = []
         self.info_stream("Device has been initialized.")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.init_device
 
@@ -405,7 +401,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         #state_ok = self.check_state_flow(self.connect.__name__)
         if state_ok:
             try:
-                self.tpm_instance.connect(self.attr_ip_address_read, self.attr_port_read)
+                self.fpga_instance.connect(self.attr_ip_address_read, self.attr_port_read)
             except DevFailed as df:
                 self.debug_stream("Failed to connect: %s" % df)
         else:
@@ -460,7 +456,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FPGA_DS.disconnect) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            self.tpm_instance.disconnect()
+            self.fpga_instance.disconnect()
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.disconnect
@@ -477,7 +473,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             if self.attr_is_programmed_read:
-                register_dict = self.tpm_instance.get_register_list()
+                register_dict = self.fpga_instance.get_register_list()
                 if not register_dict: #if dict is empty
                     for reg_name, entries in register_dict.iteritems():
                         self.remove_attribute(reg_name)
@@ -498,7 +494,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FPGA_DS.generate_attributes) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            register_dict = self.tpm_instance.get_register_list()
+            register_dict = self.fpga_instance.get_register_list()
             try:
                 for reg_name, entries in register_dict.iteritems():
                     size = entries.get('size')
@@ -526,7 +522,7 @@ class FPGA_DS (PyTango.Device_4Impl):
     #     #----- PROTECTED REGION ID(FPGA_DS.get_device_list) ENABLED START -----#
     #     state_ok = self.check_state_flow(self.get_device_list.__name__)
     #     if state_ok:
-    #         devlist = self.tpm_instance.get_device_list()
+    #         devlist = self.fpga_instance.get_device_list()
     #         argout = pickle.dumps(devlist)
     #     else:
     #         self.debug_stream("Invalid state")
@@ -545,7 +541,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
-                devlist = self.tpm_instance.get_device_list()
+                devlist = self.fpga_instance.get_device_list()
                 argout = pickle.dumps(devlist)
             except DevFailed as df:
                 self.debug_stream("Failed to get device list: %s" % df)
@@ -570,7 +566,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             try:
                 arguments = pickle.loads(argin)
                 device = arguments['device']
-                firmware_list = self.tpm_instance.get_firmware_list(Device(device))
+                firmware_list = self.fpga_instance.get_firmware_list(Device(device))
                 argout = pickle.dumps(firmware_list)
             except DevFailed as df:
                 self.debug_stream("Failed to get firmware list: %s" % df)
@@ -593,7 +589,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
-                reglist = self.tpm_instance.get_register_list()
+                reglist = self.fpga_instance.get_register_list()
                 value = reglist.get(argin)
                 argout = pickle.dumps(value)
             except DevFailed as df:
@@ -617,7 +613,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
-                register_dict = self.tpm_instance.get_register_list()
+                register_dict = self.fpga_instance.get_register_list()
                 argout = register_dict.keys()
             except DevFailed as df:
                 self.debug_stream("Failed to get register list: %s" % df)
@@ -643,7 +639,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             filepath = arguments['path']
             self.flush_attributes()
             try:
-                self.tpm_instance.load_firmware_blocking(Device(device), filepath)
+                self.fpga_instance.load_firmware_blocking(Device(device), filepath)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")
@@ -666,7 +662,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FPGA_DS.load_plugin) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            plugin_list = self.tpm_instance.get_available_plugins()
+            plugin_list = self.fpga_instance.get_available_plugins()
             self.info_stream("List of plugins: %s" % plugin_list)
             class_names = plugin_list.keys()
             self.info_stream("List of plugins class names: %s" % class_names)
@@ -677,8 +673,8 @@ class FPGA_DS (PyTango.Device_4Impl):
                     plugin_index = class_names.index(argin)
                     plugin_friendly_name = friendly_names[plugin_index]
                     plugin_class_name = class_names[plugin_index]
-                    self.tpm_instance.load_plugin(plugin_class_name)
-                    plugins_dict = self.tpm_instance.get_loaded_plugins()
+                    self.fpga_instance.load_plugin(plugin_class_name)
+                    plugins_dict = self.fpga_instance.get_loaded_plugins()
                     #self.info_stream("Plugin dictionary: %s" % plugins_dict)
                     self.info_stream("Plugin pre-loaded: %s at index: %s" % (plugin_friendly_name, plugin_index))
                     for command in plugins_dict[plugin_friendly_name]:
@@ -724,7 +720,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             address = arguments['address']
             words = arguments['words']
             try:
-                argout = self.tpm_instance.read_address(address, words)
+                argout = self.fpga_instance.read_address(address, words)
             except DevFailed as df:
                 self.debug_stream("Failed to read address: %s" % df)
                 argout = ''
@@ -752,7 +748,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             device = arguments['device']
             address = arguments['address']
             try:
-                argout = self.tpm_instance.read_device(device, address)
+                argout = self.fpga_instance.read_device(device, address)
             except DevFailed as df:
                 self.debug_stream("Failed to read device: %s" % df)
                 argout = 0
@@ -788,7 +784,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                     self.debug_stream("Words: %s" % words)
                     self.debug_stream("Offset: %s" % offset)
                     self.debug_stream("Device: %s" % device)
-                    argout = self.tpm_instance.read_register(Device(device), register, words, offset)
+                    argout = self.fpga_instance.read_register(Device(device), register, words, offset)
                 except DevFailed as df:
                     self.debug_stream("Failed to read register: %s" % df)
                     argout = [0]
@@ -937,7 +933,7 @@ class FPGA_DS (PyTango.Device_4Impl):
     #         arguments = pickle.loads(argin)
     #         address = arguments['address']
     #         values = arguments['values']
-    #         argout = self.tpm_instance.write_address(address, values)
+    #         argout = self.fpga_instance.write_address(address, values)
     #     else:
     #         self.debug_stream("Invalid state")
     #     #----- PROTECTED REGION END -----#	//	FPGA_DS.write_address
@@ -958,7 +954,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             address = arguments['address']
             values = arguments['values']
             try:
-                argout = self.tpm_instance.write_address(address, values)
+                argout = self.fpga_instance.write_address(address, values)
             except DevFailed as df:
                 self.debug_stream("Failed to write address: %s" % df)
                 argout = False
@@ -988,7 +984,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             address = arguments['address']
             value = arguments['value']
             try:
-                argout = self.tpm_instance.write_device(device, address, value)
+                argout = self.fpga_instance.write_device(device, address, value)
             except DevFailed as df:
                 self.debug_stream("Failed to write device: %s" % df)
                 argout = False
@@ -1020,7 +1016,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             length_values = len(values)
             if length_values+offset <= length_register:
                 try:
-                    argout = self.tpm_instance.write_register(Device(device), register, values, offset)
+                    argout = self.fpga_instance.write_register(Device(device), register, values, offset)
                     argout = True
                 except DevFailed as df:
                     self.debug_stream("Failed to write register: %s" % df)
