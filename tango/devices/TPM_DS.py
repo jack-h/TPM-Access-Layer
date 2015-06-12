@@ -83,15 +83,9 @@ class TPM_DS (FPGA_DS):
         self.debug_stream("In init_device()")
         self.get_device_properties(self.get_device_class())
         #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
-        self.attr_board_state_read = 0
-        self.attr_is_programmed_read = False
-        self.attr_ip_address_read = ''
-        self.attr_port_read = 0
-        self.info_stream("Starting device initialization...")
-        self.set_state(DevState.ON)
-        self.set_board_state(BoardState.Init.value)
+        #self.set_state(DevState.ON)
+        #self.set_board_state(BoardState.Init.value)
         self.fpga_instance = TPM()
-        self.info_stream("Device has been initialized.")
         #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
 
     def always_executed_hook(self):
