@@ -63,7 +63,6 @@ tpm_instance.poll_attribute('port', 3000)
 #tpm_instance.poll_attribute('port', 0) #to stop polling
 
 # Print register list
-arguments={}
 print tpm_instance.command_inout("get_register_list")
 
 # Read from register
@@ -78,13 +77,13 @@ print tpm_instance.command_inout("read_register", args)
 
 # Write to vector register
 arguments = {}
-print Device.FPGA_1
 arguments['device'] = Device.FPGA_1.value
 arguments['register'] = 'fpga1.regfile.block2048b'
 arguments['values'] = [100,1,2,3]
 arguments['offset'] = 512-4
 args = pickle.dumps(arguments)
-tpm_instance.write_register(args)
+print tpm_instance.command_inout("write_register", args)
+#tpm_instance.write_register(args)
 
 # Read from register
 arguments={}
@@ -93,5 +92,6 @@ arguments['register'] = 'fpga1.regfile.block2048b'
 arguments['words'] = 4
 arguments['offset'] = 512-4
 args = pickle.dumps(arguments)
-print tpm_instance.read_register(args)
+print tpm_instance.command_inout("read_register", args)
+#print tpm_instance.read_register(args)
 print '============================================'

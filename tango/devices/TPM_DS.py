@@ -784,10 +784,10 @@ class TPM_DS (PyTango.Device_4Impl):
             length_register = reg_info['size']
             if words+offset <= length_register:
                 try:
-                    self.info_stream("Register: %s" % register)
-                    self.info_stream("Words: %s" % words)
-                    self.info_stream("Offset: %s" % offset)
-                    self.info_stream("Device: %s" % device)
+                    self.debug_stream("Register: %s" % register)
+                    self.debug_stream("Words: %s" % words)
+                    self.debug_stream("Offset: %s" % offset)
+                    self.debug_stream("Device: %s" % device)
                     argout = self.tpm_instance.read_register(Device(device), register, words, offset)
                 except DevFailed as df:
                     self.debug_stream("Failed to read register: %s" % df)
@@ -1021,6 +1021,7 @@ class TPM_DS (PyTango.Device_4Impl):
             if length_values+offset <= length_register:
                 try:
                     argout = self.tpm_instance.write_register(Device(device), register, values, offset)
+                    argout = True
                 except DevFailed as df:
                     self.debug_stream("Failed to write register: %s" % df)
                     argout = False
