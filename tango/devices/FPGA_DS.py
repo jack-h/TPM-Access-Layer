@@ -8,7 +8,7 @@
 ##
 ## File :        FPGA_DS.py
 ## 
-## Project :     AAVS1 Tango FPGA Driver
+## Project :     AAVS Tango FPGA Driver
 ##
 ## This file is part of Tango device class.
 ## 
@@ -40,7 +40,7 @@
 ##        (c) - Software Engineering Group - ESRF
 ##############################################################################
 
-"""A Tango device server for the FPGA boards."""
+"""A Tango device server for the FPGA board."""
 
 __all__ = ["FPGA_DS", "FPGA_DSClass", "main"]
 
@@ -52,8 +52,7 @@ import sys
 #----- PROTECTED REGION ID(FPGA_DS.additionnal_import) ENABLED START -----#
 from PyTango import DevState, Util, Attr, SpectrumAttr, Attribute, MultiAttribute
 from PyTango._PyTango import DevFailed
-from accesslayer import *
-from definitions import *
+from pyfabil import FPGA, Device, BoardState
 from types import *
 import pickle
 import inspect
@@ -277,10 +276,10 @@ class FPGA_DS (PyTango.Device_4Impl):
         self.info_stream("Starting device initialization...")
         self.set_state(DevState.ON)
         self.set_board_state(BoardState.Init.value)
-        self.tpm_instance = TPM()
+        self.tpm_instance = FPGA()
         #connect_args = pickle.dumps({'ip': "127.0.0.1", 'port': 10000})
         #self.connect(connect_args)
-        #self.tpm_instance = TPM(ip="127.0.0.1", port=10000)
+        #self.tpm_instance = FPGA(ip="127.0.0.1", port=10000)
 
         self.info_stream("Device has been initialized.")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.init_device
@@ -668,8 +667,10 @@ class FPGA_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             plugin_list = self.tpm_instance.get_available_plugins()
-            class_names = [plugin[0] for plugin in plugin_list]
-            friendly_names = [plugin[1] for plugin in plugin_list]
+            self.info_stream("List of plugins: %s" % plugin_list)
+            class_names = plugin_list.keys()
+            self.info_stream("List of plugins class names: %s" % class_names)
+            friendly_names = plugin_list.values()
             #self.info_stream("Plugins: %s" % class_names)
             if argin in class_names:
                 try:
@@ -779,9 +780,14 @@ class FPGA_DS (PyTango.Device_4Impl):
             offset = arguments['offset']
 
             reg_info = pickle.loads(self.get_register_info(register))
+            self.info_stream("Reg info: %s" % reg_info)
             length_register = reg_info['size']
             if words+offset <= length_register:
                 try:
+                    self.debug_stream("Register: %s" % register)
+                    self.debug_stream("Words: %s" % words)
+                    self.debug_stream("Offset: %s" % offset)
+                    self.debug_stream("Device: %s" % device)
                     argout = self.tpm_instance.read_register(Device(device), register, words, offset)
                 except DevFailed as df:
                     self.debug_stream("Failed to read register: %s" % df)
@@ -1015,6 +1021,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             if length_values+offset <= length_register:
                 try:
                     argout = self.tpm_instance.write_register(Device(device), register, values, offset)
+                    argout = True
                 except DevFailed as df:
                     self.debug_stream("Failed to write register: %s" % df)
                     argout = False

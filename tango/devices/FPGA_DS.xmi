@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <pogoDsl:PogoSystem xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pogoDsl="http://www.esrf.fr/tango/pogo/PogoDsl">
   <classes name="FPGA_DS" pogoRevision="8.4">
-    <description description="A Tango device server for the FPGA boards." title="AAVS1 Tango FPGA Driver" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices" language="Python" filestogenerate="XMI   file,Code files" license="GPL" hasMandatoryProperty="false" hasConcreteProperty="false" hasAbstractCommand="false" hasAbstractAttribute="false">
+    <description description="A Tango device server for the FPGA board." title="AAVS Tango FPGA Driver" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices" language="Python" filestogenerate="XMI   file,Code files" license="GPL" hasMandatoryProperty="false" hasConcreteProperty="false" hasAbstractCommand="false" hasAbstractAttribute="false">
       <inheritances classname="Device_Impl" sourcePath=""/>
       <identification contact="at um.edu.mt - andrea.demarco" author="andrea.demarco" emailDomain="um.edu.mt" classFamily="Acquisition" siteSpecific="" platform="Unix Like" bus="Not Applicable" manufacturer="ISSA" reference="ISSA-AAVS1-FPGA"/>
     </description>
