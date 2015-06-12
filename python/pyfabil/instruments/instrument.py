@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 
-from boarddriver.boards.fpgaboard import *
-from boarddriver.base.definitions import *
+from pyfabil.boards.fpgaboard import *
+from pyfabil.base.definitions import *
 
 
 # ----------------------- Config Handler --------------------

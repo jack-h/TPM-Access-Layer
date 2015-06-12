@@ -1,4 +1,4 @@
-from boarddriver.base.definitions import *
+from pyfabil.base.definitions import *
 
 # ------------- Wrap library calls ---------------------------
 

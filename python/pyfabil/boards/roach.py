@@ -1,5 +1,5 @@
-from boarddriver.base.definitions import *
-from boarddriver.boards.fpgaboard import FPGABoard
+from pyfabil.base.definitions import *
+from pyfabil.boards.fpgaboard import FPGABoard
 
 class Roach(FPGABoard):
     """ FPGABoard subclass for communicating with a ROACH board """

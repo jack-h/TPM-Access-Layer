@@ -1,12 +1,12 @@
-from boarddriver.base.interface import *
-from boarddriver.plugins import *
+from pyfabil.base.interface import *
+from pyfabil.plugins import *
 import inspect
 import logging
 import sys
 import re
 
 # --------------- Helpers ------------------------------
-from boarddriver.plugins.firmwareblock import FirmwareBlock
+from pyfabil.plugins.firmwareblock import FirmwareBlock
 
 DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2",
                 Device.FPGA_3 : "FPGA 3", Device.FPGA_4 : "FPGA 4", Device.FPGA_5 : "FPGA 5",
@@ -632,7 +632,7 @@ class FPGABoard(object):
 
 # Note: Do not run the code below! (temp)
 if __name__ == "__main__":
-    from boarddriver.boards.tpm import TPM
+    from pyfabil.boards.tpm import TPM
     tpm = TPM()
     # Simple TPM test
     # tpm = TPM(ip="127.0.0.1", port=10000)

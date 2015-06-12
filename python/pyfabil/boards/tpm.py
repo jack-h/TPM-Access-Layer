@@ -1,5 +1,5 @@
-from boarddriver.boards.fpgaboard import FPGABoard, DeviceNames
-from boarddriver.base.definitions import *
+from pyfabil.boards.fpgaboard import FPGABoard, DeviceNames
+from pyfabil.base.definitions import *
 
 class TPM(FPGABoard):
     """ FPGABoard subclass for communicating with a TPM board """
