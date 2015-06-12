@@ -3,7 +3,7 @@ Version 0.5
 
 - Tango driver: New plugin loading flow
 - Tango driver: New connection code with IP/Port attributes
-
+- Tango driver: FPGA and TPM subclassing
 
 Version 0.4
 -----------
