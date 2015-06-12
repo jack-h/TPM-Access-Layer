@@ -667,8 +667,10 @@ class TPM_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             plugin_list = self.tpm_instance.get_available_plugins()
-            class_names = [plugin[0] for plugin in plugin_list]
-            friendly_names = [plugin[1] for plugin in plugin_list]
+            self.info_stream("List of plugins: %s" % plugin_list)
+            class_names = plugin_list.keys()
+            self.info_stream("List of plugins class names: %s" % class_names)
+            friendly_names = plugin_list.values()
             #self.info_stream("Plugins: %s" % class_names)
             if argin in class_names:
                 try:
@@ -778,9 +780,14 @@ class TPM_DS (PyTango.Device_4Impl):
             offset = arguments['offset']
 
             reg_info = pickle.loads(self.get_register_info(register))
+            self.info_stream("Reg info: %s" % reg_info)
             length_register = reg_info['size']
             if words+offset <= length_register:
                 try:
+                    self.info_stream("Register: %s" % register)
+                    self.info_stream("Words: %s" % words)
+                    self.info_stream("Offset: %s" % offset)
+                    self.info_stream("Device: %s" % device)
                     argout = self.tpm_instance.read_register(Device(device), register, words, offset)
                 except DevFailed as df:
                     self.debug_stream("Failed to read register: %s" % df)

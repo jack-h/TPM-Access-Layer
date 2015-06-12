@@ -17,7 +17,6 @@ print("Creating device: %s" % new_device_name)
 db.add_device(dev_info)
 
 
-
 # SECOND DEVICE
 # Define device name
 new_device_name = "test/fpga_board/1"
