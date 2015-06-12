@@ -171,6 +171,47 @@ VALUES UniBoard::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
     return vals;
 }
 
+// Get fifo register value
+VALUES UniBoard::readFifoRegister(DEVICE device, REGISTER reg, UINT n)
+{
+    // Get register address from memory map
+    MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(device, reg);
+
+    // If register was not found, return error
+    if (info == NULL)
+    {
+        DEBUG_PRINT("UniBoard::readRegister. Register " << reg << " on device " << device << " not found in memory map");
+        return {0, FAILURE};
+    }
+
+    // NOTE: It is assumed that no bit-masking is required for a FIFO register
+
+    // Send request through protocol and return values
+    VALUES vals = connections[device] -> readFifoRegister(info -> address, n);
+
+    return vals;
+}
+
+// Set fifo register value
+RETURN UniBoard::writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UINT n)
+{
+    // Get register address from memory map
+    MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(device, reg);
+
+    // If register was not found, return error
+    if (info == NULL)
+    {
+        DEBUG_PRINT("UniBoard::writeFifoRegister. Register " << reg << " on device " << device << " not found in memory map");
+        return FAILURE;
+    }
+
+    // NOTE: It is assumed that no bit-masking is required for a FIFO register
+
+    // Write values to register
+    return connections[device] -> writeFifoRegister(info -> address, values, n);
+}
+
+
 // Load firmware asynchronously
 RETURN UniBoard::loadFirmware(DEVICE device, const char *bitstream)
 {

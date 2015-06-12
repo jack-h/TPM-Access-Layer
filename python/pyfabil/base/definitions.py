@@ -62,6 +62,7 @@ class RegisterType(Enum):
     FirmwareRegister = 3
     SPIDevice = 4
     Component = 5
+    FifoRegister = 6
 
 class Permission(Enum):
     """ Permission enumeration """

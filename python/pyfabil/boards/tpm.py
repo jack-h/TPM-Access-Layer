@@ -29,11 +29,9 @@ class TPM(FPGABoard):
 
         elif type(key) is str:
             # Check if a device is specified in the register name
-            device = self._get_device(key)
             if self._registerList.has_key(key):
                 reg = self._registerList[key]
-                key = '.'.join(key.split('.')[1:])
-                return self.read_register(device, key, reg['size'])
+                return self.read_register(key, reg['size'])
         else:
             raise LibraryError("Unrecognised key type, must be register name or memory address")
 
@@ -60,10 +58,8 @@ class TPM(FPGABoard):
 
         elif type(key) is str:      
             # Check if device is specified in the register name
-            device = self._get_device(key)
             if self._registerList.has_key(key):
-                key = '.'.join(key.split('.')[1:])
-                return self.write_register(device, key, value)
+                return self.write_register(key, value)
         else:
             raise LibraryError("Unrecognised key type, must be register name or memory address")
 
@@ -88,12 +84,12 @@ class TPM(FPGABoard):
             registers[v['device']].append(v)
 
         # Loop over all devices
-        string  = "Device%sRegister%sAddress%sBitmask\n" % (' ' * 2, ' ' * 27, ' ' * 8)
-        string += "------%s--------%s-------%s-------\n" % (' ' * 2, ' ' * 27, ' ' * 8)
+        string  = "Device%sRegister%sAddress%sBitmask\n" % (' ' * 2, ' ' * 37, ' ' * 8)
+        string += "------%s--------%s-------%s-------\n" % (' ' * 2, ' ' * 37, ' ' * 8)
     
         for k, v in registers.iteritems():
-            for reg in sorted(v, key = lambda k : k['name']):
-                regspace = ' ' * (35 - len(reg['name']))
+            for reg in sorted(v, key = lambda arg : arg['name']):
+                regspace = ' ' * (45 - len(reg['name']))
                 adspace  = ' ' * (15 - len(hex(reg['address'])))
                 string += '%s\t%s%s%s%s0x%08X\n' % (DeviceNames[k], reg['name'], regspace, hex(reg['address']), adspace, reg['bitmask'])
 
@@ -102,7 +98,7 @@ class TPM(FPGABoard):
             string += "\nSPI Devices\n"
             string += "-----------\n"
 
-        for v in sorted(self._deviceList.itervalues(), key = lambda k : k['name']):
+        for v in sorted(self._deviceList.itervalues(), key = lambda arg : arg['name']):
             string += 'Name: %s\tspi_sclk: %d\tspi_en: %d\n' % (v['name'], v['spi_sclk'], v['spi_en'])
 
         # Return string representation

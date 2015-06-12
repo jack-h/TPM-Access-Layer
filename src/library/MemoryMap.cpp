@@ -221,6 +221,8 @@ MemoryMap::MemoryMap(char *path)
                         string tag = registerAttr -> value();
                         if (name.compare("sensor") == 0)
                             reg_info -> type = SENSOR;
+                        else if (name.compare("fifo") == 0)
+                            reg_info -> type = FIFO_REGISTER;
                     }
                     else if (name.compare("module") == 0)
                         reg_info -> module = registerAttr -> value();
@@ -310,6 +312,8 @@ MemoryMap::MemoryMap(char *path)
                                 string tag = bitAttr -> value();
                                 if (name.compare("sensor") == 0)
                                     reg_info -> type = SENSOR;
+                                else if (name.compare("fifo") == 0)
+                                    reg_info -> type = FIFO_REGISTER;
                             }
                             else 
                                 ; // Unsupported attribute, ignore for now

@@ -38,6 +38,12 @@ class Board
         // Set register value
         virtual RETURN writeRegister(DEVICE device, REGISTER reg, UINT *value, UINT n = 1, UINT offset = 0) = 0;
 
+        // Read FIFO register capability
+        virtual VALUES readFifoRegister(DEVICE device, REGISTER reg, UINT n = 1) = 0;
+
+        // Write FIFO register capability
+        virtual RETURN writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UINT n = 1) = 0;
+
         // Get address value
         virtual VALUES readAddress(UINT address, UINT n = 1) = 0;
 

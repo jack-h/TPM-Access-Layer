@@ -1,12 +1,9 @@
-Low Level Access Layer
-----------------------
+PyFABIL - Python FpgA Board Interfacing Layer
+---------------------------------------------
 
-Provides a C++ library which can communicate with FPGA boards. Currently
-it only implements the UCP protocol, such that it can communicate with
-UniBoards and Tile Processing Modules
-
-A python wrapper is also included for scripting and interactive managements
-of the boards
+Provides a Python library which can communicate with FPGA boards. Currently
+it implements the UCP and KATPC protocols, such that it can communicate with
+UniBoards, Tile Processing Modules ROACH boards
 
 Directory structures
 --------------------
@@ -21,10 +18,15 @@ Directory structures
 Comiling the library
 --------------------
 
-Requirements: - g++ 4.8+
+Requirements: - g++ 4.6+
 
 cd src/library
+mkidr build
+cd build
+cmake ..
 make
+
+You can also make install, which will install the library to /usr/local/lib
 
 Compiling the server
 --------------------

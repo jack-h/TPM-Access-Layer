@@ -336,3 +336,10 @@ RETURN TPM::loadFirmwareBlocking(DEVICE device, const char* bitstream)
 
     return SUCCESS;
 }
+
+// FIFO register are not yet implemented on the TPM
+VALUES TPM::readFifoRegister(DEVICE device, REGISTER reg, UINT n)
+{ return VALUES(); }
+
+RETURN TPM::writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UINT n)
+{ return NOT_IMPLEMENTED; }

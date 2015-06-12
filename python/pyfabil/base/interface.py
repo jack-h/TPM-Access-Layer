@@ -57,6 +57,14 @@ def initialise_library(filepath = None):
     library.writeRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32, ctypes.c_uint32]
     library.writeRegister.restype = ctypes.c_int
 
+    # Define readFifoRegister function
+    library.readFifoRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
+    library.readFifoRegister.restype = ValuesStruct
+
+    # Define writeFifoRegister function
+    library.writeFifoRegister.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
+    library.writeFifoRegister.restype = ctypes.c_int
+
     # Define readRegister function
     library.readAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32]
     library.readAddress.restype = ValuesStruct
@@ -272,6 +280,50 @@ def call_write_register(board_id, device, register, values, offset = 0):
         n = len(values)
         vals = (ctypes.c_uint32 * n) (*values)
         return Error(library.writeRegister(board_id, device.value, register, vals, n, offset))
+    else:
+        return Error.Failure
+
+
+def call_read_fifo_register(board_id, device, register, n = 1):
+    """
+    :param board_id: ID of board to operate upon
+    :param device: Device on board to operate upon
+    :param register: Register name
+    :param n: Number of words to read
+    :return: Memory-mapped values
+    """
+    global library
+
+    # Call function and return
+    return library.readFifoRegister(board_id, device.value, register, n)
+
+
+def call_write_fifo_register(board_id, device, register, values):
+    """
+    :param board_id: ID of board to operate upon
+    :param device: Device on board to operate upon
+    :param register: Register name
+    :param values: Value to write to board
+    :return: Success or Failure
+    """
+    global library
+
+    # Check if we have a single value or list of values
+    if type(values) is not list:
+
+        # Create an integer and extract it's address
+        INTP = ctypes.POINTER(ctypes.c_uint32)
+        num  = ctypes.c_uint32(values)
+        addr = ctypes.addressof(num)
+        ptr  = ctypes.cast(addr, INTP)
+
+        err = library.writeFifoRegister(board_id, device.value, register, ptr, 1)
+        return err
+
+    elif type(values) is list:
+        n = len(values)
+        vals = (ctypes.c_uint32 * n) (*values)
+        return Error(library.writeFifoRegister(board_id, device.value, register, vals, n))
     else:
         return Error.Failure
 
