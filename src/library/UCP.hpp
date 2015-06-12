@@ -16,6 +16,8 @@ class UCP: public Protocol
         RETURN closeConnection();
         VALUES readRegister(UINT address, UINT n = 1, UINT offset = 0);
         RETURN writeRegister(UINT address, UINT *values, UINT n = 1, UINT offset = 0);
+        VALUES readFifoRegister(UINT address, UINT n);
+        RETURN writeFifoRegister(UINT address, UINT *values, UINT n);
         FIRMWARE listFirmware(UINT *num_firmware);
 
     private:
@@ -24,6 +26,12 @@ class UCP: public Protocol
 
         // Receive packet
         size_t receivePacket(char *buffer, size_t max_length);
+
+        // General write function
+        RETURN write(UINT address, UINT *values, UINT n = 1, UINT offset = 0, bool fifo = false);
+
+        // General read function
+        VALUES read(UINT address, UINT n = 1, UINT offset = 0, bool fifo = false);
 
     private:
         // Sequence number

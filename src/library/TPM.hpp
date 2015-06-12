@@ -35,6 +35,12 @@ class TPM: public Board
         // Set register value
         RETURN writeRegister(DEVICE device, REGISTER reg, UINT *value, UINT n = 1, UINT offset = 0);
 
+        // Read FIFO register capability
+        VALUES readFifoRegister(DEVICE device, REGISTER reg, UINT n = 1);
+
+        // Write FIFO register capability
+        RETURN writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UINT n = 1);
+
         // Get address value
         VALUES readAddress(UINT address, UINT n = 1);
 

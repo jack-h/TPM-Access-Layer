@@ -6,5 +6,11 @@ class UniBoard(FPGABoard):
 
     def __init__(self, **kwargs):
         """ Class constructor """
+
+        # Check that a nodelist
+
         kwargs['fpgaBoard'] = BoardMake.UniboardBoard
         super(UniBoard, self).__init__(**kwargs)
+
+
+

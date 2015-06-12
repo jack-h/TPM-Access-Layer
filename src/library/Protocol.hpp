@@ -41,14 +41,16 @@ class Protocol
         virtual RETURN closeConnection() = 0;
 
         // Read register/memory area capability
-        // This will take care of issuing multiple requests if 
-        // the amount of data to read is larger than one UDP packet
         virtual VALUES readRegister(UINT address, UINT n = 1, UINT offset = 0) = 0;
 
         // Write register/memory area capability
-        // This will take care of issuing multiple requests if the 
-        // amount of data to write is larger than one UDP packet    
         virtual RETURN writeRegister(UINT address, UINT *values, UINT n = 1, UINT offset = 0) = 0;
+
+        // Read FIFO register capability
+        virtual VALUES readFifoRegister(UINT address, UINT n = 1) = 0;
+
+        // Write FIFO register capability
+        virtual RETURN writeFifoRegister(UINT address, UINT *values, UINT n = 1) = 0;
 
         // Query board for list of firmware
         virtual FIRMWARE listFirmware(UINT *num_firmware) = 0;

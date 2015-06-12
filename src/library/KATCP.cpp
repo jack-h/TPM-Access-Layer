@@ -654,3 +654,12 @@ int KATCP::getRegisterIndex(REGISTER reg)
     else 
         return it - this -> registers.begin();
 }
+
+// ------ Functions not supported by ROACH -------------
+VALUES KATCP::readFifoRegister(UINT address, UINT n) {
+    return VALUES();
+}
+
+RETURN KATCP::writeFifoRegister(UINT address, UINT *values, UINT n) {
+    return NOT_IMPLEMENTED;
+}

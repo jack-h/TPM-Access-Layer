@@ -186,7 +186,7 @@ VALUES  readRegister(ID id, DEVICE device, REGISTER reg, UINT n, UINT offset)
     it = boards.find(id);
     if (it == boards.end()) 
     {
-        DEBUG_PRINT("AccessLayer::readAddress. " << id << " not connected");
+        DEBUG_PRINT("AccessLayer::readRegister. " << id << " not connected");
         return {0, FAILURE};
     }
 
@@ -205,7 +205,7 @@ RETURN  writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n, 
     it = boards.find(id);
     if (it == boards.end()) 
     {
-        DEBUG_PRINT("AccessLayer::writeAddress. " << id << " not connected");
+        DEBUG_PRINT("AccessLayer::writeRegister. " << id << " not connected");
         return FAILURE;
     }
 
@@ -214,6 +214,44 @@ RETURN  writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n, 
 
     // Get register value from board
     return board -> writeRegister(device, reg, values, n, offset);
+}
+
+// Get a FIFO register's value
+VALUES  readFifoRegister(ID id, DEVICE device, REGISTER reg, UINT n)
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end())
+    {
+        DEBUG_PRINT("AccessLayer::readFifoRegister. " << id << " not connected");
+        return {0, FAILURE};
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Get register value from board
+    return board -> readFifoRegister(device, reg, n);
+}
+
+// Set a FIFO register's value
+RETURN  writeFifoRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n)
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end())
+    {
+        DEBUG_PRINT("AccessLayer::writeFifoRegister. " << id << " not connected");
+        return FAILURE;
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Get register value from board
+    return board -> writeFifoRegister(device, reg, values, n);
 }
 
 // Read from address

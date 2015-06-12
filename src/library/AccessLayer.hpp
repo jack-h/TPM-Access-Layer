@@ -66,18 +66,43 @@ extern "C" REGISTER_INFO* getRegisterList(ID id, UINT *num_registers);
 //   id      Board ID
 //   device  Specify to which DEVICE (if any) this applies
 //   reg     Register to query
+//   n       Number of words to read
+//   offset  Address offset to read from
 // Returns:
 //    VALUE 
 extern "C" VALUES readRegister(ID id, DEVICE device, REGISTER reg, UINT n = 1, UINT offset = 0);
 
 // Arguments:
 //   id      Board ID
+//   device  Specify to which DEVICE (if any) this applies
+//   reg     Register to write to
+//   values  32-bit value to write to register
+//   n       Number of words to write
+//   offset  Address offset to write from
+// Returns:
+//    VALUE
+
+extern "C" RETURN writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n = 1, UINT offset = 0);
+
+// Get a register's value
+// Arguments:
+//   id      Board ID
+//   device  Specify to which DEVICE (if any) this applies
+//   reg     Register to query
+//   n       Number of words to read
+// Returns:
+//    VALUE
+extern "C" VALUES readFifoRegister(ID id, DEVICE device, REGISTER reg, UINT n = 1);
+
+// Arguments:
+//   id      Board ID
 //   device    Specify to which DEVICE (if any) this applies
 //   reg     Register to write to
 //   value   32-bit value to write to register
+//   n       Number of words to write
 // Returns:
-//    VALUE 
-extern "C" RETURN writeRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n = 1, UINT offset = 0);
+//    VALUE
+extern "C" RETURN writeFifoRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT n = 1);
 
 // Get address content
 // Arguments:

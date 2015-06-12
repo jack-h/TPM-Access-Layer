@@ -345,9 +345,8 @@ class FPGABoard(object):
         # All done, return
         return self._deviceList
 
-    def read_register(self, device, register, n = 1, offset = 0):
+    def read_register(self, register, n = 1, offset = 0):
         """" Get register value
-         :param device: Device on board to read register from
          :param register: Register name
          :param n: Number of words to read
          :param offset: Memory address offset to read from
@@ -358,12 +357,19 @@ class FPGABoard(object):
         if not self._checks():    
             return
 
+        # Extract device from register name
+        device = self._get_device(register)
+
         # Check if device argument is of type Device
         if not type(device) is Device:
             raise LibraryError("Device argument for read_register should be of type Device")
 
         # Call function
-        values = call_read_register(self.id, device, self._remove_device(register), n, offset)
+        if self._registerList[register]['type'] == RegisterType.FifoRegister:
+            values = call_read_fifo_register(self.id, device, self._remove_device(register), n)
+        else:
+            values = call_read_register(self.id, device, self._remove_device(register), n, offset)
+
         self._logger.debug(self.log("Called read_register"))
 
         # Check if value succeeded, otherwise return
@@ -380,9 +386,8 @@ class FPGABoard(object):
         else:
             return [valPtr[i] for i in range(n)]
 
-    def write_register(self, device, register, values, offset = 0):
+    def write_register(self, register, values, offset = 0):
         """ Set register value
-         :param device: Device on board to write register to
          :param register: Register name
          :param values: Values to write
          :param offset: Memory address offset to write to
@@ -392,12 +397,15 @@ class FPGABoard(object):
         if not self._checks():    
             return
 
-        # Check if device argument is of type Device
-        if not type(device) is Device:
-           raise LibraryError("Device argument for write_register should be of type Device")
+        # Extract device from register name
+        device = self._get_device(register)
 
         # Call function and return
-        err = call_write_register(self.id, device, self._remove_device(register), values, offset)
+        if self._registerList[register]['type'] == RegisterType.FifoRegister:
+            err = call_write_fifo_register(self.id, device, self._remove_device(register), values)
+        else:
+            err = call_write_register(self.id, device, self._remove_device(register), values, offset)
+
         self._logger.debug(self.log("Called write_register"))
         if err == Error.Failure:
             raise BoardError("Failed to write_register %s on board" % register)

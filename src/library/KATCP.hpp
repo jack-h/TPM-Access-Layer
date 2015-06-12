@@ -19,6 +19,8 @@ class KATCP: public Protocol
         RETURN closeConnection();
         VALUES readRegister(UINT address,  UINT n, UINT offset = 0);
         RETURN writeRegister(UINT address, UINT *values, UINT n = 1, UINT offset = 0);
+        VALUES readFifoRegister(UINT address, UINT n);
+        RETURN writeFifoRegister(UINT address, UINT *values, UINT n);
 
     // Public function which extend KATCP's functionality
     public:

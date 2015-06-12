@@ -142,7 +142,7 @@ RETURN ROACH::writeAddress(UINT address, UINT *values, UINT n)
 { return NOT_IMPLEMENTED; }
 
 // Functions dealing with on-board devices (such as SPI devices)
-// NOTE: Not applicale to ROACH
+// NOTE: Not applicable to ROACH
 SPI_DEVICE_INFO* ROACH::getDeviceList(UINT *num_devices)
 { return NULL; }
 
@@ -150,4 +150,11 @@ VALUES ROACH::readDevice(REGISTER device, UINT address)
 { return { NULL, NOT_IMPLEMENTED }; }
 
 RETURN ROACH::writeDevice(REGISTER device, UINT address, UINT value)
+{ return NOT_IMPLEMENTED; }
+
+// FIFO register are not yet implemented for the ROACH
+VALUES ROACH::readFifoRegister(DEVICE device, REGISTER reg, UINT n)
+{ return VALUES(); }
+
+RETURN ROACH::writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UINT n)
 { return NOT_IMPLEMENTED; }

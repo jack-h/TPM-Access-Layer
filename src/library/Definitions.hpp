@@ -38,20 +38,20 @@ typedef enum {SUCCESS = 0, FAILURE = -1, NOT_IMPLEMENTED = -2} RETURN;
 
 // Define possible board statuses
 typedef enum { OK                =  0,  // Board is functioning properly
-               LOADING_FIRMWARE  = -1,  // Firmware being laoded on an FPGA
+               LOADING_FIRMWARE  = -1,  // Firmware being loaded on an FPGA
                CONFIG_ERROR      = -2,  // Error configuring firmware
                BOARD_ERROR       = -3,  // Board health check failed
                NOT_CONNECTED     = -4,  // Connect wasn't called 
                NETWORK_ERROR     = -5}  // Board cannot be reached
 STATUS;
 
-// At least three types of registers can be defined (a sensor, a board/
-// peripheral register and a firmware register).
+// Enumeration of register types
 typedef enum {SENSOR            = 1, 
               BOARD_REGISTER    = 2, 
               FIRMWARE_REGISTER = 3, 
-              SPI_DEVICE        = 4, 
-              COMPONENT         = 5} REGISTER_TYPE;
+              SPI_DEVICE        = 4,
+              COMPONENT         = 5,
+              FIFO_REGISTER     = 6} REGISTER_TYPE;
 
 // ### Register access permissions 
 typedef enum {READ = 1, WRITE = 2, READWRITE = 3} PERMISSION;
