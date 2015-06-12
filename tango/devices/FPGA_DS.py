@@ -6,9 +6,9 @@
 ## license :
 ##============================================================================
 ##
-## File :        TPM_DS.py
+## File :        FPGA_DS.py
 ## 
-## Project :     AAVS Tango TPM Driver
+## Project :     AAVS1 Tango FPGA Driver
 ##
 ## This file is part of Tango device class.
 ## 
@@ -40,32 +40,33 @@
 ##        (c) - Software Engineering Group - ESRF
 ##############################################################################
 
-"""A Tango device server for the TPM board."""
+"""A Tango device server for the FPGA boards."""
 
-__all__ = ["TPM_DS", "TPM_DSClass", "main"]
+__all__ = ["FPGA_DS", "FPGA_DSClass", "main"]
 
 __docformat__ = 'restructuredtext'
 
 import PyTango
 import sys
 # Add additional import
-#----- PROTECTED REGION ID(TPM_DS.additionnal_import) ENABLED START -----#
+#----- PROTECTED REGION ID(FPGA_DS.additionnal_import) ENABLED START -----#
 from PyTango import DevState, Util, Attr, SpectrumAttr, Attribute, MultiAttribute
 from PyTango._PyTango import DevFailed
-from pyfabil import TPM, Device, BoardState
+from accesslayer import *
+from definitions import *
 from types import *
 import pickle
 import inspect
-#----- PROTECTED REGION END -----#	//	TPM_DS.additionnal_import
+#----- PROTECTED REGION END -----#	//	FPGA_DS.additionnal_import
 
 ## Device States Description
 ## ON : Device is ON for alarm/event handling.
 ## ALARM : Device is ALARM for alarm/event handling.
 
-class TPM_DS (PyTango.Device_4Impl):
+class FPGA_DS (PyTango.Device_4Impl):
 
     #--------- Add you global variables here --------------------------
-    #----- PROTECTED REGION ID(TPM_DS.global_variables) ENABLED START -----#
+    #----- PROTECTED REGION ID(FPGA_DS.global_variables) ENABLED START -----#
     all_states_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     plugin_cmd_list = {}
@@ -249,21 +250,21 @@ class TPM_DS (PyTango.Device_4Impl):
         args = str(arguments)
         self.write_register(args)
 
-    #----- PROTECTED REGION END -----#	//	TPM_DS.global_variables
+    #----- PROTECTED REGION END -----#	//	FPGA_DS.global_variables
 
     def __init__(self,cl, name):
         PyTango.Device_4Impl.__init__(self,cl,name)
         self.debug_stream("In __init__()")
-        TPM_DS.init_device(self)
-        #----- PROTECTED REGION ID(TPM_DS.__init__) ENABLED START -----#
+        FPGA_DS.init_device(self)
+        #----- PROTECTED REGION ID(FPGA_DS.__init__) ENABLED START -----#
         #self.tpm_instance = None
-        #----- PROTECTED REGION END -----#	//	TPM_DS.__init__
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.__init__
         
     def delete_device(self):
         self.debug_stream("In delete_device()")
-        #----- PROTECTED REGION ID(TPM_DS.delete_device) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.delete_device) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.delete_device
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.delete_device
 
     def init_device(self):
         self.debug_stream("In init_device()")
@@ -272,7 +273,7 @@ class TPM_DS (PyTango.Device_4Impl):
         self.attr_is_programmed_read = False
         self.attr_ip_address_read = ''
         self.attr_port_read = 0
-        #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.init_device) ENABLED START -----#
         self.info_stream("Starting device initialization...")
         self.set_state(DevState.ON)
         self.set_board_state(BoardState.Init.value)
@@ -282,77 +283,77 @@ class TPM_DS (PyTango.Device_4Impl):
         #self.tpm_instance = TPM(ip="127.0.0.1", port=10000)
 
         self.info_stream("Device has been initialized.")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.init_device
 
     def always_executed_hook(self):
         self.debug_stream("In always_excuted_hook()")
-        #----- PROTECTED REGION ID(TPM_DS.always_executed_hook) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.always_executed_hook) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.always_executed_hook
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.always_executed_hook
 
     #-----------------------------------------------------------------------------
-    #    TPM_DS read/write attribute methods
+    #    FPGA_DS read/write attribute methods
     #-----------------------------------------------------------------------------
     
     def read_board_state(self, attr):
         self.debug_stream("In read_board_state()")
-        #----- PROTECTED REGION ID(TPM_DS.board_state_read) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.board_state_read) ENABLED START -----#
         attr.set_value(self.attr_board_state_read)
         self.info_stream(BoardState(self.attr_board_state_read))
-        #----- PROTECTED REGION END -----#	//	TPM_DS.board_state_read
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.board_state_read
         
     def read_is_programmed(self, attr):
         self.debug_stream("In read_is_programmed()")
-        #----- PROTECTED REGION ID(TPM_DS.is_programmed_read) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.is_programmed_read) ENABLED START -----#
         attr.set_value(self.attr_is_programmed_read)
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_programmed_read
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.is_programmed_read
         
     def read_ip_address(self, attr):
         self.debug_stream("In read_ip_address()")
-        #----- PROTECTED REGION ID(TPM_DS.ip_address_read) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.ip_address_read) ENABLED START -----#
         attr.set_value(self.attr_ip_address_read)
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.ip_address_read
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.ip_address_read
         
     def write_ip_address(self, attr):
         self.debug_stream("In write_ip_address()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(TPM_DS.ip_address_write) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.ip_address_write) ENABLED START -----#
         self.info_stream("IP Address set up.")
         self.attr_ip_address_read = data
-        #----- PROTECTED REGION END -----#	//	TPM_DS.ip_address_write
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.ip_address_write
         
     def read_port(self, attr):
         self.debug_stream("In read_port()")
-        #----- PROTECTED REGION ID(TPM_DS.port_read) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.port_read) ENABLED START -----#
         attr.set_value(self.attr_port_read)
         #self.info_stream("Attribute: %s has quality: %s" %(attr.get_name(), attr.get_quality()))
-        #----- PROTECTED REGION END -----#	//	TPM_DS.port_read
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.port_read
         
     def write_port(self, attr):
         self.debug_stream("In write_port()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(TPM_DS.port_write) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.port_write) ENABLED START -----#
         #self.info_stream("Port set up.")
         self.attr_port_read = data
-        #----- PROTECTED REGION END -----#	//	TPM_DS.port_write
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.port_write
         
     
     
-        #----- PROTECTED REGION ID(TPM_DS.initialize_dynamic_attributes) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.initialize_dynamic_attributes) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.initialize_dynamic_attributes
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.initialize_dynamic_attributes
             
     def read_attr_hardware(self, data):
         self.debug_stream("In read_attr_hardware()")
-        #----- PROTECTED REGION ID(TPM_DS.read_attr_hardware) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.read_attr_hardware) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.read_attr_hardware
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.read_attr_hardware
 
 
     #-----------------------------------------------------------------------------
-    #    TPM_DS command methods
+    #    FPGA_DS command methods
     #-----------------------------------------------------------------------------
     
     def add_command(self, argin):
@@ -364,7 +365,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In add_command()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.add_command) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.add_command) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         #state_ok = self.check_state_flow(self.add_command.__name__)
         if state_ok:
@@ -387,7 +388,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 return argout
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.add_command
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.add_command
         return argout
         
     def connect(self):
@@ -398,7 +399,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In connect()")
-        #----- PROTECTED REGION ID(TPM_DS.connect) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.connect) ENABLED START -----#
         #info = inspect.stack()
         #self.info_stream(info[0][3])
         state_ok = self.check_state_flow(inspect.stack()[0][3])
@@ -410,7 +411,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 self.debug_stream("Failed to connect: %s" % df)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.connect
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.connect
         
     def create_scalar_attribute(self, argin):
         """ A method that creates a new scalar attribute.
@@ -420,14 +421,14 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In create_scalar_attribute()")
-        #----- PROTECTED REGION ID(TPM_DS.create_scalar_attribute) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.create_scalar_attribute) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             attr = Attr(argin, PyTango.DevULong)
             self.add_attribute(attr, self.read_general_scalar, self.write_general_scalar)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.create_scalar_attribute
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.create_scalar_attribute
         
     def create_vector_attribute(self, argin):
         """ A method that creates a new vector attribute.
@@ -437,7 +438,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In create_vector_attribute()")
-        #----- PROTECTED REGION ID(TPM_DS.create_vector_attribute) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.create_vector_attribute) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -447,7 +448,7 @@ class TPM_DS (PyTango.Device_4Impl):
             self.add_attribute(attr, self.read_general_vector, self.write_general_vector)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.create_vector_attribute
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.create_vector_attribute
         
     def disconnect(self):
         """ Disconnect this device.
@@ -457,13 +458,13 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In disconnect()")
-        #----- PROTECTED REGION ID(TPM_DS.disconnect) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.disconnect) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.tpm_instance.disconnect()
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.disconnect
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.disconnect
         
     def flush_attributes(self):
         """ A method that removes all attributes for the current firmware.
@@ -473,7 +474,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In flush_attributes()")
-        #----- PROTECTED REGION ID(TPM_DS.flush_attributes) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.flush_attributes) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             if self.attr_is_programmed_read:
@@ -485,7 +486,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 self.info_stream("Device not programmed. No attributes removed.")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.flush_attributes
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.flush_attributes
         
     def generate_attributes(self):
         """ A method that generates dynamic attributes based on the current firmware.
@@ -495,7 +496,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In generate_attributes()")
-        #----- PROTECTED REGION ID(TPM_DS.generate_attributes) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.generate_attributes) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             register_dict = self.tpm_instance.get_register_list()
@@ -523,14 +524,14 @@ class TPM_DS (PyTango.Device_4Impl):
     #     :rtype: PyTango.DevString """
     #     self.debug_stream("In get_device_list()")
     #     argout = ''
-    #     #----- PROTECTED REGION ID(TPM_DS.get_device_list) ENABLED START -----#
+    #     #----- PROTECTED REGION ID(FPGA_DS.get_device_list) ENABLED START -----#
     #     state_ok = self.check_state_flow(self.get_device_list.__name__)
     #     if state_ok:
     #         devlist = self.tpm_instance.get_device_list()
     #         argout = pickle.dumps(devlist)
     #     else:
     #         self.debug_stream("Invalid state")
-    #     #----- PROTECTED REGION END -----#	//	TPM_DS.get_device_list
+    #     #----- PROTECTED REGION END -----#	//	FPGA_DS.get_device_list
         
     def get_device_list(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
@@ -541,7 +542,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_device_list()")
         argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.get_device_list) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.get_device_list) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -552,7 +553,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 argout = ''
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_device_list
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.get_device_list
         return argout
         
     def get_firmware_list(self, argin):
@@ -564,7 +565,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_firmware_list()")
         argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.get_firmware_list) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.get_firmware_list) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -577,7 +578,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 argout = ''
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_firmware_list
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.get_firmware_list
         return argout
         
     def get_register_info(self, argin):
@@ -589,7 +590,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_register_info()")
         argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.get_register_info) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.get_register_info) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -601,7 +602,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 argout = ''
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_info
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.get_register_info
         return argout
         
     def get_register_list(self):
@@ -613,7 +614,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVarStringArray """
         self.debug_stream("In get_register_list()")
         argout = ['']
-        #----- PROTECTED REGION ID(TPM_DS.get_register_list) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.get_register_list) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -624,7 +625,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 argout = ''
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_list
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.get_register_list
         return argout
         
     def load_firmware_blocking(self, argin):
@@ -635,7 +636,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In load_firmware_blocking()")
-        #----- PROTECTED REGION ID(TPM_DS.load_firmware_blocking) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.load_firmware_blocking) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -653,7 +654,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 self.flush_attributes()
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.load_firmware_blocking
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.load_firmware_blocking
         
     def load_plugin(self, argin):
         """ Loads a plugin in device server.
@@ -663,7 +664,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In load_plugin()")
-        #----- PROTECTED REGION ID(TPM_DS.load_plugin) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.load_plugin) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             plugin_list = self.tpm_instance.get_available_plugins()
@@ -704,7 +705,7 @@ class TPM_DS (PyTango.Device_4Impl):
                  self.info_stream("Plugin not found.")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.load_plugin
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.load_plugin
         
     def read_address(self, argin):
         """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
@@ -715,7 +716,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVarULongArray """
         self.debug_stream("In read_address()")
         argout = [0]
-        #----- PROTECTED REGION ID(TPM_DS.read_address) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.read_address) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -728,7 +729,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 argout = ''
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.read_address
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.read_address
         return argout
         
     def read_device(self, argin):
@@ -743,7 +744,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevULong """
         self.debug_stream("In read_device()")
         argout = 0
-        #----- PROTECTED REGION ID(TPM_DS.read_device) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.read_device) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -756,7 +757,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 argout = 0
         else:
            self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.read_device
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.read_device
         return argout
         
     def read_register(self, argin):
@@ -768,7 +769,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVarULongArray """
         self.debug_stream("In read_register()")
         argout = [0]
-        #----- PROTECTED REGION ID(TPM_DS.read_register) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.read_register) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -789,7 +790,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 self.info_stream("Register size limit exceeded, no values read.")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.read_register
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.read_register
         return argout
         
     def remove_command(self, argin):
@@ -801,7 +802,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In remove_command()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.remove_command) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.remove_command) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -815,7 +816,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 return argout
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.remove_command
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.remove_command
         return argout
         
     def run_plugin_command(self, argin):
@@ -827,7 +828,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevString """
         self.debug_stream("In run_plugin_command()")
         argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.run_plugin_command) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.run_plugin_command) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -849,7 +850,7 @@ class TPM_DS (PyTango.Device_4Impl):
                     return argout
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.run_plugin_command
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.run_plugin_command
         return argout
         
     def set_attribute_levels(self, argin):
@@ -864,7 +865,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In set_attribute_levels()")
-        #----- PROTECTED REGION ID(TPM_DS.set_attribute_levels) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.set_attribute_levels) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -888,7 +889,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 self.debug_stream("Failed to set attribute levels: %s" % df)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.set_attribute_levels
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.set_attribute_levels
         
     def set_board_state(self, argin):
         """ Sets the board status by passing in a value.
@@ -909,7 +910,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In set_board_state()")
-        #----- PROTECTED REGION ID(TPM_DS.set_board_state) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.set_board_state) ENABLED START -----#
         if argin in self.all_states_list:
             self.attr_board_state_read = argin
         else:
@@ -924,7 +925,7 @@ class TPM_DS (PyTango.Device_4Impl):
     #     :rtype: PyTango.DevBoolean """
     #     self.debug_stream("In write_address()")
     #     argout = False
-    #     #----- PROTECTED REGION ID(TPM_DS.write_address) ENABLED START -----#
+    #     #----- PROTECTED REGION ID(FPGA_DS.write_address) ENABLED START -----#
     #     state_ok = self.check_state_flow(self.write_address.__name__)
     #     if state_ok:
     #         arguments = pickle.loads(argin)
@@ -933,7 +934,7 @@ class TPM_DS (PyTango.Device_4Impl):
     #         argout = self.tpm_instance.write_address(address, values)
     #     else:
     #         self.debug_stream("Invalid state")
-    #     #----- PROTECTED REGION END -----#	//	TPM_DS.write_address
+    #     #----- PROTECTED REGION END -----#	//	FPGA_DS.write_address
         
     def write_address(self, argin):
         """ Writes values to a register location. The actual physical address has to be provided.
@@ -944,7 +945,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_address()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.write_address) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.write_address) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -957,7 +958,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 argout = False
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.write_address
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.write_address
         return argout
         
     def write_device(self, argin):
@@ -973,7 +974,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_device()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.write_device) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.write_device) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -987,7 +988,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 argout = False
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.write_device
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.write_device
         return argout
         
     def write_register(self, argin):
@@ -999,7 +1000,7 @@ class TPM_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_register()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.write_register) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.write_register) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -1021,7 +1022,7 @@ class TPM_DS (PyTango.Device_4Impl):
                 self.info_stream("Register size limit exceeded, no changes committed.")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.write_register
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.write_register
         return argout
         
     def sink_alarm_state(self):
@@ -1032,25 +1033,29 @@ class TPM_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In sink_alarm_state()")
-        #----- PROTECTED REGION ID(TPM_DS.sink_alarm_state) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.sink_alarm_state) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.set_state(DevState.ON)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.sink_alarm_state
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.sink_alarm_state
         
 
-class TPM_DSClass(PyTango.DeviceClass):
-    #--------- Add you global class variables here --------------------------
-    #----- PROTECTED REGION ID(TPM_DS.global_class_variables) ENABLED START -----#
+    #----- PROTECTED REGION ID(FPGA_DS.programmer_methods) ENABLED START -----#
     
-    #----- PROTECTED REGION END -----#	//	TPM_DS.global_class_variables
+    #----- PROTECTED REGION END -----#	//	FPGA_DS.programmer_methods
+
+class FPGA_DSClass(PyTango.DeviceClass):
+    #--------- Add you global class variables here --------------------------
+    #----- PROTECTED REGION ID(FPGA_DS.global_class_variables) ENABLED START -----#
+    
+    #----- PROTECTED REGION END -----#	//	FPGA_DS.global_class_variables
 
     def dyn_attr(self, dev_list):
         """Invoked to create dynamic attributes for the given devices.
         Default implementation calls
-        :meth:`TPM_DS.initialize_dynamic_attributes` for each device
+        :meth:`FPGA_DS.initialize_dynamic_attributes` for each device
     
         :param dev_list: list of devices
         :type dev_list: :class:`PyTango.DeviceImpl`"""
@@ -1062,9 +1067,9 @@ class TPM_DSClass(PyTango.DeviceClass):
                 import traceback
                 dev.warn_stream("Failed to initialize dynamic attributes")
                 dev.debug_stream("Details: " + traceback.format_exc())
-        #----- PROTECTED REGION ID(TPM_DS.dyn_attr) ENABLED START -----#
+        #----- PROTECTED REGION ID(FPGA_DS.dyn_attr) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.dyn_attr
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.dyn_attr
 
     #    Class Properties
     class_property_list = {
@@ -1177,7 +1182,10 @@ class TPM_DSClass(PyTango.DeviceClass):
 def main():
     try:
         py = PyTango.Util(sys.argv)
-        py.add_class(TPM_DSClass,TPM_DS,'TPM_DS')
+        py.add_class(FPGA_DSClass,FPGA_DS,'FPGA_DS')
+        #----- PROTECTED REGION ID(FPGA_DS.add_classes) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.add_classes
 
         U = PyTango.Util.instance()
         U.server_init()
