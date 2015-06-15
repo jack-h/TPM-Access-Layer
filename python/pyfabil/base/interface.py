@@ -182,7 +182,9 @@ def call_get_register_list(board_id):
     registers = library.getRegisterList(board_id, ptr)
 
     # Create device map for register names
-    names = { Device.Board : "board", Device.FPGA_1 : "fpga1", Device.FPGA_2 : "fpga2" }
+    names = { Device.Board : "board", Device.FPGA_1 : "fpga1", Device.FPGA_2 : "fpga2",
+              Device.FPGA_3 : "fpga3", Device.FPGA_4 : "fpga4", Device.FPGA_5 : "fpga5",
+              Device.FPGA_6 : "fpga6", Device.FPGA_7 : "fpga7", Device.FPGA_8 : "fpga8"}
 
     # Wrap register formats and return
     registerList = { }

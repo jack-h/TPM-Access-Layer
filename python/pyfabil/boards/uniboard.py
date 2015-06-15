@@ -88,6 +88,9 @@ class UniBoard(FPGABoard):
             except KeyError:
                 pass
 
+        # Change nodes to list if it is not already a list
+        nodes = nodes if type(nodes) is list else [nodes]
+
         # Call appropriate function for all devices
         for node in nodes:
 
@@ -162,6 +165,7 @@ class UniBoard(FPGABoard):
 if __name__ == "__main__":
     # Simple tests, make sure mock_uniboard.py is running
     nodelist = [(0,'F'), (1,'F'),(2,'F'), (3,'F'), (4,'B'), (5,'B'),(6,'B'), (7,'B')]
-    unb = UniBoard(ip = "127.0.0.1", port = 5000, nodelist = nodelist)
+    unb = UniBoard(ip = "127.0.0.1", port = 50000, nodelist = nodelist)
     unb.load_firmware_blocking(Device.FPGA_1, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml")
-    print unb._registerList
+    unb.write_register('fpga1.regfile.date_code', 45)
+    print unb.read_register('fpga1.regfile.date_code')

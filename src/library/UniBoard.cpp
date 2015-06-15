@@ -1,5 +1,6 @@
 #include "UniBoard.hpp"
 #include <sstream>
+#include <math.h>
 
 // Constructor
 UniBoard::UniBoard(const char *ip, unsigned short port) : Board(ip, port)
@@ -162,7 +163,7 @@ VALUES UniBoard::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
     }
 
     // Otherwise , send request through protocol
-    VALUES vals = connections[device] -> readRegister(info -> address, n, offset);
+    VALUES vals = connections[(int) log2(device + 1)] -> readRegister(0, n, offset);
 
     // If failed, return
     if (vals.error == FAILURE)

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(library)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -D_REENTRANT -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -D_REENTRANT -fPIC -g")
 
 set(SOURCE_FILES
     AccessLayer.cpp

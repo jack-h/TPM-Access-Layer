@@ -91,7 +91,7 @@ class TestUniBoard(TestCase):
         """ Test UniBoard connection """
         nodelist = [(0, 'F'), (1, 'F'), (2, 'F'), (3, 'F'),
                     (4, 'B'), (5, 'B'), (6, 'B'), (7, 'B')]
-        unb = UniBoard(ip="127.0.0.1", port = 5000, nodelist = nodelist)
+        unb = UniBoard(ip="127.0.0.1", port = 50000, nodelist = nodelist)
         self.assertEqual(unb.get_status(), Status.OK)
 
     def test_write_register(self):
