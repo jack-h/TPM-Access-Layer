@@ -76,7 +76,7 @@ class TPM_DS (FPGA_DS):
     def delete_device(self):
         self.debug_stream("In delete_device()")
         #----- PROTECTED REGION ID(TPM_DS.delete_device) ENABLED START -----#
-        
+        super(TPM_DS, self).delete_device()
         #----- PROTECTED REGION END -----#	//	TPM_DS.delete_device
 
     def init_device(self):
@@ -89,7 +89,7 @@ class TPM_DS (FPGA_DS):
     def always_executed_hook(self):
         self.debug_stream("In always_excuted_hook()")
         #----- PROTECTED REGION ID(TPM_DS.always_executed_hook) ENABLED START -----#
-        
+        super(TPM_DS, self).always_executed_hook()
         #----- PROTECTED REGION END -----#	//	TPM_DS.always_executed_hook
 
     #-----------------------------------------------------------------------------
@@ -105,7 +105,7 @@ class TPM_DS (FPGA_DS):
     def read_attr_hardware(self, data):
         self.debug_stream("In read_attr_hardware()")
         #----- PROTECTED REGION ID(TPM_DS.read_attr_hardware) ENABLED START -----#
-        
+        super(TPM_DS, self).read_attr_hardware()
         #----- PROTECTED REGION END -----#	//	TPM_DS.read_attr_hardware
 
 
@@ -113,6 +113,342 @@ class TPM_DS (FPGA_DS):
     #    TPM_DS command methods
     #-----------------------------------------------------------------------------
     
+    def add_command(self, argin):
+        """ A generic command that adds a new command entry to the Tango device driver.
+        
+        :param argin: A string containing a dictionary for fields required for command creation.
+        :type: PyTango.DevString
+        :return: True if command creation was successful, false if not.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In add_command()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.add_command) ENABLED START -----#
+        argout = super(TPM_DS, self).add_command(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.add_command
+        return argout
+        
+    def connect(self):
+        """ Opens the connection to the device.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In connect()")
+        #----- PROTECTED REGION ID(TPM_DS.connect) ENABLED START -----#
+        super(TPM_DS, self).connect()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.connect
+        
+    def create_scalar_attribute(self, argin):
+        """ A method that creates a new scalar attribute.
+        
+        :param argin: New attribute name.
+        :type: PyTango.DevString
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In create_scalar_attribute()")
+        #----- PROTECTED REGION ID(TPM_DS.create_scalar_attribute) ENABLED START -----#
+        super(TPM_DS, self).create_scalar_attribute(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.create_scalar_attribute
+        
+    def create_vector_attribute(self, argin):
+        """ A method that creates a new vector attribute.
+        
+        :param argin: New attribute name.
+        :type: PyTango.DevString
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In create_vector_attribute()")
+        #----- PROTECTED REGION ID(TPM_DS.create_vector_attribute) ENABLED START -----#
+        super(TPM_DS, self).create_vector_attribute(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.create_vector_attribute
+        
+    def disconnect(self):
+        """ Disconnect this device.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In disconnect()")
+        #----- PROTECTED REGION ID(TPM_DS.disconnect) ENABLED START -----#
+        super(TPM_DS, self).disconnect()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.disconnect
+        
+    def flush_attributes(self):
+        """ A method that removes all attributes for the current firmware.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In flush_attributes()")
+        #----- PROTECTED REGION ID(TPM_DS.flush_attributes) ENABLED START -----#
+        super(TPM_DS, self).flush_attributes()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.flush_attributes
+        
+    def generate_attributes(self):
+        """ A method that generates dynamic attributes based on the current firmware.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In generate_attributes()")
+        #----- PROTECTED REGION ID(TPM_DS.generate_attributes) ENABLED START -----#
+        super(TPM_DS, self).generate_attributes()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.generate_attributes
+        
+    def get_device_list(self):
+        """ Returns a list of devices, as a serialized python dictionary, stored as a string.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: Dictionary of devices.
+        :rtype: PyTango.DevString """
+        self.debug_stream("In get_device_list()")
+        argout = ''
+        #----- PROTECTED REGION ID(TPM_DS.get_device_list) ENABLED START -----#
+        argout = super(TPM_DS, self).get_device_list()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.get_device_list
+        return argout
+        
+    def get_firmware_list(self, argin):
+        """ Returns a list of firmwares, as a serialized python dictionary, stored as a string.
+        
+        :param argin: Device on board to get list of firmware, as a string.
+        :type: PyTango.DevString
+        :return: Dictionary of firmwares on the board.
+        :rtype: PyTango.DevString """
+        self.debug_stream("In get_firmware_list()")
+        argout = ''
+        #----- PROTECTED REGION ID(TPM_DS.get_firmware_list) ENABLED START -----#
+        argout = super(TPM_DS, self).get_firmware_list(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.get_firmware_list
+        return argout
+        
+    def get_register_info(self, argin):
+        """ Gets a dictionary of information associated with a specified register.
+        
+        :param argin: The register name for which information will be retrieved.
+        :type: PyTango.DevString
+        :return: Returns a string-encoded dictionary of information.
+        :rtype: PyTango.DevString """
+        self.debug_stream("In get_register_info()")
+        argout = ''
+        #----- PROTECTED REGION ID(TPM_DS.get_register_info) ENABLED START -----#
+        argout = super(TPM_DS, self).get_register_info(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_info
+        return argout
+        
+    def get_register_list(self):
+        """ Returns a list of registers and values, as a serialized python dictionary, stored as a string.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: List of register names.
+        :rtype: PyTango.DevVarStringArray """
+        self.debug_stream("In get_register_list()")
+        argout = ['']
+        #----- PROTECTED REGION ID(TPM_DS.get_register_list) ENABLED START -----#
+        argout = super(TPM_DS, self).get_register_list()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_list
+        return argout
+        
+    def load_firmware_blocking(self, argin):
+        """ Blocking call to load firmware.
+        
+        :param argin: File path.
+        :type: PyTango.DevString
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In load_firmware_blocking()")
+        #----- PROTECTED REGION ID(TPM_DS.load_firmware_blocking) ENABLED START -----#
+        super(TPM_DS, self).load_firmware_blocking(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.load_firmware_blocking
+        
+    def load_plugin(self, argin):
+        """ Loads a plugin in device server.
+        
+        :param argin: Name of plugin. Case sensitive.
+        :type: PyTango.DevString
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In load_plugin()")
+        #----- PROTECTED REGION ID(TPM_DS.load_plugin) ENABLED START -----#
+        super(TPM_DS, self).load_plugin(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.load_plugin
+        
+    def read_address(self, argin):
+        """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
+        
+        :param argin: Associated register information.
+        :type: PyTango.DevString
+        :return: Register values.
+        :rtype: PyTango.DevVarULongArray """
+        self.debug_stream("In read_address()")
+        argout = [0]
+        #----- PROTECTED REGION ID(TPM_DS.read_address) ENABLED START -----#
+        argout = super(TPM_DS, self).read_address(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.read_address
+        return argout
+        
+    def read_device(self, argin):
+        """ Get device value.
+        
+        :param argin: 
+            String containing:
+            1) SPI Device to read from
+            2) Address on device to read from
+        :type: PyTango.DevString
+        :return: Value of device.
+        :rtype: PyTango.DevULong """
+        self.debug_stream("In read_device()")
+        argout = 0
+        #----- PROTECTED REGION ID(TPM_DS.read_device) ENABLED START -----#
+        argout = super(TPM_DS, self).read_device(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.read_device
+        return argout
+        
+    def read_register(self, argin):
+        """ Reads values from a register location.
+        
+        :param argin: Associated register information.
+        :type: PyTango.DevString
+        :return: Register values.
+        :rtype: PyTango.DevVarULongArray """
+        self.debug_stream("In read_register()")
+        argout = [0]
+        #----- PROTECTED REGION ID(TPM_DS.read_register) ENABLED START -----#
+        argout = super(TPM_DS, self).read_register(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.read_register
+        return argout
+        
+    def remove_command(self, argin):
+        """ A generic command that removes a command entry from the Tango device driver.
+        
+        :param argin: Command name.
+        :type: PyTango.DevString
+        :return: True if command removal was successful, false otherwise.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In remove_command()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.remove_command) ENABLED START -----#
+        argout = super(TPM_DS, self).remove_command(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.remove_command
+        return argout
+        
+    def run_plugin_command(self, argin):
+        """ Proxy to run a particular plugin command.
+        
+        :param argin: Dictionary with name of command to run, and arguments.
+        :type: PyTango.DevString
+        :return: Any output from the command.
+        :rtype: PyTango.DevString """
+        self.debug_stream("In run_plugin_command()")
+        argout = ''
+        #----- PROTECTED REGION ID(TPM_DS.run_plugin_command) ENABLED START -----#
+        argout = super(TPM_DS, self).run_plugin_command(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.run_plugin_command
+        return argout
+        
+    def set_attribute_levels(self, argin):
+        """ Set alarm levels for a particular attribute.
+        1) min_value : (str) minimum allowed value
+        2 )max_value : (str) maximum allowed value
+        3) min_alarm : (str) low alarm level
+        4) max_alarm : (str) high alarm level
+        
+        :param argin: A pickled string storing a dictionary with the required alarm levels, and name of attribute.
+        :type: PyTango.DevString
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In set_attribute_levels()")
+        #----- PROTECTED REGION ID(TPM_DS.set_attribute_levels) ENABLED START -----#
+        super(TPM_DS, self).set_attribute_levels(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.set_attribute_levels
+        
+    def set_board_state(self, argin):
+        """ Sets the board status by passing in a value.
+                UNKNOWN	=  0
+                INIT		=  1
+                ON		=  2
+                RUNNING	=  3
+                FAULT		=  4
+                OFF		=  5
+                STANDBY	=  6
+                SHUTTING_DOWN	=  7
+                MAINTENANCE	=  8
+                LOW_POWER	=  9
+                SAFE_STATE	=  10
+        
+        :param argin: Board status value.
+        :type: PyTango.DevLong
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In set_board_state()")
+        #----- PROTECTED REGION ID(TPM_DS.set_board_state) ENABLED START -----#
+        super(TPM_DS, self).set_board_state(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.set_board_state
+        
+    def write_address(self, argin):
+        """ Writes values to a register location. The actual physical address has to be provided.
+        
+        :param argin: Associated register information.
+        :type: PyTango.DevString
+        :return: True if successful, false if not.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In write_address()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.write_address) ENABLED START -----#
+        argout = super(TPM_DS, self).write_address(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.write_address
+        return argout
+        
+    def write_device(self, argin):
+        """ Set device value.
+        
+        :param argin: 
+            A string containing the following:
+            1) SPI device to write to
+            2) Address on device to write to
+            3) Value to write
+        :type: PyTango.DevString
+        :return: True if successful, false if not.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In write_device()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.write_device) ENABLED START -----#
+        argout = super(TPM_DS, self).write_device(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.write_device
+        return argout
+        
+    def write_register(self, argin):
+        """ Writes values from a register location.
+        
+        :param argin: Associated register information.
+        :type: PyTango.DevString
+        :return: True if successful, false if not.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In write_register()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.write_register) ENABLED START -----#
+        argout = super(TPM_DS, self).write_register(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.write_register
+        return argout
+        
+    def sink_alarm_state(self):
+        """ This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In sink_alarm_state()")
+        #----- PROTECTED REGION ID(TPM_DS.sink_alarm_state) ENABLED START -----#
+        super(TPM_DS, self).sink_alarm_state()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.sink_alarm_state
+        
 
     #----- PROTECTED REGION ID(TPM_DS.programmer_methods) ENABLED START -----#
     
@@ -157,6 +493,78 @@ class TPM_DSClass(FPGA_DSClass):
 
     #    Command definitions
     cmd_list = {
+        'add_command':
+            [[PyTango.DevString, "A string containing a dictionary for fields required for command creation."],
+            [PyTango.DevBoolean, "True if command creation was successful, false if not."]],
+        'connect':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVoid, "none"]],
+        'create_scalar_attribute':
+            [[PyTango.DevString, "New attribute name."],
+            [PyTango.DevVoid, "none"]],
+        'create_vector_attribute':
+            [[PyTango.DevString, "New attribute name."],
+            [PyTango.DevVoid, "none"]],
+        'disconnect':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVoid, "none"]],
+        'flush_attributes':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVoid, "none"]],
+        'generate_attributes':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVoid, "none"]],
+        'get_device_list':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevString, "Dictionary of devices."]],
+        'get_firmware_list':
+            [[PyTango.DevString, "Device on board to get list of firmware, as a string."],
+            [PyTango.DevString, "Dictionary of firmwares on the board."]],
+        'get_register_info':
+            [[PyTango.DevString, "The register name for which information will be retrieved."],
+            [PyTango.DevString, "Returns a string-encoded dictionary of information."]],
+        'get_register_list':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVarStringArray, "List of register names."]],
+        'load_firmware_blocking':
+            [[PyTango.DevString, "File path."],
+            [PyTango.DevVoid, "none"]],
+        'load_plugin':
+            [[PyTango.DevString, "Name of plugin. Case sensitive."],
+            [PyTango.DevVoid, "none"]],
+        'read_address':
+            [[PyTango.DevString, "Associated register information."],
+            [PyTango.DevVarULongArray, "Register values."]],
+        'read_device':
+            [[PyTango.DevString, "String containing:\n1) SPI Device to read from\n2) Address on device to read from"],
+            [PyTango.DevULong, "Value of device."]],
+        'read_register':
+            [[PyTango.DevString, "Associated register information."],
+            [PyTango.DevVarULongArray, "Register values."]],
+        'remove_command':
+            [[PyTango.DevString, "Command name."],
+            [PyTango.DevBoolean, "True if command removal was successful, false otherwise."]],
+        'run_plugin_command':
+            [[PyTango.DevString, "Dictionary with name of command to run, and arguments."],
+            [PyTango.DevString, "Any output from the command."]],
+        'set_attribute_levels':
+            [[PyTango.DevString, "A pickled string storing a dictionary with the required alarm levels, and name of attribute."],
+            [PyTango.DevVoid, "none"]],
+        'set_board_state':
+            [[PyTango.DevLong, "Board status value."],
+            [PyTango.DevVoid, "none"]],
+        'write_address':
+            [[PyTango.DevString, "Associated register information."],
+            [PyTango.DevBoolean, "True if successful, false if not."]],
+        'write_device':
+            [[PyTango.DevString, "A string containing the following:\n1) SPI device to write to\n2) Address on device to write to\n3) Value to write"],
+            [PyTango.DevBoolean, "True if successful, false if not."]],
+        'write_register':
+            [[PyTango.DevString, "Associated register information."],
+            [PyTango.DevBoolean, "True if successful, false if not."]],
+        'sink_alarm_state':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVoid, "none"]],
         }
     cmd_list.update(FPGA_DSClass.cmd_list)
 
