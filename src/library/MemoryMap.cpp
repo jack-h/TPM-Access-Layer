@@ -56,16 +56,23 @@ MemoryMap::MemoryMap(char *path)
         // Transform board string to upper case
         transform(device_id.begin(), device_id.end(), device_id.begin(), ::toupper);
 
+        currType = FIRMWARE_REGISTER;
         if (device_id.compare("FPGA1") == 0)
-        {
             currDevice = FPGA_1;
-            currType   = FIRMWARE_REGISTER;
-        }
         else if (device_id.compare("FPGA2") == 0)
-        {
             currDevice = FPGA_2;
-            currType   = FIRMWARE_REGISTER;
-        }
+        else if (device_id.compare("FPGA3") == 0)
+            currDevice = FPGA_3;
+        else if (device_id.compare("FPGA4") == 0)
+            currDevice = FPGA_4;
+        else if (device_id.compare("FPGA5") == 0)
+            currDevice = FPGA_5;
+        else if (device_id.compare("FPGA6") == 0)
+            currDevice = FPGA_6;
+        else if (device_id.compare("FPGA7") == 0)
+            currDevice = FPGA_7;
+        else if (device_id.compare("FPGA8") == 0)
+            currDevice = FPGA_8;
         else
         {
             currDevice = BOARD;

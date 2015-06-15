@@ -29,5 +29,9 @@ set(SOURCE_FILES
     Utils.hpp)
 
 add_library(accesslayer SHARED ${SOURCE_FILES})
+add_executable(main main.cpp)
+target_link_libraries(main
+    accesslayer
+)
 
 install(TARGETS "accesslayer" DESTINATION /usr/local/lib)

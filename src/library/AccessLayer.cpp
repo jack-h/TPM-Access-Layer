@@ -383,7 +383,8 @@ RETURN  loadFirmware(ID id, DEVICE device, const char* bitstream)
 RETURN  loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
 {
     // Check if device is valid
-    if (!(device == FPGA_1 || device == FPGA_2))
+    if (!(device == FPGA_1 || device == FPGA_2 || device == FPGA_3 || device == FPGA_4 ||
+          device == FPGA_5 || device == FPGA_6 || device == FPGA_7 || device == FPGA_8))
     {
         DEBUG_PRINT("AccessLayer::loadFirmwareBlocking. Invalid device");
         return FAILURE;

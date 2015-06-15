@@ -16,12 +16,11 @@ void Board::initialiseRegisterValues(REGISTER_INFO *regInfo, int num_registers)
 	// For all registers
 	for(int i = 0; i < num_registers; i++)
 	{
-		REGISTER_INFO reg = regInfo[i];
-		VALUES values = this -> readRegister(reg.device, reg.name);
+		VALUES values = this -> readRegister(regInfo[i].device, regInfo[i].name);
 		if (values.error == SUCCESS)
-			reg.value = values.values[0];
+			regInfo[i].value = values.values[0];
 		else
-			reg.value = 0;
+			regInfo[i].value = 0;
 	}
 	
 	// All done

@@ -1,5 +1,6 @@
-from pyfabil.base.interface import *
+# noinspection PyUnresolvedReferences
 from pyfabil.plugins import *
+from pyfabil.base.interface import *
 import inspect
 import logging
 import sys
@@ -177,15 +178,8 @@ class FPGABoard(object):
         # Plugin loaded, add to list
         self._loaded_plugins[friendly_name] = []
 
-        # Import plugin function
+        # Some bookeeping
         for method in methods:
-            # Link class method to function pointer
-            # self.__dict__[method] = getattr(instance, method)
-
-            # Add metadata to be able to distigiush class from plugin methods
-            # self.__dict__[method].__dict__['_plugin_method'] = True
-
-            # Bookeeping
             self._logger.debug(self.log("Detected method %s from plugin %s" % (method, plugin)))
             self._loaded_plugins[friendly_name].append(method)
 
@@ -345,11 +339,12 @@ class FPGABoard(object):
         # All done, return
         return self._deviceList
 
-    def read_register(self, register, n = 1, offset = 0):
+    def read_register(self, register, n = 1, offset = 0, device = None):
         """" Get register value
          :param register: Register name
          :param n: Number of words to read
          :param offset: Memory address offset to read from
+         :param device: Device/node can be explicitly specified
          :return: Values
          """
 
@@ -358,7 +353,11 @@ class FPGABoard(object):
             return
 
         # Extract device from register name
-        device = self._get_device(register)
+        if device is None:
+            device = self._get_device(register)
+        else:
+            if type(device) is not Device:
+                LibraryError("Parameter device must be of type Device")
 
         # Check if device argument is of type Device
         if not type(device) is Device:
@@ -386,11 +385,12 @@ class FPGABoard(object):
         else:
             return [valPtr[i] for i in range(n)]
 
-    def write_register(self, register, values, offset = 0):
+    def write_register(self, register, values, offset = 0, device = None):
         """ Set register value
          :param register: Register name
          :param values: Values to write
          :param offset: Memory address offset to write to
+         :param device: Device/node can be explicitly specified
          """
 
         # Perform basic checks
@@ -398,7 +398,11 @@ class FPGABoard(object):
             return
 
         # Extract device from register name
-        device = self._get_device(register)
+        if device is None:
+            device = self._get_device(register)
+        else:
+            if type(device) is not Device:
+                LibraryError("Parameter device must be of type Device")
 
         # Call function and return
         if self._registerList[register]['type'] == RegisterType.FifoRegister:
@@ -555,7 +559,7 @@ class FPGABoard(object):
          """
 
         # Run check
-        if not self._check():
+        if not self._checks():
             return
 
         # Loop over all devices
@@ -617,7 +621,7 @@ class FPGABoard(object):
                 return Device.FPGA_2
             else:
                 return None
-        except:
+        except KeyError:
             return None
             
     @staticmethod
@@ -633,7 +637,7 @@ class FPGABoard(object):
                 return '.'.join(name.split('.')[1:])
             else:
                 return name
-        except Exception:
+        except KeyError:
             return name
 
 # -------------- Logging Functionality --------------------

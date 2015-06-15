@@ -7,8 +7,7 @@ UniBoard::UniBoard(const char *ip, unsigned short port) : Board(ip, port)
     // Set number of FPGAs
     this -> num_fpgas = 8;
 
-    // The provided IP is the base address for the UniBoard, each node has it's
-    // own IP
+    // The provided IP is the base address for the UniBoard, each node has it's own IP
     vector<string> entries = split(string(ip),  '.');
     stringstream node_ip;
     node_ip << entries[0] << "." << entries[1] << "." << entries[2] << ".";
@@ -23,9 +22,14 @@ UniBoard::UniBoard(const char *ip, unsigned short port) : Board(ip, port)
         UCP *conn = new UCP();
         
 	    // Connect
-        stringstream current_ip;
-        current_ip << node_ip.rdbuf() << (stoi(entries[3], 0, 10) + i % this -> num_fpgas);
-	    RETURN ret = conn -> createConnection(current_ip.str().c_str(), port);
+        // While testing, the port number is incremented instead of the IP
+        #if TEST
+            stringstream current_ip;
+            current_ip << node_ip.rdbuf() << (stoi(entries[3], 0, 10) + i % this -> num_fpgas);
+	        RETURN ret = conn -> createConnection(current_ip.str().c_str(), port);
+	    #else
+            RETURN ret = conn -> createConnection(ip, port + i);
+        #endif
 
         // Check if address is valid
         VALUES vals = conn -> readRegister(0x0, 1);

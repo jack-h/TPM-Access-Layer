@@ -5,6 +5,7 @@
 
 // Enable or disable debugging
 #define DEBUG 0
+#define TEST  0
 
 // ========================== DATA TYPE DEFINITIONS ==========================
 
