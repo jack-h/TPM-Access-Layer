@@ -1,4 +1,5 @@
-from pyfabil import UniBoard, Device, LibraryError, Status
+import unittest
+from pyfabil import UniBoard, Device, LibraryError, Status, Error
 from unittest import TestCase, main
 from time import sleep
 import subprocess
@@ -11,13 +12,20 @@ class TestUniBoard(TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestUniBoard, self).__init__(*args, **kwargs)
-        self._mock_script = 'mock_uniboard.py'
+        self._mock_script  = 'mock_uniboard.py'
+        self._config_file  = "files/unb_test_map.xml"
         self._uniboard_sim = None
+        self._ip           = "127.0.0.1"
+        self._port         = 50000
 
         # Device mapping
         self._devices = {0 : Device.FPGA_1, 1 : Device.FPGA_2, 2: Device.FPGA_3,
                          3 : Device.FPGA_4, 4 : Device.FPGA_5, 5: Device.FPGA_6,
                          6 : Device.FPGA_7, 7 : Device.FPGA_8}
+
+        # Node list
+        self._nodelist = [(0, 'F'), (1, 'F'), (2, 'F'), (3, 'F'),
+                          (4, 'B'), (5, 'B'), (6, 'B'), (7, 'B')]
 
     def setUp(self):
         """ Start the mock uniboard script """
@@ -38,12 +46,11 @@ class TestUniBoard(TestCase):
 
     def test__convert_node_to_device(self):
         """ Check conversion from node to device """
-        nodelist = [(0, 'F'), (1, 'F'), (2, 'F'), (3, 'F'),
-                    (4, 'B'), (5, 'B'), (6, 'B'), (7, 'B')]
-        unb = UniBoard(nodelist = nodelist)
+
+        unb = UniBoard(nodelist = self._nodelist)
 
         # Check that node string combinations return the correct devices
-        for (node_num, node_type) in nodelist:
+        for (node_num, node_type) in self._nodelist:
             self.assertEqual(unb._nodes[node_num]['device'], self._devices[node_num])
             self.assertEqual(unb._nodes[node_num]['type'], node_type)
             self.assertEqual(unb._convert_node_to_device(str(node_num)), self._devices[node_num])
@@ -61,12 +68,10 @@ class TestUniBoard(TestCase):
 
     def test__get_nodes(self):
         """ Check name combinations for getting group of nodes """
-        nodelist = [(0, 'F'), (1, 'F'), (2, 'F'), (3, 'F'),
-                    (4, 'B'), (5, 'B'), (6, 'B'), (7, 'B')]
-        unb = UniBoard(nodelist = nodelist)
+        unb = UniBoard(nodelist = self._nodelist)
 
         # Check that node string combinations return the correct devices
-        for (node_num, node_type) in nodelist:
+        for (node_num, node_type) in self._nodelist:
             # String commands
             self.assertEqual(unb._get_nodes(str(node_num)), self._devices[node_num])
             self.assertEqual(unb._get_nodes("fpga%d" % (node_num + 1)), self._devices[node_num])
@@ -74,6 +79,9 @@ class TestUniBoard(TestCase):
 
             # Int commands
             self.assertEqual(unb._get_nodes(node_num), self._devices[node_num])
+
+            # Device command
+            self.assertEqual(unb._get_nodes(Device.FPGA_1), Device.FPGA_1)
 
         # Check invalid number and string
         with self.assertRaises(LibraryError):
@@ -86,17 +94,126 @@ class TestUniBoard(TestCase):
         self.assertEqual(unb._get_nodes(range(8)), self._devices.values())
         self.assertEqual(unb._get_nodes(tuple(range(8))), self._devices.values())
         self.assertEqual(unb._get_nodes([str(x) for x in range(8)]), self._devices.values())
+        self.assertEqual(unb._get_nodes(self._devices.values()), self._devices.values())
 
     def test_connect(self):
         """ Test UniBoard connection """
-        nodelist = [(0, 'F'), (1, 'F'), (2, 'F'), (3, 'F'),
-                    (4, 'B'), (5, 'B'), (6, 'B'), (7, 'B')]
-        unb = UniBoard(ip="127.0.0.1", port = 50000, nodelist = nodelist)
+        unb = UniBoard(ip = self._ip, port = self._port, nodelist = self._nodelist)
         self.assertEqual(unb.get_status(), Status.OK)
 
-    def test_write_register(self):
-        pass
+    def test_load_firmware_blocking(self):
+        """ Test loading of firmware """
+        unb = UniBoard(ip = self._ip, port = self._port, nodelist = self._nodelist)
+        self.assertEqual(unb.get_status(), Status.OK)
 
+        # Call load firmware on all nodes
+        unb.load_firmware_blocking(self._devices.values(), self._config_file)
+        self.assertTrue(unb._programmed)
+        self.assertEqual(unb.get_status(), Status.OK)
+
+    def test_write_read_register(self):
+        """ Test writing to registers, all combinations """
+        unb = UniBoard(ip = self._ip, port = self._port, nodelist = self._nodelist)
+        self.assertEqual(unb.get_status(), Status.OK)
+
+        # Call load firmware on all nodes
+        unb.load_firmware_blocking(self._devices.values(), self._config_file)
+        self.assertTrue(unb._programmed)
+        self.assertEqual(unb.get_status(), Status.OK)
+
+        value = 1
+        register = "%s.regfile.register1"
+        # Perform tests in pairs, each time writing to and reading from a register
+        for node in self._nodelist:
+            dev = str(node[0])
+            unb.write_register(register % dev, value)
+            result = unb.read_register(register % dev)
+            self.assertEqual(len(result), 1)
+            self.assertEqual(len(result[0]), 3)
+            self.assertEqual(result[0][1], Error.Success.value)
+            self.assertEqual(result[0][2], [value])
+            value += 1
+
+            dev = "fpga%d" % (node[0] + 1)
+            unb.write_register(register % dev, value)
+            result = unb.read_register(register % dev)
+            self.assertEqual(len(result), 1)
+            self.assertEqual(len(result[0]), 3)
+            self.assertEqual(result[0][1], Error.Success.value)
+            self.assertEqual(result[0][2], [value])
+            value += 1
+
+            dev = "node%d" % node[0]
+            unb.write_register(register % dev, value)
+            result = unb.read_register(register % dev)
+            self.assertEqual(len(result), 1)
+            self.assertEqual(len(result[0]), 3)
+            self.assertEqual(result[0][1], Error.Success.value)
+            self.assertEqual(result[0][2], [value])
+            value += 1
+
+        register = "regfile.register1"
+        for node in self._nodelist:
+            unb.write_register(register, value, device = self._devices[node[0]])
+            result = unb.read_register(register, device = self._devices[node[0]])
+            self.assertEqual(len(result), 1)
+            self.assertEqual(len(result[0]), 3)
+            self.assertEqual(result[0][1], Error.Success.value)
+            self.assertEqual(result[0][2], [value])
+            value += 1
+
+        # Test with node combination specified in register name
+        # All nodes
+        register = "all.regfile.register1"
+        unb.write_register(register, value)
+        result = unb.read_register(register)
+        self.assertEqual(len(result), len(self._nodelist))
+        for i, node in enumerate(self._nodelist):
+            self.assertEqual(len(result[i]), 3)
+            self.assertEqual(result[i][0], node[0])
+            self.assertEqual(result[i][1], Error.Success.value)
+            self.assertEqual(result[i][2], [value])
+        value += 1
+
+        # Front nodes
+        register = "front.regfile.register1"
+        unb.write_register(register, value)
+        result = unb.read_register(register)
+        nodes = [n for n, t in self._nodelist if t == 'F']
+        self.assertEqual(len(result), len(nodes))
+        for i, node in enumerate(nodes):
+            self.assertEqual(len(result[i]), 3)
+            self.assertEqual(result[i][0], node)
+            self.assertEqual(result[i][1], Error.Success.value)
+            self.assertEqual(result[i][2], [value])
+        value += 1
+
+        # Back nodes
+        register = "back.regfile.register1"
+        unb.write_register(register, value)
+        result = unb.read_register(register)
+        nodes = [n for n, t in self._nodelist if t == 'B']
+        self.assertEqual(len(result), len(nodes))
+        for i, node in enumerate(nodes):
+            self.assertEqual(len(result[i]), 3)
+            self.assertEqual(result[i][0], node)
+            self.assertEqual(result[i][1], Error.Success.value)
+            self.assertEqual(result[i][2], [value])
+        value += 1
+
+        # All devices, specified explicitly
+        register = "regfile.register1"
+        unb.write_register(register, value, device = self._devices.values())
+        result = unb.read_register(register, device = self._devices.values())
+        self.assertEqual(len(result), len(self._devices.values()))
+        for i, node in enumerate([a for a,b in self._nodelist]):
+            self.assertEqual(len(result[i]), 3)
+            self.assertEqual(result[i][0], node)
+            self.assertEqual(result[i][1], Error.Success.value)
+            self.assertEqual(result[i][2], [value])
+
+        # All devices, multiple data items to write
 
 if __name__ == "__main__":
+    unittest.TestLoader.sortTestMethodsUsing = None
     main()

@@ -87,11 +87,16 @@ RETURN UniBoard::loadFirmwareBlocking(DEVICE device, const char *bitstream)
     // mappings (for 8 FPGAs), so we just need to reload
     // the memory map
 
+    // Load the bitfile on the device
+
     // Get XML file and re-create the memory map
     char *xml_file = extractXMLFile(bitstream);
 
     // Create a new memory map
+    // Lock to avoid conflicts
+    pthread_mutex_lock(&mutex);
     memory_map = new MemoryMap(xml_file);
+    pthread_mutex_unlock(&mutex);
 
     // All done
     return SUCCESS;
@@ -125,7 +130,7 @@ RETURN UniBoard::writeRegister(DEVICE device, REGISTER reg, UINT *values, UINT n
     if (info -> bitmask != 0xFFFFFFFF)
     {
         // Read values from board
-        VALUES vals = connections[device] -> readRegister(info -> address, n, offset);
+        VALUES vals = connections[(int) log2(device + 1)] -> readRegister(info -> address, n, offset);
 
         if (vals.error == FAILURE)
         {
@@ -139,7 +144,7 @@ RETURN UniBoard::writeRegister(DEVICE device, REGISTER reg, UINT *values, UINT n
     }
 
     // Finished pre-processing, write values to register
-    return connections[device] -> writeRegister(info -> address, values, n, offset);
+    return connections[(int) log2(device + 1)] -> writeRegister(info -> address, values, n, offset);
 }
 
 // Get register value
@@ -192,7 +197,7 @@ VALUES UniBoard::readFifoRegister(DEVICE device, REGISTER reg, UINT n)
     // NOTE: It is assumed that no bit-masking is required for a FIFO register
 
     // Send request through protocol and return values
-    VALUES vals = connections[device] -> readFifoRegister(info -> address, n);
+    VALUES vals = connections[(int) log2(device + 1)] -> readFifoRegister(info -> address, n);
 
     return vals;
 }
@@ -213,7 +218,7 @@ RETURN UniBoard::writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UI
     // NOTE: It is assumed that no bit-masking is required for a FIFO register
 
     // Write values to register
-    return connections[device] -> writeFifoRegister(info -> address, values, n);
+    return connections[(int) log2(device + 1)] -> writeFifoRegister(info -> address, values, n);
 }
 
 

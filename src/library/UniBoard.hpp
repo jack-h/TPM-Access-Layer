@@ -69,6 +69,9 @@ class UniBoard: public Board
         // we need to create at most 8 UCP connections for each UniBoard. The base class
         // protocol variables is ignored, and instead an array of protocol instances is used
         UCP *connections[8];
+
+        // Mutex to lock loading of memory map
+        pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 };
 
 #endif // UNIBOARD_CLASS

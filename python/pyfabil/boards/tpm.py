@@ -33,7 +33,7 @@ class TPM(FPGABoard):
                 reg = self._registerList[key]
                 return self.read_register(key, reg['size'])
         else:
-            raise LibraryError("Unrecognised key type, must be register name or memory address")
+            raise LibraryError("Unrecognised key type, must be register name, memory address or SPI device tuple")
 
         # Register not found
         raise LibraryError("Register %s not found" % key)
