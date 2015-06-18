@@ -2,6 +2,7 @@
 // Created by lessju on 15/06/2015.
 //
 
+#include <stdio.h>
 #include "AccessLayer.hpp"
 #include "Definitions.hpp"
 
@@ -18,5 +19,10 @@ int main()
     loadFirmwareBlocking(id, FPGA_8, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml");
     UINT num_registers;
     REGISTER_INFO *info = getRegisterList(id, &num_registers);
+
+    UINT values[256] = { 20 };
+    RETURN err = writeRegister(id, FPGA_1, "regfile.date_code", values, 256, 0);
+    printf("%d\n", err);
+
 }
 

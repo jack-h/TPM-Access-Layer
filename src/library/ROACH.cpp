@@ -134,11 +134,11 @@ RETURN ROACH::loadFirmwareBlocking(DEVICE device, const char* bitstream)
 // =========================== NOT IMPLEMENTED FOR ROACH ===========================
 
 // Get address value. Not applicable to ROACH
-VALUES ROACH::readAddress(UINT address, UINT n)
+VALUES ROACH::readAddress(DEVICE device, UINT address, UINT n)
 { return {NULL, NOT_IMPLEMENTED}; }
 
 // Set address value. Not applicable to ROACH
-RETURN ROACH::writeAddress(UINT address, UINT *values, UINT n)
+RETURN ROACH::writeAddress(DEVICE device, UINT address, UINT *values, UINT n)
 { return NOT_IMPLEMENTED; }
 
 // Functions dealing with on-board devices (such as SPI devices)

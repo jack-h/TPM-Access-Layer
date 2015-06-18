@@ -45,10 +45,10 @@ class Board
         virtual RETURN writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UINT n = 1) = 0;
 
         // Get address value
-        virtual VALUES readAddress(UINT address, UINT n = 1) = 0;
+        virtual VALUES readAddress(DEVICE device, UINT address, UINT n = 1) = 0;
 
         // Set address value
-        virtual RETURN writeAddress(UINT address, UINT *values, UINT n = 1) = 0;
+        virtual RETURN writeAddress(DEVICE device, UINT address, UINT *values, UINT n = 1) = 0;
 
         // Get list of firmware from board
         virtual FIRMWARE getFirmware(DEVICE device, UINT *num_firmware) = 0;

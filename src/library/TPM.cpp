@@ -134,14 +134,16 @@ RETURN TPM::writeRegister(DEVICE device, REGISTER reg, UINT *values, UINT n, UIN
 }
 
 // Get address value
-VALUES TPM::readAddress(UINT address, UINT n)
+VALUES TPM::readAddress(DEVICE device, UINT address, UINT n)
 {
+    // Device is ignored for the TPM
     return protocol -> readRegister(address, n);
 }
 
 // Set address value
-RETURN TPM::writeAddress(UINT address, UINT *values, UINT n)
+RETURN TPM::writeAddress(DEVICE device, UINT address, UINT *values, UINT n)
 {
+    // Device is ignored for the TPM
     return protocol -> writeRegister(address, values, n);
 }
 

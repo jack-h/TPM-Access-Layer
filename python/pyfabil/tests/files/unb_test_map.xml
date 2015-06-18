@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<node> 
+   <node id="fpga1">
+      <node id="regfile"  address="0x00000000" byte_size="8192">   
+         <node id="register1"             address="0x0"  mask="0xFFFFFFFF"   size="512"       permission="r"   description="Register 1"/>
+         <node id="register2"             address="0x4"                                       description="Register 2">
+            <node id="bit1"               mask="0x000000001" permission="rw"                  description="Register 2, bit 1"/>
+            <node id="bit2"               mask="0x000000002" permission="rw"                  description="Register 2, bit 2"/>
+            <node id="bit3"               mask="0x0000000F0" permission="rw"                  description="Register 2, bit 3"/> 
+        </node>
+      </node>
+   </node>
+
+   <node id="fpga2">
+      <node id="regfile"  address="0x00000000" byte_size="8192">   
+         <node id="register1"             address="0x0"  mask="0xFFFFFFFF"   size="512"       permission="r"   description="Register 1"/>
+         <node id="register2"             address="0x4"                                       description="Register 2">
+            <node id="bit1"               mask="0x000000001" permission="rw"                  description="Register 2, bit 1"/>
+            <node id="bit2"               mask="0x000000002" permission="rw"                  description="Register 2, bit 2"/>
+            <node id="bit3"               mask="0x0000000F0" permission="rw"                  description="Register 2, bit 3"/> 
+        </node>
+      </node>
+   </node>
+
+   <node id="fpga3">
+      <node id="regfile"  address="0x00000000" byte_size="8192">   
+         <node id="register1"             address="0x0"  mask="0xFFFFFFFF"   size="512"       permission="r"   description="Register 1"/>
+         <node id="register2"             address="0x4"                                       description="Register 2">
+            <node id="bit1"               mask="0x000000001" permission="rw"                  description="Register 2, bit 1"/>
+            <node id="bit2"               mask="0x000000002" permission="rw"                  description="Register 2, bit 2"/>
+            <node id="bit3"               mask="0x0000000F0" permission="rw"                  description="Register 2, bit 3"/> 
+        </node>
+      </node>
+    </node>
+
+   <node id="fpga4">
+      <node id="regfile"  address="0x00000000" byte_size="8192">   
+         <node id="register1"             address="0x0"  mask="0xFFFFFFFF"   size="512"       permission="r"   description="Register 1"/>
+         <node id="register2"             address="0x4"                                       description="Register 2">
+            <node id="bit1"               mask="0x000000001" permission="rw"                  description="Register 2, bit 1"/>
+            <node id="bit2"               mask="0x000000002" permission="rw"                  description="Register 2, bit 2"/>
+            <node id="bit3"               mask="0x0000000F0" permission="rw"                  description="Register 2, bit 3"/> 
+        </node>
+      </node>
+    </node>
+
+   <node id="fpga5">
+      <node id="regfile"  address="0x00000000" byte_size="8192">   
+         <node id="register1"             address="0x0"  mask="0xFFFFFFFF"   size="512"       permission="r"   description="Register 1"/>
+         <node id="register2"             address="0x4"                                       description="Register 2">
+            <node id="bit1"               mask="0x000000001" permission="rw"                  description="Register 2, bit 1"/>
+            <node id="bit2"               mask="0x000000002" permission="rw"                  description="Register 2, bit 2"/>
+            <node id="bit3"               mask="0x0000000F0" permission="rw"                  description="Register 2, bit 3"/> 
+        </node>
+      </node>
+    </node>
+
+   <node id="fpga6">
+      <node id="regfile"  address="0x00000000" byte_size="8192">   
+         <node id="register1"             address="0x0"  mask="0xFFFFFFFF"   size="512"       permission="r"   description="Register 1"/>
+         <node id="register2"             address="0x4"                                       description="Register 2">
+            <node id="bit1"               mask="0x000000001" permission="rw"                  description="Register 2, bit 1"/>
+            <node id="bit2"               mask="0x000000002" permission="rw"                  description="Register 2, bit 2"/>
+            <node id="bit3"               mask="0x0000000F0" permission="rw"                  description="Register 2, bit 3"/> 
+        </node>
+      </node>
+    </node>
+
+   <node id="fpga7">
+      <node id="regfile"  address="0x00000000" byte_size="8192">   
+         <node id="register1"             address="0x0"  mask="0xFFFFFFFF"   size="512"       permission="r"   description="Register 1"/>
+         <node id="register2"             address="0x4"                                       description="Register 2">
+            <node id="bit1"               mask="0x000000001" permission="rw"                  description="Register 2, bit 1"/>
+            <node id="bit2"               mask="0x000000002" permission="rw"                  description="Register 2, bit 2"/>
+            <node id="bit3"               mask="0x0000000F0" permission="rw"                  description="Register 2, bit 3"/> 
+        </node>
+      </node>
+    </node>
+
+   <node id="fpga8">
+      <node id="regfile"  address="0x00000000" byte_size="8192">   
+         <node id="register1"             address="0x0"  mask="0xFFFFFFFF"   size="512"       permission="r"   description="Register 1"/>
+         <node id="register2"             address="0x4"                                       description="Register 2">
+            <node id="bit1"               mask="0x000000001" permission="rw"                  description="Register 2, bit 1"/>
+            <node id="bit2"               mask="0x000000002" permission="rw"                  description="Register 2, bit 2"/>
+            <node id="bit3"               mask="0x0000000F0" permission="rw"                  description="Register 2, bit 3"/> 
+        </node>
+      </node>
+    </node>
+</node>

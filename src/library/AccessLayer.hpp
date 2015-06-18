@@ -111,7 +111,7 @@ extern "C" RETURN writeFifoRegister(ID id, DEVICE device, REGISTER reg, UINT *va
 //   n        Number of values to read
 // Returns:
 //    VALUE 
-extern "C" VALUES readAddress(ID id, UINT address, UINT n = 1);
+extern "C" VALUES readAddress(ID id, DEVICE device, UINT address, UINT n = 1);
 
 // Arguments:
 //   id      Board ID
@@ -120,7 +120,7 @@ extern "C" VALUES readAddress(ID id, UINT address, UINT n = 1);
 //   values  32-bit values to write to address
 // Returns:
 //    VALUE 
-extern "C" RETURN writeAddress(ID id, UINT address, UINT *values, UINT n = 1);
+extern "C" RETURN writeAddress(ID id, DEVICE device, UINT address, UINT *values, UINT n = 1);
 
 // [Optional] Set a periodic register
 // Arguments:

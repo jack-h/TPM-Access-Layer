@@ -1,22 +1,26 @@
-import unittest
-from pyfabil import UniBoard, Device, LibraryError, Status, Error
-from unittest import TestCase, main
 from time import sleep
-import subprocess
-import sys
+import unittest
 import os
+
+from pyfabil import UniBoard, Device, LibraryError, Status, Error
+from pyfabil.tests.uniboard_simulator import UniBoardSimulator
+
 
 __author__ = 'Alessio Magro'
 
-class TestUniBoard(TestCase):
+class TestUniBoard(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestUniBoard, self).__init__(*args, **kwargs)
-        self._mock_script  = 'mock_uniboard.py'
-        self._config_file  = "files/unb_test_map.xml"
+        self._simulator    = None
         self._uniboard_sim = None
         self._ip           = "127.0.0.1"
         self._port         = 50000
+
+        # Register map for testing
+        self._config_file  = os.path.join(os.getcwd(), "tests/files/unb_test_map.xml")
+        if not os.path.exists(self._config_file):
+            self._config_file = os.path.join(os.getcwd(), "files/unb_test_map.xml")
 
         # Device mapping
         self._devices = {0 : Device.FPGA_1, 1 : Device.FPGA_2, 2: Device.FPGA_3,
@@ -29,20 +33,20 @@ class TestUniBoard(TestCase):
 
     def setUp(self):
         """ Start the mock uniboard script """
-        # Check that file exists
-        self.assertTrue(os.path.exists(self._mock_script))
-        self._uniboard_sim = subprocess.Popen([sys.executable, self._mock_script],
-                                               stdout = subprocess.PIPE,
-                                               stderr = subprocess.STDOUT)
+        # Launch simluator thread
+        self._simulator = UniBoardSimulator()
+        self._simulator.start()
         sleep(1)
 
     def tearDown(self):
         """ Ready from unittest, clean up uniboard simulator """
-        # Kill uniboard simulator and clean up data files
-        if self._uniboard_sim is not None:
-            self._uniboard_sim.kill()
-            self._uniboard_sim = None
-        pass
+        # Send stop signal to simulator
+        if self._simulator is not None:
+            self._simulator.stop()
+
+        # Wait for simulator to finish
+        self._simulator.join()
+        self._simulator = None
 
     def test__convert_node_to_device(self):
         """ Check conversion from node to device """
@@ -211,9 +215,23 @@ class TestUniBoard(TestCase):
             self.assertEqual(result[i][0], node)
             self.assertEqual(result[i][1], Error.Success.value)
             self.assertEqual(result[i][2], [value])
+        value += 1
 
         # All devices, multiple data items to write
+        unb.write_register(register, [value] * 256, device = self._devices.values())
+        result = unb.read_register(register, 256, device = self._devices.values())
+        self.assertEqual(len(result), len(self._devices.values()))
+        for i, node in enumerate([a for a, b in self._nodelist]):
+            self.assertEqual(len(result[i]), 3)
+            self.assertEqual(result[i][0], node)
+            self.assertEqual(result[i][1], Error.Success.value)
+            self.assertEqual(len(result[i][2]), 256)
+            self.assertEqual(result[i][2], [value] * 256)
+
+    def test_write_read_address(self):
+        """ Test read write address, all combinations """
+        pass
 
 if __name__ == "__main__":
     unittest.TestLoader.sortTestMethodsUsing = None
-    main()
+    unittest.main()

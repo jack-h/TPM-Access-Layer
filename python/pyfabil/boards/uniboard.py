@@ -145,6 +145,13 @@ class UniBoard(FPGABoard):
         # We need at least one node to check the whether the register is fifo or not
         reg_str = 'fpga%d.%s' % (int(log(nodes[0].value, 2) + 1), register)
 
+        # Check if write length is valid
+        if (len(values) if type(values) is list else 1) * 4 + offset > \
+            self._registerList[reg_str]['size'] * 4:
+            print (len(values) if type(values) is list else 1) + offset, self._registerList[reg_str]['size']
+            #raise LibraryError("Too much data to write to register %s on nodes %s" %
+            #                   (register, ', '.join([str(node) for node in nodes])))
+
         result = []
         if self._registerList[reg_str]['type'] == RegisterType.FifoRegister:
             # Write to be performed on a FIFO register
@@ -169,7 +176,7 @@ class UniBoard(FPGABoard):
 
         self._logger.debug(self.log("Called write_register"))
         if any([True for res in result if res == Error.Failure]):
-            raise BoardError("Failed to write_register %s on nodes %s" % (register, ','.join([str(node) for node in nodes])))
+            raise BoardError("Failed to write_register %s on nodes %s" % (register, ', '.join([str(node) for node in nodes])))
 
     def read_register(self, register, n = 1, offset = 0, device = None):
         """" Get register value
@@ -207,7 +214,13 @@ class UniBoard(FPGABoard):
                 register = '.'.join(register.split('.')[1:])
 
         # Get the register type (whether firo or normal)
-        register_type = self._registerList['fpga%d.%s' % (int(log(nodes[0].value, 2) + 1), register)]['type']
+        reg_str = 'fpga%d.%s' % (int(log(nodes[0].value, 2) + 1), register)
+        register_type = self._registerList[reg_str]['type']
+
+        # Check if write length is valid
+        if n * 4 + offset > self._registerList[reg_str]['size'] * 4:
+            raise LibraryError("Too much data to read from register %s on nodes %s" %
+                               (register, ', '.join([str(node) for node in nodes])))
 
         result = []
         if register_type == RegisterType.FifoRegister:
@@ -252,6 +265,32 @@ class UniBoard(FPGABoard):
                                           [result.values[i] for i in range(n)]))
 
         return return_values
+
+    def write_address(self, address, values, device = None):
+        """ Override write to memory address
+        :param address: Address to write to
+        :param values: Values to write
+        :param device: List of nodes can be explicitly specified
+        :return: Values
+        """
+
+        # Perform basic checks
+        if not self._checks():
+            return
+
+        # Get list of nodes
+        if device is None:
+            raise LibraryError("List of nodes must be specified")
+        nodes = self._get_nodes(device)
+
+        # Change nodes to list if it is not already a list
+        nodes = nodes if type(nodes) is list else [nodes]
+
+        # Perform write
+        result = []
+        if len(nodes) == 1:
+            result.append([call_write_address(self.id, address)])
+
 
     def _convert_node_to_device(self, node):
         """ Convert a node from a nodelist to a device
@@ -373,7 +412,7 @@ class UniBoard(FPGABoard):
         return string
 
 if __name__ == "__main__":
-    # Simple tests, make sure mock_uniboard.py is running
+    # Simple tests, make sure uniboard_simulator.py is running
     nodelist = [(0,'F'), (1,'F'),(2,'F'), (3,'F'), (4,'B'), (5,'B'),(6,'B'), (7,'B')]
     unb = UniBoard(ip = "127.0.0.1", port = 50000, nodelist = nodelist)
 
@@ -383,5 +422,5 @@ if __name__ == "__main__":
 
     unb.write_register('1.regfile.date_code', 45)
     print unb.read_register('1.regfile.date_code')
-    unb['fpga1.regfile.date_code'] = 24
-    print unb['fpga1.regfile.date_code']
+    unb['fpga2.regfile.date_code'] = 24
+    print unb['fpga2.regfile.date_code']

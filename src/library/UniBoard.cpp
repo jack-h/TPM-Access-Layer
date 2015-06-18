@@ -168,7 +168,7 @@ VALUES UniBoard::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
     }
 
     // Otherwise , send request through protocol
-    VALUES vals = connections[(int) log2(device + 1)] -> readRegister(0, n, offset);
+    VALUES vals = connections[(int) log2(device + 1)] -> readRegister(info -> address, n, offset);
 
     // If failed, return
     if (vals.error == FAILURE)
@@ -179,6 +179,18 @@ VALUES UniBoard::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
         vals.values[i] = (vals.values[i] & info -> bitmask) >> info -> shift;
 
     return vals;
+}
+
+// Get address value
+VALUES UniBoard::readAddress(DEVICE device, UINT address, UINT n)
+{
+    return connections[(int) log2(device + 1)] -> readRegister(address, n);
+}
+
+// Set address value
+RETURN UniBoard::writeAddress(DEVICE device, UINT address, UINT *values, UINT n)
+{
+    return connections[(int) log2(device + 1)] -> writeRegister(address, values, n);
 }
 
 // Get fifo register value
@@ -229,14 +241,6 @@ RETURN UniBoard::loadFirmware(DEVICE device, const char *bitstream)
 }
 
 // =========================== NOT IMPLEMENTED FOR UNIBOARD ===========================
-
-// Get address value. Not applicable to UniBoard
-VALUES UniBoard::readAddress(UINT address, UINT n)
-{ return {NULL, NOT_IMPLEMENTED}; }
-
-// Set address value. Not applicable to UniBoard
-RETURN UniBoard::writeAddress(UINT address, UINT *values, UINT n)
-{ return NOT_IMPLEMENTED; }
 
 // For now this is not implemented
 FIRMWARE UniBoard::getFirmware(DEVICE device, UINT *num_firmware)

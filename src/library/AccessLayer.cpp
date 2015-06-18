@@ -255,7 +255,7 @@ RETURN  writeFifoRegister(ID id, DEVICE device, REGISTER reg, UINT *values, UINT
 }
 
 // Read from address
-VALUES  readAddress(ID id, UINT address, UINT n)
+VALUES  readAddress(ID id, DEVICE device, UINT address, UINT n)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -270,12 +270,12 @@ VALUES  readAddress(ID id, UINT address, UINT n)
     Board *board = it -> second;
 
     // Get address value from board
-    return board -> readAddress(address, n);
+    return board -> readAddress(device, address, n);
 }
 
 
 // Write from address
-RETURN  writeAddress(ID id, UINT address, UINT *values, UINT n)
+RETURN  writeAddress(ID id, DEVICE device, UINT address, UINT *values, UINT n)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -290,7 +290,7 @@ RETURN  writeAddress(ID id, UINT address, UINT *values, UINT n)
     Board *board = it -> second;
 
     // Write value to address on board
-    return board -> writeAddress(address, values, n);
+    return board -> writeAddress(device, address, values, n);
 }
 
 // Get a device's value

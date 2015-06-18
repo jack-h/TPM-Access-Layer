@@ -5,7 +5,7 @@ from pyfabil.base.definitions import *
 
 
 class FirmwareTest2(FirmwareBlock):
-    """ FirmwareBlock test class """
+    """ FirmwareBlock tests class """
 
     @compatibleboards(BoardMake.TpmBoard)
     @friendlyname('firmware_test2')

@@ -127,7 +127,7 @@ class FPGABoard(object):
         :return: Status
         """
 
-        # Run generic board test
+        # Run generic board tests
         status = self.get_status()
         if status is not Status.OK:
             return status
@@ -414,7 +414,7 @@ class FPGABoard(object):
         if err == Error.Failure:
             raise BoardError("Failed to write_register %s on board" % register)
 
-    def read_address(self, address, n = 1):
+    def read_address(self, address, n = 1, device = None):
         """" Get register value
          :param address: Memory address to read from
          :param n: Number of words to read
@@ -429,7 +429,7 @@ class FPGABoard(object):
         else:
             return ret
 
-    def write_address(self, address, values):
+    def write_address(self, address, values, device = None):
         """ Set register value
          :param address: Memory address to write to
          :param values: Values to write
@@ -646,14 +646,14 @@ class FPGABoard(object):
 if __name__ == "__main__":
     from pyfabil.boards.tpm import TPM
     tpm = TPM()
-    # Simple TPM test
+    # Simple TPM tests
     # tpm = TPM(ip="127.0.0.1", port=10000)
     # tpm.loadFirmwareBlocking(Device.FPGA_1, "/home/lessju/map.xml")
     # tpm['fpga1.regfile.block2048b'] = [1] * 512
     # print tpm['fpga1.regfile.block2048b']
     # tpm.disconnect()
     #
-    # # Simple ROACH test
+    # # Simple ROACH tests
     # roach = Roach(ip="192.168.100.2", port=7147)
     # roach.getFirmwareList()
     # roach.loadFirmwareBlocking("fenggbe.bof")

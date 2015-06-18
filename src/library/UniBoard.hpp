@@ -42,10 +42,10 @@ class UniBoard: public Board
         RETURN writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UINT n = 1);
 
         // Get address value
-        VALUES readAddress(UINT address, UINT n = 1);
+        VALUES readAddress(DEVICE device, UINT address, UINT n);
 
         // Set address value
-        RETURN writeAddress(UINT address, UINT *values, UINT n = 1);
+        RETURN writeAddress(DEVICE device, UINT address, UINT *values, UINT n);
 
         // Get list of firmware from board
         FIRMWARE getFirmware(DEVICE device, UINT *num_firmware);
