@@ -1,4 +1,4 @@
-from plugins.firmwareblock import FirmwareBlock
+from pyfabil.plugins.firmwareblock import FirmwareBlock
 
 from pyfabil.plugins.firmwaretest import FirmwareTest
 from pyfabil.base.definitions import *
