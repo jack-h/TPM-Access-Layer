@@ -39,7 +39,7 @@ class FPGABoard(object):
 
         # Get list of available plugins
         # noinspection PyUnresolvedReferences
-        for plugin in [cls.__name__ for cls in sys.modules['plugins'].FirmwareBlock.__subclasses__()]:
+        for plugin in [cls.__name__ for cls in sys.modules['pyfabil.plugins'].FirmwareBlock.__subclasses__()]:
             constr = eval(plugin).__init__.__dict__
             friendly_name = plugin
             if "_friendly_name" in constr:
@@ -422,7 +422,7 @@ class FPGABoard(object):
          """
 
         # Call function and return
-        ret = call_read_address(self.id, address, n)
+        ret = call_read_address(self.id, Device.FPGA_1, address, n)
         self._logger.debug(self.log("Called read_address"))
         if ret == Error.Failure:
             raise BoardError("Failed to read_address %s on board" % hex(address))
@@ -436,7 +436,7 @@ class FPGABoard(object):
          """
 
         # Call function and return
-        err = call_write_address(self.id, address, values)
+        err = call_write_address(self.id, device.FPGA_1, address, values)
         self._logger.debug(self.log("Called write_address"))
         if err == Error.Failure:
             raise BoardError("Failed to write_address %s on board" % hex(address))

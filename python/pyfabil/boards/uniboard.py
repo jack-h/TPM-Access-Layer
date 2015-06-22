@@ -270,7 +270,7 @@ class UniBoard(FPGABoard):
         """ Override write to memory address
         :param address: Address to write to
         :param values: Values to write
-        :param device: List of nodes can be explicitly specified
+        :param device: List of nodes need to be explicitly specified
         :return: Values
         """
 
@@ -290,6 +290,67 @@ class UniBoard(FPGABoard):
         result = []
         if len(nodes) == 1:
             result.append([call_write_address(self.id, address)])
+        else:
+            # Use thread pool to parallelise calls over nodes
+            with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:
+                for res in executor.map(lambda p: call_write_address(*p),
+                                        [(self.id, node, address, values) for node in nodes]):
+                    result.append(res)
+
+        self._logger.debug(self.log("Called write_register"))
+        if any([True for res in result if res == Error.Failure]):
+            raise BoardError("Failed to write_address %s on nodes %s" % (hex(address), ', '.join([str(node) for node in nodes])))
+
+    def read_address(self, address, n = 1, device = None):
+        """ Override read from memory address
+        :param address: Address to read from
+        :param n: Values to read
+        :param device: List of nodes need to be explicitly specified
+        :return: Values
+        """
+
+        # Perform checks
+        if not self._checks():
+            return
+
+        # Get list of nodes
+        if device is None:
+            raise LibraryError("List of nodes must be specified")
+        nodes = self._get_nodes(device)
+
+         # Change nodes to list if it is not already a list
+        nodes = nodes if type(nodes) is list else [nodes]
+
+        # Perform read
+        result = []
+        if len(nodes) == 1:
+            values = call_read_address(self.id, nodes[0], address, n)
+            result.append((nodes[0], values.error, values.values))
+        else:
+            # Use thread pool to parallelise calls over nodes
+            with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:
+                for node in nodes:
+                    result.append((node, executor.submit(lambda p: call_read_address(*p),
+                                                             [self.id, node, address, n])))
+
+        # Finished reading, process return values
+        return_values = []
+        if len(nodes) == 1:
+            for node, error, values in result:
+                if error == Error.Failure:
+                    raise BoardError("Failed to read_register %s from node %s" % ('1', '2'))
+                else:
+                    return_values.append((self._device_node_map[node], error, [values[i] for i in range(n)]))
+        else:
+            for node, future in result:
+                result = future.result()
+                if result.error == Error.Failure:
+                    raise BoardError("Failed to read_register %s from node %s" % ('1', '2'))
+                else:
+                    return_values.append((self._device_node_map[node], result.error,
+                                          [result.values[i] for i in range(n)]))
+
+        return return_values
 
 
     def _convert_node_to_device(self, node):
@@ -424,3 +485,5 @@ if __name__ == "__main__":
     print unb.read_register('1.regfile.date_code')
     unb['fpga2.regfile.date_code'] = 24
     print unb['fpga2.regfile.date_code']
+    unb.write_address(0x1000, 25, device = devices)
+    print unb.read_address(0x1000, device = devices)

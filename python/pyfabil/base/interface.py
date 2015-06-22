@@ -66,11 +66,11 @@ def initialise_library(filepath = None):
     library.writeFifoRegister.restype = ctypes.c_int
 
     # Define readRegister function
-    library.readAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32]
+    library.readAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32]
     library.readAddress.restype = ValuesStruct
 
     # Define writeRegister function
-    library.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
+    library.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
     library.writeAddress.restype = ctypes.c_int
 
     # Define getDeviceList function
@@ -329,9 +329,10 @@ def call_write_fifo_register(board_id, device, register, values):
     else:
         return Error.Failure
 
-def call_read_address(board_id, address, n = 1):
+def call_read_address(board_id, device, address, n = 1):
     """ Read form address on board
     :param board_id: ID of board to operate upon
+    :param device: Device on board to operate upon
     :param address: Memory address to read from
     :param n: Number of words to read
     :return: Memory-mapped values
@@ -339,7 +340,7 @@ def call_read_address(board_id, address, n = 1):
     global library
 
     # Call function
-    values = library.readAddress(board_id, address, n)
+    values = library.readAddress(board_id, device.value(), address, n)
 
     # Check if value succeeded, othewise rerturn
     if values.error == Error.Failure.value:
@@ -353,9 +354,11 @@ def call_read_address(board_id, address, n = 1):
     else:
         return [valPtr[i] for i in range(n)]
 
-def call_write_address(board_id, address, values):
+
+def call_write_address(board_id, device, address, values):
     """ Write to address on board
     :param board_id: ID of board to operate upon
+    :param device: Device on board to operate upon
     :param address: Memory address to write to
     :param values: Values to write to memory
     :return: Success or Failure
@@ -371,12 +374,12 @@ def call_write_address(board_id, address, values):
         addr = ctypes.addressof(num)
         ptr  = ctypes.cast(addr, INTP)
 
-        return Error(library.writeAddress(board_id, address, ptr, 1))
+        return Error(library.writeAddress(board_id, device.value, address, ptr, 1))
 
     elif type(values) is list:
         n = len(values)
         vals = (ctypes.c_uint32 * n) (*values)
-        return Error(library.writeAddress(board_id, address, vals, n))
+        return Error(library.writeAddress(board_id, device.value, address, vals, n))
     else:
         return Error.Failure
 
