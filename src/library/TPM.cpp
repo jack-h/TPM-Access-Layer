@@ -150,7 +150,10 @@ RETURN TPM::writeAddress(DEVICE device, UINT address, UINT *values, UINT n)
 // Get list of SPI devices
 SPI_DEVICE_INFO *TPM::getDeviceList(UINT *num_devices)
 {
-    return spi_devices -> getSPIList(num_devices);
+    if (spi_devices != NULL)
+        return spi_devices -> getSPIList(num_devices);
+    else
+        return NULL;
 }
 
 // Read value from device
