@@ -200,7 +200,6 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
     for(;;)
     {
         VALUES vals = protocol -> readRegister(spi_devices -> cmd_address);
-        printf("Second Value: %d\n", (vals.values[0] & (spi_devices -> cmd_start_mask)));
         if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
             break;
         sleep(1);
@@ -208,9 +207,7 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
 
     // Request ready on device, grab data
     VALUES vals = protocol -> readRegister(spi_devices -> read_data);
-    printf("%#010x\n", spi_devices -> read_data);
     vals.values[0] = vals.values[0] & 0xFF;
-    printf("%#010x\n", vals.values[0]);
     // All done
     return vals;
 }

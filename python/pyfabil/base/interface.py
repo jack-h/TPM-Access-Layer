@@ -393,7 +393,7 @@ def call_read_device(board_id, device, address):
     global library
 
     # Call function
-    values = library.read_device(board_id, device, address)
+    values = library.readDevice(board_id, device, address)
 
     # Check if value succeeded, otherwise reture
     if values.error == Error.Failure.value:
