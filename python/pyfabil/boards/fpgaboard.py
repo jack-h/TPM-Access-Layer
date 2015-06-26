@@ -436,7 +436,7 @@ class FPGABoard(object):
          """
 
         # Call function and return
-        err = call_write_address(self.id, device.FPGA_1, address, values)
+        err = call_write_address(self.id, Device.FPGA_1, address, values)
         self._logger.debug(self.log("Called write_address"))
         if err == Error.Failure:
             raise BoardError("Failed to write_address %s on board" % hex(address))

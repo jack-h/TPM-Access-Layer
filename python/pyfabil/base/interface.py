@@ -66,7 +66,7 @@ def initialise_library(filepath = None):
     library.writeFifoRegister.restype = ctypes.c_int
 
     # Define readRegister function
-    library.readAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32]
+    library.readAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32]
     library.readAddress.restype = ValuesStruct
 
     # Define writeRegister function
@@ -340,7 +340,7 @@ def call_read_address(board_id, device, address, n = 1):
     global library
 
     # Call function
-    values = library.readAddress(board_id, device.value(), address, n)
+    values = library.readAddress(board_id, device.value, address, n)
 
     # Check if value succeeded, othewise rerturn
     if values.error == Error.Failure.value:
