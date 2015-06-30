@@ -280,10 +280,11 @@ class FPGABoard(object):
 
         return self._firmwareList
 
-    def load_firmware_blocking(self, device, filepath):
+    def load_firmware_blocking(self, device, filepath, load_values = False):
         """ Blocking call to load firmware
          :param device: Device on board to load firmware to
          :param filepath: Path to firmware
+         :param load_values: Load register values
          """
         
         # Check if device argument is of type Device
@@ -299,7 +300,7 @@ class FPGABoard(object):
         if err == Error.Success:
             self._programmed = True
             self.status = Status.OK
-            self.get_register_list()
+            self.get_register_list(load_values)
             self.get_device_list()
             self._logger.info(self.log("Successfuly loaded firmware %s on board" % filepath))
         else:
@@ -307,8 +308,10 @@ class FPGABoard(object):
             self.status = Status.LoadingFirmwareError
             raise BoardError("load_firmware_blocking failed on board")
 
-    def get_register_list(self):
-        """ Get list of registers """
+    def get_register_list(self, load_values = False):
+        """ Get list of registers
+        :param load_values: Load register values
+        """
 
         # Check if register list has already been acquired, and if so return it
         if self._registerList is not None:
@@ -319,7 +322,7 @@ class FPGABoard(object):
             raise LibraryError("Cannot get_register_list from board which has not been programmed")
 
         # Call function
-        self._registerList = call_get_register_list(self.id)
+        self._registerList = call_get_register_list(self.id, load_values)
         self._logger.debug(self.log("Called get_register_list on board"))
 
         # All done, return
