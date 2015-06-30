@@ -67,13 +67,14 @@ STATUS UniBoard::getStatus()
 }
 
 // Get register list from memory map
-REGISTER_INFO *UniBoard::getRegisterList(UINT *num_registers)
+REGISTER_INFO *UniBoard::getRegisterList(UINT *num_registers, bool load_values)
 {
     // Call memory map to get register information
     REGISTER_INFO* regInfo = memory_map -> getRegisterList(num_registers);
 
     // Populate structure with register values
-    this -> initialiseRegisterValues(regInfo, *num_registers);
+    if (load_values)
+        this -> initialiseRegisterValues(regInfo, *num_registers);
 
     // All done, return
     return regInfo;

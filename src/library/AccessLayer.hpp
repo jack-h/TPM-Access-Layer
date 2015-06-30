@@ -59,7 +59,7 @@ extern "C" STATUS getStatus(ID id);
 //   id    Board ID
 // Returns:
 //   Array of REGISTER_INFO
-extern "C" REGISTER_INFO* getRegisterList(ID id, UINT *num_registers);
+extern "C" REGISTER_INFO* getRegisterList(ID id, UINT *num_registers, bool load_values = false);
 
 // Get a register's value
 // Arguments:

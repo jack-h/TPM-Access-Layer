@@ -46,7 +46,7 @@ def initialise_library(filepath = None):
     library.loadFirmware.restype = ctypes.c_int
 
     # Define getRegisterList function
-    library.getRegisterList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_int)]
+    library.getRegisterList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_int), ctypes.c_bool]
     library.getRegisterList.restype = ctypes.POINTER(RegisterInfoStruct)
 
     # Define readRegister function
@@ -165,9 +165,10 @@ def call_load_firmware(board_id, device, filepath):
     global library
     return Error(library.loadFirmware(board_id, device.value, filepath))
 
-def call_get_register_list(board_id):
+def call_get_register_list(board_id, load_values = False):
     """ Get list of available registers on board
     :param board_id: ID of board to query
+    :param load_values: Load current register values when getting list
     :return: List of registers
     """
     global library
@@ -179,7 +180,7 @@ def call_get_register_list(board_id):
     ptr  = ctypes.cast(addr, INTP)
 
     # Call function
-    registers = library.getRegisterList(board_id, ptr)
+    registers = library.getRegisterList(board_id, ptr, load_values)
 
     # Create device map for register names
     names = { Device.Board : "board", Device.FPGA_1 : "fpga1", Device.FPGA_2 : "fpga2",
@@ -411,7 +412,7 @@ def call_write_device(board_id, device, address, value):
     :param device: Device on board to operate upon
     :param address: Address on device to write to
     :param value: Value to write
-    :return: Success of Failure
+    :return: Success of Failurent hawn
     """
     global library
 
