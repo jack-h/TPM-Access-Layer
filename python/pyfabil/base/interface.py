@@ -46,7 +46,7 @@ def initialise_library(filepath = None):
     library.loadFirmware.restype = ctypes.c_int
 
     # Define getRegisterList function
-    library.getRegisterList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_int)]
+    library.getRegisterList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_int), ctypes.c_bool]
     library.getRegisterList.restype = ctypes.POINTER(RegisterInfoStruct)
 
     # Define readRegister function
@@ -66,11 +66,11 @@ def initialise_library(filepath = None):
     library.writeFifoRegister.restype = ctypes.c_int
 
     # Define readRegister function
-    library.readAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32]
+    library.readAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32]
     library.readAddress.restype = ValuesStruct
 
     # Define writeRegister function
-    library.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
+    library.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
     library.writeAddress.restype = ctypes.c_int
 
     # Define getDeviceList function
@@ -165,9 +165,10 @@ def call_load_firmware(board_id, device, filepath):
     global library
     return Error(library.loadFirmware(board_id, device.value, filepath))
 
-def call_get_register_list(board_id):
+def call_get_register_list(board_id, load_values = False):
     """ Get list of available registers on board
     :param board_id: ID of board to query
+    :param load_values: Load current register values when getting list
     :return: List of registers
     """
     global library
@@ -179,7 +180,7 @@ def call_get_register_list(board_id):
     ptr  = ctypes.cast(addr, INTP)
 
     # Call function
-    registers = library.getRegisterList(board_id, ptr)
+    registers = library.getRegisterList(board_id, ptr, load_values)
 
     # Create device map for register names
     names = { Device.Board : "board", Device.FPGA_1 : "fpga1", Device.FPGA_2 : "fpga2",
@@ -329,9 +330,10 @@ def call_write_fifo_register(board_id, device, register, values):
     else:
         return Error.Failure
 
-def call_read_address(board_id, address, n = 1):
+def call_read_address(board_id, device, address, n = 1):
     """ Read form address on board
     :param board_id: ID of board to operate upon
+    :param device: Device on board to operate upon
     :param address: Memory address to read from
     :param n: Number of words to read
     :return: Memory-mapped values
@@ -339,7 +341,7 @@ def call_read_address(board_id, address, n = 1):
     global library
 
     # Call function
-    values = library.readAddress(board_id, address, n)
+    values = library.readAddress(board_id, device.value, address, n)
 
     # Check if value succeeded, othewise rerturn
     if values.error == Error.Failure.value:
@@ -353,9 +355,11 @@ def call_read_address(board_id, address, n = 1):
     else:
         return [valPtr[i] for i in range(n)]
 
-def call_write_address(board_id, address, values):
+
+def call_write_address(board_id, device, address, values):
     """ Write to address on board
     :param board_id: ID of board to operate upon
+    :param device: Device on board to operate upon
     :param address: Memory address to write to
     :param values: Values to write to memory
     :return: Success or Failure
@@ -371,12 +375,12 @@ def call_write_address(board_id, address, values):
         addr = ctypes.addressof(num)
         ptr  = ctypes.cast(addr, INTP)
 
-        return Error(library.writeAddress(board_id, address, ptr, 1))
+        return Error(library.writeAddress(board_id, device.value, address, ptr, 1))
 
     elif type(values) is list:
         n = len(values)
         vals = (ctypes.c_uint32 * n) (*values)
-        return Error(library.writeAddress(board_id, address, vals, n))
+        return Error(library.writeAddress(board_id, device.value, address, vals, n))
     else:
         return Error.Failure
 
@@ -390,7 +394,7 @@ def call_read_device(board_id, device, address):
     global library
 
     # Call function
-    values = library.read_device(board_id, device, address)
+    values = library.readDevice(board_id, device, address)
 
     # Check if value succeeded, otherwise reture
     if values.error == Error.Failure.value:
@@ -408,7 +412,7 @@ def call_write_device(board_id, device, address, value):
     :param device: Device on board to operate upon
     :param address: Address on device to write to
     :param value: Value to write
-    :return: Success of Failure
+    :return: Success of Failurent hawn
     """
     global library
 

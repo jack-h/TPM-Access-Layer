@@ -1,6 +1,6 @@
 from pyfabil.plugins.firmwareblock import FirmwareBlock
 from pyfabil.base.definitions import *
-
+import logging
 
 class FirmwareTest(FirmwareBlock):
     """ FirmwareBlock tests class """
@@ -45,7 +45,7 @@ class FirmwareTest(FirmwareBlock):
         """ Test method
         :return: None
         """
-        return self.board.read_register(Device.Board, 'regfile.date_code')
+        return self.board.read_register('board.regfile.date_code')
 
     @validstates(BoardState.All)
     def write_date_code(self, value):
@@ -53,4 +53,4 @@ class FirmwareTest(FirmwareBlock):
         :param value: Value to write to date_code
         :return: None
         """
-        return self.board.write_register(Device.Board, 'regfile.date_code', value)
+        return self.board.write_register('board.regfile.date_code', value)

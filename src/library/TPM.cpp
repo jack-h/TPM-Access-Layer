@@ -42,13 +42,14 @@ STATUS TPM::getStatus()
 }
 
 // Get register list from memory map
-REGISTER_INFO* TPM::getRegisterList(UINT *num_registers)
+REGISTER_INFO * TPM::getRegisterList(UINT *num_registers, bool load_values)
 {
 	// Call memory map to get register information
     REGISTER_INFO* regInfo = memory_map -> getRegisterList(num_registers);
 	
 	// Populate structure with register values
-	this -> initialiseRegisterValues(regInfo, *num_registers);
+    if (load_values)
+	    this -> initialiseRegisterValues(regInfo, *num_registers);
 	
 	// All done, return
 	return regInfo;
@@ -150,7 +151,10 @@ RETURN TPM::writeAddress(DEVICE device, UINT address, UINT *values, UINT n)
 // Get list of SPI devices
 SPI_DEVICE_INFO *TPM::getDeviceList(UINT *num_devices)
 {
-    return spi_devices -> getSPIList(num_devices);
+    if (spi_devices != NULL)
+        return spi_devices -> getSPIList(num_devices);
+    else
+        return NULL;
 }
 
 // Read value from device
@@ -197,7 +201,6 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
     for(;;)
     {
         VALUES vals = protocol -> readRegister(spi_devices -> cmd_address);
-        printf("Second Value: %d\n", (vals.values[0] & (spi_devices -> cmd_start_mask)));
         if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
             break;
         sleep(1);
@@ -205,9 +208,7 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
 
     // Request ready on device, grab data
     VALUES vals = protocol -> readRegister(spi_devices -> read_data);
-    printf("%#010x\n", spi_devices -> read_data);
     vals.values[0] = vals.values[0] & 0xFF;
-    printf("%#010x\n", vals.values[0]);
     // All done
     return vals;
 }

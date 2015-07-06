@@ -30,7 +30,7 @@ class Board
         virtual STATUS getStatus() = 0;
 
         // Get register list
-        virtual REGISTER_INFO* getRegisterList(UINT *num_registers) = 0;
+        virtual REGISTER_INFO *getRegisterList(UINT *num_registers, bool load_values) = 0;
 
         // Get register value
         virtual VALUES readRegister(DEVICE device, REGISTER reg, UINT n = 1, UINT offset = 0) = 0;

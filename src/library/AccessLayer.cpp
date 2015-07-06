@@ -141,7 +141,7 @@ STATUS  getStatus(ID id)
 }
 
 // Get list of registers
-REGISTER_INFO* getRegisterList(ID id, UINT *num_registers)
+REGISTER_INFO* getRegisterList(ID id, UINT *num_registers, bool load_values)
 {    
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -156,7 +156,7 @@ REGISTER_INFO* getRegisterList(ID id, UINT *num_registers)
     Board *board = it -> second;
 
     // Return register list
-    return board -> getRegisterList(num_registers);
+    return board->getRegisterList(num_registers, false);
 }
 
 // Get list of SPI devices

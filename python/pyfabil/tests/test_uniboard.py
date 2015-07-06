@@ -229,8 +229,45 @@ class TestUniBoard(unittest.TestCase):
             self.assertEqual(result[i][2], [value] * 256)
 
     def test_write_read_address(self):
-        """ Test read write address, all combinations """
-        pass
+        """ Test read write fifo """
+        unb = UniBoard(ip = self._ip, port = self._port, nodelist = self._nodelist)
+        self.assertEqual(unb.get_status(), Status.OK)
+
+        # Call load firmware on all nodes
+        unb.load_firmware_blocking(self._devices.values(), self._config_file)
+        self.assertTrue(unb._programmed)
+        self.assertEqual(unb.get_status(), Status.OK)
+
+        value = 1
+        address = 0x1000
+        unb.write_address(address, value, device = self._devices.values())
+        result = unb.read_address(address, device = self._devices.values())
+        self.assertEqual(len(result), len(self._nodelist))
+        for i, node in enumerate(self._nodelist):
+            self.assertEqual(len(result[i]), 3)
+            self.assertEqual(result[i][0], node[0])
+            self.assertEqual(result[i][1], Error.Success.value)
+            self.assertEqual(result[i][2], [value])
+
+    # def test_write_read_fifo(self):
+    #     """ Test read write fifo """
+    #     unb = UniBoard(ip = self._ip, port = self._port, nodelist = self._nodelist)
+    #     self.assertEqual(unb.get_status(), Status.OK)
+    #
+    #     # Call load firmware on all nodes
+    #     unb.load_firmware_blocking(self._devices.values(), self._config_file)
+    #     self.assertTrue(unb._programmed)
+    #     self.assertEqual(unb.get_status(), Status.OK)
+    #
+    #     register = "all.regfile.fifo_register"
+    #     unb.write_register(register, value)
+    #     result = unb.read_register(register)
+    #     self.assertEqual(len(result), len(self._nodelist))
+    #     for i, node in enumerate(self._nodelist):
+    #         self.assertEqual(len(result[i]), 3)
+    #         self.assertEqual(result[i][0], node[0])
+    #         self.assertEqual(result[i][1], Error.Success.value)
+    #         self.assertEqual(result[i][2], [value])
 
 if __name__ == "__main__":
     unittest.TestLoader.sortTestMethodsUsing = None

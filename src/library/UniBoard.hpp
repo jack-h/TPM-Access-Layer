@@ -27,7 +27,7 @@ class UniBoard: public Board
         STATUS getStatus();
 
         // Get register list
-        REGISTER_INFO* getRegisterList(UINT *num_registers);
+        REGISTER_INFO *getRegisterList(UINT *num_registers, bool load_values);
 
         // Get register value
         VALUES readRegister(DEVICE device, REGISTER reg, UINT n = 1, UINT offset = 0);
