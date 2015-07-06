@@ -69,10 +69,32 @@ class Station_DS (PyTango.Device_4Impl):
 
     tpm_dict = []
 
+    def check_state_flow(self, fnName):
+        """ Checks if the current state the device is in one of the states in a given list of allowed states for a paticular function.
+        :param : Name of command to be executed
+        :type: String
+        :return: True if allowed, false if not.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In check_state_flow()")
+        argout = False
+        # get allowed states for this command
+        try:
+            fnAllowedStates = self.state_list[fnName]
+            allowed = self.attr_board_state_read in fnAllowedStates
+            if not allowed:
+                self.info_stream("Current state allowed: %s" % allowed)
+            argout = allowed
+        except DevFailed as df:
+            self.info_stream("Failed to check state flow: %s" % df)
+            argout = False
+        finally:
+            return argout
+
     # State flow definitions - allowed states for each command
     state_list = {
         'add_tpm': all_states_list,
-        'sink_alarm_state': all_states_list
+        'remove_tpm': all_states_list,
+        'connect_tpm': all_states_list
     }
     #----- PROTECTED REGION END -----#	//	Station_DS.global_variables
 
@@ -189,7 +211,7 @@ class Station_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
-                device_name = argin
+                device_name = argin['name']
                 sub_dict = self.tpm_dict[device_name]
 
                 #setup device
@@ -200,7 +222,7 @@ class Station_DS (PyTango.Device_4Impl):
                 # Connect to device
                 tpm_instance.command_inout("connect")
             except DevFailed as df:
-                self.debug_stream("Failed to connect all station devices: %s" % df)
+                self.debug_stream("Failed to connect to all station devices: %s" % df)
                 argout = ''
         else:
             self.debug_stream("Invalid state")
