@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="ASCII"?>
+<pogoDsl:PogoSystem xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pogoDsl="http://www.esrf.fr/tango/pogo/PogoDsl">
+  <classes name="Station_DS" pogoRevision="8.4">
+    <description description="A Tango device that manages an entire station of TPMs." title="AAVS Tango Station Driver" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices" language="Python" filestogenerate="XMI   file,Code files" license="GPL" hasMandatoryProperty="false" hasConcreteProperty="false" hasAbstractCommand="false" hasAbstractAttribute="false">
+      <inheritances classname="Device_Impl" sourcePath=""/>
+      <identification contact="at um.edu.mt - andrea.demarco" author="andrea.demarco" emailDomain="um.edu.mt" classFamily="Acquisition" siteSpecific="" platform="All Platforms" bus="Not Applicable" manufacturer="ISSA" reference="ISSA-AAVS1-STATION"/>
+    </description>
+    <commands name="State" description="This command gets the device state (stored in its device_state data member) and returns it to the caller." execMethod="dev_state" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="none">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="Device state">
+        <type xsi:type="pogoDsl:StateType"/>
+      </argout>
+      <status abstract="true" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="Status" description="This command gets the device status (stored in its device_status data member) and returns it to the caller." execMethod="dev_status" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="none">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="Device status">
+        <type xsi:type="pogoDsl:ConstStringType"/>
+      </argout>
+      <status abstract="true" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="add_tpm" description="Adds the Tango device proxy name to the list of TPMs managed &#xA;by this station." execMethod="add_tpm" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="The device proxy name, board type, IP address and port number&#xA; for communication are supplied as a serialized python dictionary, stored as a string.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="Returns true if operation is successful, false otherwise.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <commands name="remove_tpm" description="Removes the Tango device proxy name from the list of TPMs managed by this station." execMethod="remove_tpm" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="The Tango device proxy name of the TPM to remove from the station.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <commands name="connect_tpm" description="Instructs a particular TPM to connect." execMethod="connect_tpm" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="Tango device proxy name of TPM.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <preferences docHome="./doc_html" makefileHome="/usr/share/pogo/preferences"/>
+  </classes>
+</pogoDsl:PogoSystem>
