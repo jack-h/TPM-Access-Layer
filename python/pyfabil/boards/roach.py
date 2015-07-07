@@ -24,12 +24,12 @@ class Roach(FPGABoard):
         if len(self.get_register_list()) == 0:
             self._programmed = False
 
-    def get_register_list(self):
+    def get_register_list(self, load_values = False):
         """ Add functionality to getRegisterList in order to map register names 
             as python attributes """
 
         # Populate register list
-        super(Roach, self).get_register_list()
+        super(Roach, self).get_register_list(load_values)
 
         # Check if any register are present
         if self._registerList is None:
@@ -53,35 +53,35 @@ class Roach(FPGABoard):
 
     def read_register(self, register, n = 1, offset = 0):
         """ Roach helper for readRegister """
-        return super(Roach, self).read_register(Device.FPGA_1, register, n, offset)
+        return super(Roach, self).read_register(register, n, offset, device = Device.FPGA_1)
 
     def write_register(self, register, values, offset = 0):
         """ Roach helper for writeRegister"""
-        return super(Roach, self).write_register(Device.FPGA_1, register, values, offset)
+        return super(Roach, self).write_register(register, values, offset, device = Device.FPGA_1)
 
     def load_firmware_blocking(self, boffile):
         """ Roach helper for loadFirmwareBlocking """
         return super(Roach, self).load_firmware_blocking(Device.FPGA_1, boffile)
 
-    def loadFirmware(self, boffile):
+    def load_firmware(self, boffile):
        """ Roach helpder for loadFirmware """
        return super(Roach, self).loadFirmware(Device.FPGA_1, boffile)
 
     def read_address(self, address, n = 1):
         """ Roach helper for readAddress """
-        print "Read memory address not supported for ROACH"
+        raise NotImplemented("Read memory address not supported for ROACH")
 
     def write_address(self, address, values):
         """ Roach helper for writeAddress """
-        print "Write memory address not supported for ROACH"
+        raise NotImplemented("Write memory address not supported for ROACH")
 
     def write_device(self, device, address, value):
         """ Roach helper for writeDevice """
-        print "Write device is not supported for ROACH"
+        raise NotImplemented("Write device is not supported for ROACH")
 
     def read_device(self, device, address):
         """ Roach helper for readDevice """
-        print "Read device is not supported for ROACH"
+        raise NotImplemented("Read device is not supported for ROACH")
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
@@ -142,3 +142,8 @@ class Roach(FPGABoard):
         """ Override __str__ to print register information in a human readable format """
         super(Roach, self).list_register_names()
         return ""
+
+# if __name__ == '__main__':
+#     roach = Roach(ip="192.168.100.2", port=7147)
+#     roach.load_firmware_blocking('tut1_2015_Apr_11_1544.bof')
+#     print roach.a
