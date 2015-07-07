@@ -50,16 +50,17 @@ import PyTango
 import sys
 # Add additional import
 #----- PROTECTED REGION ID(Station_DS.additionnal_import) ENABLED START -----#
-from PyTango import DevState, Util, Attr, SpectrumAttr, Attribute, MultiAttribute
+from PyTango import DevState, Util, Attr, SpectrumAttr, Attribute, MultiAttribute, Group
 from PyTango._PyTango import DevFailed
-from pyfabil import Device, BoardState
+from pyfabil import Device, BoardState, BoardMake
 from types import *
 import pickle
 import inspect
 #----- PROTECTED REGION END -----#	//	Station_DS.additionnal_import
 
 ## Device States Description
-## No states for this device
+## ON : Station is ON.
+## ALARM : Station is in ALARM.
 
 class Station_DS (PyTango.Device_4Impl):
 
@@ -67,7 +68,10 @@ class Station_DS (PyTango.Device_4Impl):
     #----- PROTECTED REGION ID(Station_DS.global_variables) ENABLED START -----#
     all_states_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-    tpm_dict = []
+    tpm_dict = {}
+
+    station_devices = Group('station')
+
 
     def check_state_flow(self, fnName):
         """ Checks if the current state the device is in one of the states in a given list of allowed states for a paticular function.
@@ -80,7 +84,7 @@ class Station_DS (PyTango.Device_4Impl):
         # get allowed states for this command
         try:
             fnAllowedStates = self.state_list[fnName]
-            allowed = self.attr_board_state_read in fnAllowedStates
+            allowed = self.attr_station_state_read in fnAllowedStates
             if not allowed:
                 self.info_stream("Current state allowed: %s" % allowed)
             argout = allowed
@@ -94,7 +98,9 @@ class Station_DS (PyTango.Device_4Impl):
     state_list = {
         'add_tpm': all_states_list,
         'remove_tpm': all_states_list,
-        'connect_tpm': all_states_list
+        'connect_tpm': all_states_list,
+        'run_station_command': all_states_list,
+        'get_station_state': all_states_list
     }
     #----- PROTECTED REGION END -----#	//	Station_DS.global_variables
 
@@ -115,8 +121,10 @@ class Station_DS (PyTango.Device_4Impl):
     def init_device(self):
         self.debug_stream("In init_device()")
         self.get_device_properties(self.get_device_class())
+        self.attr_station_state_read = 0
         #----- PROTECTED REGION ID(Station_DS.init_device) ENABLED START -----#
-        
+        self.set_state(DevState.ON)
+        self.set_station_state(BoardState.Init.value)
         #----- PROTECTED REGION END -----#	//	Station_DS.init_device
 
     def always_executed_hook(self):
@@ -129,6 +137,13 @@ class Station_DS (PyTango.Device_4Impl):
     #    Station_DS read/write attribute methods
     #-----------------------------------------------------------------------------
     
+    def read_station_state(self, attr):
+        self.debug_stream("In read_station_state()")
+        #----- PROTECTED REGION ID(Station_DS.station_state_read) ENABLED START -----#
+        attr.set_value(self.attr_station_state_read)
+        self.info_stream(BoardState(self.attr_station_state_read))
+        #----- PROTECTED REGION END -----#	//	Station_DS.station_state_read
+        
     
     
         #----- PROTECTED REGION ID(Station_DS.initialize_dynamic_attributes) ENABLED START -----#
@@ -151,8 +166,8 @@ class Station_DS (PyTango.Device_4Impl):
         by this station.
         
         :param argin: 
-            The device proxy name, board type, IP address and port number for communication are supplied as a serialized
-            python dictionary, stored as a string.
+            The device proxy name, board type, IP address and port number
+             for communication are supplied as a serialized python dictionary, stored as a string.
         :type: PyTango.DevString
         :return: Returns true if operation is successful, false otherwise.
         :rtype: PyTango.DevBoolean """
@@ -167,8 +182,9 @@ class Station_DS (PyTango.Device_4Impl):
                 device_type = arguments['type']
                 device_ip = arguments['ip']
                 device_port = arguments['port']
-                sub_dict = {'type':device_type, 'ip':device_ip, 'port':device_port}
+                sub_dict = {'type': device_type, 'ip': device_ip, 'port': device_port}
                 self.tpm_dict[device_proxy_name] = sub_dict
+                self.station_devices.add(device_proxy_name)
             except DevFailed as df:
                 self.debug_stream("Failed to add tpm to station: %s" % df)
                 argout = ''
@@ -191,6 +207,7 @@ class Station_DS (PyTango.Device_4Impl):
             try:
                 device_proxy_name = argin
                 del self.tpm_dict[device_proxy_name]
+                self.station_devices.remove(device_proxy_name)
             except DevFailed as df:
                 self.debug_stream("Failed to remove tpm from station: %s" % df)
                 argout = ''
@@ -211,7 +228,7 @@ class Station_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
-                device_name = argin['name']
+                device_name = argin
                 sub_dict = self.tpm_dict[device_name]
 
                 #setup device
@@ -221,12 +238,96 @@ class Station_DS (PyTango.Device_4Impl):
 
                 # Connect to device
                 tpm_instance.command_inout("connect")
+                self.info_stream("Connected: %s" % device_name)
             except DevFailed as df:
                 self.debug_stream("Failed to connect to all station devices: %s" % df)
                 argout = ''
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	Station_DS.connect_tpm
+        return argout
+        
+    def set_station_state(self, argin):
+        """ Sets the station status by passing in a value.
+                UNKNOWN	=  0
+                INIT		=  1
+                ON		=  2
+                RUNNING	=  3
+                FAULT		=  4
+                OFF		=  5
+                STANDBY	=  6
+                SHUTTING_DOWN	=  7
+                MAINTENANCE	=  8
+                LOW_POWER	=  9
+                SAFE_STATE	=  10
+        
+        :param argin: Station state.
+        :type: PyTango.DevLong
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In set_station_state()")
+        #----- PROTECTED REGION ID(Station_DS.set_station_state) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	Station_DS.set_station_state
+        
+    def run_station_command(self, argin):
+        """ This command takes the name of a command and executes it station-wide.
+        
+        The command must exist on all connected devices.
+        
+        :param argin: 
+            A pickled string containing:
+            1) Name of command
+            2) Arguments for command
+        :type: PyTango.DevString
+        :return: True if operation was successful, false otherwise.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In run_station_command()")
+        argout = False
+        #----- PROTECTED REGION ID(Station_DS.run_station_command) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            try:
+                arguments = pickle.loads(argin)
+                fnName = arguments['fnName']
+                fnInput = arguments['fnInput']
+                replies = self.station_devices.command_inout(fnName, fnInput) #returns (sequence<GroupCmdReply>)
+                self.info_stream("Replies: %s" % replies)
+            except DevFailed as df:
+                self.debug_stream("Failed to run station-wide command: %s" % df)
+                argout = ''
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	Station_DS.run_station_command
+        return argout
+        
+    def get_station_state(self):
+        """ This commands returns a summary of the state of each TPM in the station.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: A pickled string storing the state of each TPM in the station.
+        :rtype: PyTango.DevString """
+        self.debug_stream("In get_station_state()")
+        argout = ''
+        #----- PROTECTED REGION ID(Station_DS.get_station_state) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            try:
+                states = {}
+                for device_proxy_name in self.tpm_dict:
+                    self.info_stream("Retrieving state from: %s" % device_proxy_name)
+                    tpm_instance = PyTango.DeviceProxy(device_proxy_name)
+                    tpm_state = tpm_instance.read_attribute("board_state")
+                    self.debug_stream("State: %s" % tpm_state.value)
+                    states[device_proxy_name] = tpm_state.value
+                argout = pickle.dumps(states)
+            except DevFailed as df:
+                self.debug_stream("Failed to report station board states: %s" % df)
+                argout = ''
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	Station_DS.get_station_state
         return argout
         
 
@@ -280,11 +381,24 @@ class Station_DSClass(PyTango.DeviceClass):
         'connect_tpm':
             [[PyTango.DevString, "Tango device proxy name of TPM."],
             [PyTango.DevBoolean, "none"]],
+        'set_station_state':
+            [[PyTango.DevLong, "Station state."],
+            [PyTango.DevVoid, "none"]],
+        'run_station_command':
+            [[PyTango.DevString, "A pickled string containing:\n1) Name of command\n2) Arguments for command"],
+            [PyTango.DevBoolean, "True if operation was successful, false otherwise."]],
+        'get_station_state':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevString, "A pickled string storing the state of each TPM in the station."]],
         }
 
 
     #    Attribute definitions
     attr_list = {
+        'station_state':
+            [[PyTango.DevLong,
+            PyTango.SCALAR,
+            PyTango.READ]],
         }
 
 

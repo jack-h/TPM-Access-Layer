@@ -56,7 +56,8 @@ from pyfabil import TPM, BoardState
 #----- PROTECTED REGION END -----#	//	TPM_DS.additionnal_import
 
 ## Device States Description
-## No states for this device
+## ON : Device is ON for alarm/event handling.
+## ALARM : Device is ALARM for alarm/event handling.
 
 class TPM_DS (FPGA_DS):
 
@@ -82,6 +83,10 @@ class TPM_DS (FPGA_DS):
     def init_device(self):
         self.debug_stream("In init_device()")
         self.get_device_properties(self.get_device_class())
+        self.attr_board_state_read = 0
+        self.attr_is_programmed_read = False
+        self.attr_ip_address_read = ''
+        self.attr_port_read = 0
         #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
         self.fpga_instance = TPM()
         #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
@@ -96,6 +101,48 @@ class TPM_DS (FPGA_DS):
     #    TPM_DS read/write attribute methods
     #-----------------------------------------------------------------------------
     
+    def read_board_state(self, attr):
+        self.debug_stream("In read_board_state()")
+        #----- PROTECTED REGION ID(TPM_DS.board_state_read) ENABLED START -----#
+        #attr.set_value(self.attr_board_state_read)
+        super(TPM_DS, self).read_board_state(attr)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.board_state_read
+        
+    def read_is_programmed(self, attr):
+        self.debug_stream("In read_is_programmed()")
+        #----- PROTECTED REGION ID(TPM_DS.is_programmed_read) ENABLED START -----#
+        #attr.set_value(self.attr_is_programmed_read)
+        super(TPM_DS, self).read_is_programmed(attr)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.is_programmed_read
+        
+    def read_ip_address(self, attr):
+        self.debug_stream("In read_ip_address()")
+        #----- PROTECTED REGION ID(TPM_DS.ip_address_read) ENABLED START -----#
+        #attr.set_value(self.attr_ip_address_read)
+        super(TPM_DS, self).read_ip_address(attr)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.ip_address_read
+        
+    def write_ip_address(self, attr):
+        self.debug_stream("In write_ip_address()")
+        data=attr.get_write_value()
+        #----- PROTECTED REGION ID(TPM_DS.ip_address_write) ENABLED START -----#
+        super(TPM_DS, self).write_ip_address(attr)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.ip_address_write
+        
+    def read_port(self, attr):
+        self.debug_stream("In read_port()")
+        #----- PROTECTED REGION ID(TPM_DS.port_read) ENABLED START -----#
+        #attr.set_value(self.attr_port_read)
+        super(TPM_DS, self).read_port(attr)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.port_read
+        
+    def write_port(self, attr):
+        self.debug_stream("In write_port()")
+        data=attr.get_write_value()
+        #----- PROTECTED REGION ID(TPM_DS.port_write) ENABLED START -----#
+        super(TPM_DS, self).write_port(attr)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.port_write
+        
     
     
         #----- PROTECTED REGION ID(TPM_DS.initialize_dynamic_attributes) ENABLED START -----#
@@ -105,7 +152,7 @@ class TPM_DS (FPGA_DS):
     def read_attr_hardware(self, data):
         self.debug_stream("In read_attr_hardware()")
         #----- PROTECTED REGION ID(TPM_DS.read_attr_hardware) ENABLED START -----#
-        super(TPM_DS, self).read_attr_hardware()
+        super(TPM_DS, self).read_attr_hardware(data)
         #----- PROTECTED REGION END -----#	//	TPM_DS.read_attr_hardware
 
 
@@ -571,6 +618,22 @@ class TPM_DSClass(FPGA_DSClass):
 
     #    Attribute definitions
     attr_list = {
+        'board_state':
+            [[PyTango.DevLong,
+            PyTango.SCALAR,
+            PyTango.READ]],
+        'is_programmed':
+            [[PyTango.DevBoolean,
+            PyTango.SCALAR,
+            PyTango.READ]],
+        'ip_address':
+            [[PyTango.DevString,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE]],
+        'port':
+            [[PyTango.DevULong,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE]],
         }
     attr_list.update(FPGA_DSClass.attr_list)
 
