@@ -240,6 +240,32 @@
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
+    <attributes name="board_state" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
+      <dataType xsi:type="pogoDsl:IntType"/>
+      <status abstract="false" inherited="true" concrete="true"/>
+      <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
+    </attributes>
+    <attributes name="is_programmed" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
+      <dataType xsi:type="pogoDsl:BooleanType"/>
+      <status abstract="false" inherited="true" concrete="true"/>
+      <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
+    </attributes>
+    <attributes name="ip_address" attType="Scalar" rwType="READ_WRITE" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
+      <dataType xsi:type="pogoDsl:StringType"/>
+      <status abstract="false" inherited="true" concrete="true"/>
+      <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
+    </attributes>
+    <attributes name="port" attType="Scalar" rwType="READ_WRITE" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
+      <dataType xsi:type="pogoDsl:UIntType"/>
+      <status abstract="false" inherited="true" concrete="true"/>
+      <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
+    </attributes>
+    <states name="ON" description="Device is ON for alarm/event handling.">
+      <status abstract="false" inherited="true" concrete="true"/>
+    </states>
+    <states name="ALARM" description="Device is ALARM for alarm/event handling.">
+      <status abstract="false" inherited="true" concrete="true"/>
+    </states>
     <preferences docHome="./doc_html" makefileHome="/usr/share/pogo/preferences"/>
   </classes>
 </pogoDsl:PogoSystem>

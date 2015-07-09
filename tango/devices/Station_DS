@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+# FPGA device server launch script 
+
+from Station_DS import main
+
+if __name__ == '__main__':
+   main()
