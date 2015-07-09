@@ -141,7 +141,7 @@ class FPGABoard(object):
         return Status.OK
 
     # -------------------------- Firmware plugin functionality -----------------------
-    def load_plugin(self, plugin):
+    def load_plugin(self, plugin, **kwargs):
         """ Loads a firmware block plugin and incorporates its functionality
         :param plugin: Plugin class name
         """
@@ -165,25 +165,47 @@ class FPGABoard(object):
         else:
             friendly_name = constr['_friendly_name']
 
+        # Check if number of plugin instances has been exceeded
+        max_instances = 1
+        if "_max_instances" not in constr:
+            self._logger.warn(self.log("Plugin %s does not specify maximum number of instances" % plugin))
+        else:
+            max_instances = constr['_max_instances']
+
+        # Count number of instances already loaded
+        if friendly_name in self.__dict__.keys() and len(self.__dict__[friendly_name]) > max_instances:
+            raise LibraryError("Cannot load more instances on plugin %s" % plugin)
+
         # Get list of class methods and remove those availale in superclass
         methods = [name for name, mtype in
                    inspect.getmembers(eval(plugin), predicate=inspect.ismethod)
                    if name not in
                    [a for a, b in inspect.getmembers(FirmwareBlock, predicate=inspect.ismethod)] ]
 
-        # Create plugin instances
-        instance = globals()[plugin](self)
-        self.__dict__[friendly_name] = instance
+        # Create plugin instances, passing arguments if provided
+        if len(kwargs) == 0:
+            instance = globals()[plugin](self)
+        else:
+            instance = globals()[plugin](self, **kwargs)
 
-        # Plugin loaded, add to list
-        self._loaded_plugins[friendly_name] = []
+        if friendly_name in self.__dict__.keys():
+            # Plugin already loaded once, add to list
+            self.__dict__[friendly_name].append(instance)
+        else:
+            # Plugin not loaded yet
+            self.__dict__[friendly_name] = [instance]
 
-        # Some bookeeping
-        for method in methods:
-            self._logger.debug(self.log("Detected method %s from plugin %s" % (method, plugin)))
-            self._loaded_plugins[friendly_name].append(method)
+            # Plugin loaded, add to list
+            self._loaded_plugins[friendly_name] = []
+
+            # Some bookeeping
+            for method in methods:
+                self._logger.debug(self.log("Detected method %s from plugin %s" % (method, plugin)))
+                self._loaded_plugins[friendly_name].append(method)
 
         self._logger.info(self.log("Added plugin %s to class instance" % plugin))
+
+        return self.__dict__[friendly_name][-1]
 
     def unload_plugin(self, plugin):
         """ Unload plugin from instance

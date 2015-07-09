@@ -199,13 +199,33 @@ def friendlyname(*args):
         if len(args) > 0:
             arg = args[0]
         if type(arg) is str:
-            func.__dict__['_friendly_name'] = args[0]
+            func.__dict__['_friendly_name'] = arg
         else:
-            raise PluginError("Invalid friendly name in pluging friendlyname decorator")
+            raise PluginError("Invalid friendly name in plugin friendlyname decorator")
 
         # All done, return
         return func
 
     return decorator
 
+# ------------- Max Instances Decorator ----------------
+def maxinstances(*args):
+    """ Maximum number of instances the plugin can be loaded
+    :param args: Number of instances
+    :return: Decorated class
+    """
 
+    def decorator(func):
+        # Add max number of instances to call metadata
+        arg = args
+        if len(args) > 0:
+            arg = args[0]
+        if type(arg) is int:
+            func.__dict__['_max_instances'] = arg
+        else:
+            raise PluginError("Invalid maximum number of instances in plugin maxinstance decorator")
+
+        # All done, return
+        return func
+
+    return decorator

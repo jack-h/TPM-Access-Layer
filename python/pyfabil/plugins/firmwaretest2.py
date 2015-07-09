@@ -16,8 +16,6 @@ class FirmwareTest2(FirmwareBlock):
         """
         super(FirmwareTest2, self).__init__(board)
 
-        self._test = FirmwareTest(board)
-
     def initialise(self, **kwargs):
         """ Initialise FirmwareTest
         :param kwargs:

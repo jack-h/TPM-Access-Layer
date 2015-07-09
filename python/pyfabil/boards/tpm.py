@@ -105,6 +105,4 @@ class TPM(FPGABoard):
         return string
 
 if __name__ == "__main__":
-    tpm = TPM(ip="127.0.0.1", port=10000)
-    tpm.load_firmware_blocking(Device.FPGA_1, "/home/lessju/map.xml")
-    tpm[0x001]
+    tpm = TPM()
