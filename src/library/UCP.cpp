@@ -148,7 +148,7 @@ VALUES UCP::read(UINT address, UINT n, UINT offset, bool fifo)
         (read_reply -> header).psn = lendian((read_reply -> header).psn);
 
         // Check number of bytes read
-        if (ret < 0 || ret < reply_size)
+        if (ret < reply_size)
         {
             // Something wrong, return error
             DEBUG_PRINT("UCP::read. Failed to receive reply");
@@ -156,7 +156,7 @@ VALUES UCP::read(UINT address, UINT n, UINT offset, bool fifo)
             return {NULL, FAILURE};
         }
 
-            // Check if request was successful on board
+        // Check if request was successful on board
         else if ((read_reply -> header).psn != seqno || (read_reply -> header).addr != currentAddress)
         {
             // Something wrong, return error
@@ -228,7 +228,7 @@ RETURN UCP::write(UINT address, UINT *values, UINT n, UINT offset, bool fifo)
         (write_reply -> header).psn = lendian((write_reply -> header).psn);
 
         // Check number of bytes read
-        if (ret < 0 || ret < reply_size)
+        if (ret < reply_size)
         {
             // Something wrong, return error
             DEBUG_PRINT("UCP::write. Failed to receive reply");

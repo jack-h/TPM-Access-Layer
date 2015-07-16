@@ -20,14 +20,9 @@ using namespace std;
 // Convert string IP address to a 32-bit number
 ID convertIPtoID(const char *IP)
 {
-    #ifdef __unix__
-        struct sockaddr_in sa;
-        inet_pton(AF_INET, IP, &(sa.sin_addr));
-        return (ID) abs((long) sa.sin_addr.s_addr);
-    #else
-        // TODO: Write this up
-        return 1010;
-    #endif
+    struct sockaddr_in sa;
+    inet_pton(AF_INET, IP, &(sa.sin_addr));
+    return (ID) abs((long) sa.sin_addr.s_addr);
 }
 
 // Extract XML mapping file from filepath
@@ -57,24 +52,6 @@ UINT lendian(UINT value)
 
     return value;
 }
-
-// Convert string to number (Windows only)
-#if defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(_WIN64)
-    int stoi(std::string input, int beg, int base)
-    {
-        int x;
-        std::stringstream ss;
-
-        if (base == 16)
-            ss << std::hex << input;
-        else
-            ss << input;
-
-        ss >> x;
-
-        return x;
-    }
-#endif
 
 // Split string by delimeter
 vector<string> & split(const string &s, char delim, vector<string> &elems) 

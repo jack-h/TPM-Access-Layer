@@ -44,6 +44,12 @@ class UniBoard(FPGABoard):
         kwargs['fpgaBoard'] = BoardMake.UniboardBoard
         super(UniBoard, self).__init__(**kwargs)
 
+	# Nodes on the UniBoard are always programmed
+	self._programmed = True
+
+	# Since nodes are always loaded, we can load the register list
+	self.get_register_list()
+
     def connect(self, ip, port):
         """ Connect to board
         :param ip: Board IP

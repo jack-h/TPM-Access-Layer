@@ -90,7 +90,9 @@ STATUS UniBoard::getStatus()
 RETURN UniBoard::populateRegisterList(DEVICE device)
 {
     // Read the memory map from the loaded firmware
-    VALUES vals = connections[device_id_map[device]] -> readRegister(ROM_SYSTEM_INFO, ROM_SYSTEM_INFO_OFFSET);
+    VALUES vals = connections[device_id_map[device]] -> readRegister(0x1000, ROM_SYSTEM_INFO_OFFSET);
+
+    printf("Received values\n");
 
     // Check if read succeeded
     if (vals.error == FAILURE)
@@ -98,6 +100,10 @@ RETURN UniBoard::populateRegisterList(DEVICE device)
         DEBUG_PRINT("UniBoard::populateRegisterList. Failed to load ROM_SYSTEM_INFO");
         return FAILURE;
     }
+
+    // Fix endiannes
+    for(int i = 0; i < ROM_SYSTEM_INFO_OFFSET; i++)
+        vals.values[i] = ntohl(vals.values[i]);
 
     // Cast received data to input string stream and discard original data
     char *chr_str = (char *) vals.values;
