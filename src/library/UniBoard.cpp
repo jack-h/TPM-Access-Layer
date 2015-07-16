@@ -10,8 +10,7 @@ UniBoard::UniBoard(const char *ip, unsigned short port) : Board(ip, port)
 
     // The provided IP is the base address for the UniBoard, each node has it's own IP
     vector<string> entries = split(string(ip),  '.');
-    stringstream node_ip;
-    node_ip << entries[0] << "." << entries[1] << "." << entries[2] << ".";
+    string node_ip = entries[0] + "." + entries[1] + "." + entries[2] + ".";
 
     // Set status
     this -> status = OK;
@@ -25,16 +24,15 @@ UniBoard::UniBoard(const char *ip, unsigned short port) : Board(ip, port)
 	    // Connect
         // While testing, the port number is incremented instead of the IP
         #if TEST
-            stringstream current_ip;
-            current_ip << node_ip.rdbuf() << (stoi(entries[3], 0, 10) + i % this -> num_fpgas);
-	        RETURN ret = conn -> createConnection(current_ip.str().c_str(), port);
-	    #else
+            string current_ip = node_ip + std::to_string(stoi(entries[3], 0, 10) + i % this -> num_fpgas);
+	    RETURN ret = conn -> createConnection(current_ip.c_str(), port);
+	#else
             RETURN ret = conn -> createConnection(ip, port + i);
         #endif
 
         // Check if address is valid
         VALUES vals = conn -> readRegister(0x0, 1);
-	    if (vals.error == FAILURE)
+        if (vals.error == FAILURE)
 	    {
 		    DEBUG_PRINT("UniBoard::UniBoard. Error during IP check.");
 		    this -> status = NETWORK_ERROR;

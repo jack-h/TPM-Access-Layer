@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 // Enable or disable debugging
-#define DEBUG 0
-#define TEST  0
+#define DEBUG 1
+#define TEST  1
 
 // ========================== DATA TYPE DEFINITIONS ==========================
 

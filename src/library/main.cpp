@@ -8,7 +8,7 @@
 
 int main()
 {
-    ID id = connectBoard(UNIBOARD_BOARD, "127.0.0.1", 50000);
+    ID id = connectBoard(UNIBOARD_BOARD, "10.99.0.1", 5000);
     loadFirmwareBlocking(id, FPGA_1, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml");
     loadFirmwareBlocking(id, FPGA_2, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml");
     loadFirmwareBlocking(id, FPGA_3, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml");
