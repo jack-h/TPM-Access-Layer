@@ -84,11 +84,11 @@ class UniBoard: public Board
         // Firmware loaded on the UniBoard will store the register map as a string in ROM, which
         // can be accessed with the following
         UINT ROM_SYSTEM_INFO        = 0x1000;
-        UINT ROM_SYSTEM_INFO_OFFSET = 1024+256;
+        UINT ROM_SYSTEM_INFO_OFFSET = 1024;
 
         // The basic design also has standard information, which can be access with the following
-        UINT PIO_SYSTEM_INFO        = 0x100;
-        UINT PIO_SYSTEM_INFO_OFFSET = 128;
+        UINT PIO_SYSTEM_INFO        = 0x0;
+        UINT PIO_SYSTEM_INFO_OFFSET = 32;
 };
 
 #endif // UNIBOARD_CLASS

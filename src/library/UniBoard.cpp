@@ -148,6 +148,10 @@ RETURN UniBoard::populateRegisterList(DEVICE device)
             DEBUG_PRINT("UniBoard::populateRegisterList. Error while loading register map, failed to add register to map");
     }
 
+    // Check if PIO_SYSTEM_INFO was included in register map, if not assign default value
+    if (memory_map -> getRegisterInfo(device, "PIO_SYSTEM_INFO") == NULL)
+       memory_map -> addRegisterEntry(device, "PIO_SYSTEM_INFO", PIO_SYSTEM_INFO, PIO_SYSTEM_INFO_OFFSET);
+
     // All done, return
     return SUCCESS;
 }

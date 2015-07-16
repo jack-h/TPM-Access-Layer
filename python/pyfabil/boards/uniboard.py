@@ -1,5 +1,6 @@
 from pyfabil.boards.fpgaboard import FPGABoard, DeviceNames
 from pyfabil.base.interface import *
+from pyfabil.base.utils import *
 from concurrent import futures
 from math import log
 
@@ -49,6 +50,16 @@ class UniBoard(FPGABoard):
 
 	# Since nodes are always loaded, we can load the register list
 	self.get_register_list()
+
+	# Map of UniBoard peripherals
+	self._peripheral_map = { 7 : "eth1g",
+ 	        	         6 : "eth10g",
+		                 5 : "tr_mesh",
+		                 4 : "tr_back",
+		                 3 : "ddr3_I",
+	 	                 2 : "ddr3_II",
+	                         1 : "adc",
+	                         0 : "wdi" }
 
     def connect(self, ip, port):
         """ Connect to board
@@ -358,6 +369,45 @@ class UniBoard(FPGABoard):
     #
     #     return return_values
 
+    def system_information(self, nodes = 'ALL'):
+        """ Extract system information from loaded firmware for each node
+        """
+
+        # Extract information about register from first node, assume that the register
+        # on each node has the same size
+        system_info_size = 1
+        if "fpga1.PIO_SYSTEM_INFO" in self._registerList.keys():
+            system_info_size = self._registerList["fpga1.PIO_SYSTEM_INFO"]['size']
+        else:
+            raise LibraryError("System information register not available")
+
+        # Get required information from all nodes at once
+        for (node, result, values) in self.read_register(nodes + ".PIO_SYSTEM_INFO", system_info_size):
+
+            # Check for errors
+            if result != 0:
+		print node, result, values, Error.Success
+                print "Error retrieving system information for node %d" % node
+
+            # Print class-specific information
+            print "Node Index:\t\t%d" % node
+            print "Node Type:\t\t%s" % {'B' : 'Back', 'F' : 'Front'}[self._nodes[node]['type']]
+            print "Device:\t\t\t%d" % self._nodes[node]['device'].value
+            print "Compatible Names:\t%s" % ', '.join(self._nodes[node]['names'])
+
+            # Process system information from board
+            print "g_sim:\t\t\t%d" % ((values[0] & 0x400) != 0)
+            print "Firmware Version:\t%d.%d" % ((values[0] & 0xF00000) >> 20, (values[0] & 0x0F0000) >> 16)
+            print "Hardware Version:\t%d" % ((values[0] & 0x300) >> 8)
+            print "Design Name:\t\t%s" % convert_uint_to_string(values[2:10])
+            print "Design Note:\t\t%s" % convert_uint_to_string(values[13:21])
+            print "Stamp date:\t\t%d"  % values[10]
+            print "Stamp time:\t\t%d"  % values[11]
+            print "Stamp SVN:\t\t%d"   % values[12]
+            for item in high_bits(values[1], 32): 
+	       print "Using peripheral:\t%s" % self._peripheral_map[item]
+
+	    print 
 
     def _convert_node_to_device(self, node):
         """ Convert a node from a nodelist to a device
