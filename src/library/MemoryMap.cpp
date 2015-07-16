@@ -2,14 +2,12 @@
 #include "RapidXML.hpp"
 #include "Utils.hpp"
 #include <algorithm>
-#include <iostream>
 #include <string.h>
-#include <stdio.h>
 
 using namespace rapidxml;
 using namespace std;
 
-// MemoryMap constructor
+// MemoryMap constructor which loads from file
 MemoryMap::MemoryMap(char *path)
 {
     // TODO: Check if filepath exists
@@ -331,6 +329,63 @@ MemoryMap::MemoryMap(char *path)
         }
     }
     DEBUG_PRINT("MemoryMap::Constructor. Finished loading memory map from " << path);
+}
+
+// MemoryMap constructor which does not load from file but
+// lets the board load from firmware
+MemoryMap::MemoryMap()
+{
+    // Clear memory map
+    memory_map.clear();
+}
+
+// Add a new register entry to the memory map
+RETURN MemoryMap::addRegisterEntry(DEVICE device, REGISTER reg, UINT address, UINT offset)
+{
+    // Check if device is already in register map
+    map<DEVICE, map<string, RegisterInfo *> >::iterator it;
+    it = memory_map.find(device);
+
+    // If device not found, create entry
+    if (it == memory_map.end())
+    {
+        map<string, RegisterInfo *> reg_map;
+        memory_map[device] = reg_map;
+    }
+
+    // Create new device entry in register map
+    RegisterInfo *reg_info = new RegisterInfo(RegisterInfo(reg));
+    reg_info -> address = address;
+    reg_info -> device = device;
+    reg_info -> name = reg;
+    reg_info -> permission = READWRITE;
+    reg_info -> size = offset;
+    reg_info -> type = BOARD_REGISTER;
+    memory_map[device][reg] = reg_info;
+
+    return SUCCESS;
+}
+
+// Remove a register entry from the memory map
+RETURN MemoryMap::removeRegisterEntry(DEVICE device, REGISTER reg)
+{
+    return NOT_IMPLEMENTED;
+}
+
+// Reset device map
+RETURN MemoryMap::resetDevice(DEVICE device)
+{
+    // Check if device is already in register map
+    map<DEVICE, map<string, RegisterInfo *> >::iterator it;
+    it = memory_map.find(device);
+
+    // If device not found, just return
+    if (it == memory_map.end())
+        return SUCCESS;
+
+    // Otherwise, simply override entry
+    map<string, RegisterInfo *> reg_map;
+    memory_map[device] = reg_map;
 }
 
 // Compose register list from memory map

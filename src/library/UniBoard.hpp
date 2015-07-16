@@ -62,7 +62,11 @@ class UniBoard: public Board
         RETURN          writeDevice(REGISTER device, UINT address, UINT value);
 
     protected:
-        // From Board base class, we will use the following variable as is:
+        // Populate register list
+        RETURN populateRegisterList(DEVICE device);
+
+    protected:
+        // From Board base class, we will use the following variables as are:
         // id, ip, port, num_fpgas, status, memory_map
 
         // On the UniBoard, each node has it's own UCP implementation, and therefore
@@ -70,8 +74,21 @@ class UniBoard: public Board
         // protocol variables is ignored, and instead an array of protocol instances is used
         UCP *connections[8];
 
+        // Device map to translate between device number of DEVICE identifier
+        DEVICE id_device_map[8] = { FPGA_1, FPGA_2, FPGA_3, FPGA_4, FPGA_5, FPGA_6, FPGA_7, FPGA_8 };
+        map<DEVICE, int> device_id_map;
+
         // Mutex to lock loading of memory map
         pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+        // Firmware loaded on the UniBoard will store the register map as a string in ROM, which
+        // can be accessed with the following
+        UINT ROM_SYSTEM_INFO        = 0x1000;
+        UINT ROM_SYSTEM_INFO_OFFSET = 4096;
+
+        // The basic design also has standard information, which can be access with the following
+        UINT PIO_SYSTEM_INFO        = 0x100;
+        UINT PIO_SYSTEM_INFO_OFFSET = 128;
 };
 
 #endif // UNIBOARD_CLASS

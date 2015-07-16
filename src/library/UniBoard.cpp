@@ -8,6 +8,16 @@ UniBoard::UniBoard(const char *ip, unsigned short port) : Board(ip, port)
     // Set number of FPGAs
     this -> num_fpgas = 8;
 
+    // Populate device_id_map
+    device_id_map[FPGA_1] = 0;
+    device_id_map[FPGA_2] = 1;
+    device_id_map[FPGA_3] = 2;
+    device_id_map[FPGA_4] = 3;
+    device_id_map[FPGA_5] = 4;
+    device_id_map[FPGA_6] = 5;
+    device_id_map[FPGA_7] = 6;
+    device_id_map[FPGA_8] = 7;
+
     // The provided IP is the base address for the UniBoard, each node has it's own IP
     vector<string> entries = split(string(ip),  '.');
     string node_ip = entries[0] + "." + entries[1] + "." + entries[2] + ".";
@@ -23,10 +33,10 @@ UniBoard::UniBoard(const char *ip, unsigned short port) : Board(ip, port)
         
 	    // Connect
         // While testing, the port number is incremented instead of the IP
-        #if TEST
+        #if !TEST
             string current_ip = node_ip + std::to_string(stoi(entries[3], 0, 10) + i % this -> num_fpgas);
-	    RETURN ret = conn -> createConnection(current_ip.c_str(), port);
-	#else
+	        RETURN ret = conn -> createConnection(current_ip.c_str(), port);
+	    #else
             RETURN ret = conn -> createConnection(ip, port + i);
         #endif
 
@@ -45,6 +55,17 @@ UniBoard::UniBoard(const char *ip, unsigned short port) : Board(ip, port)
     // If an error occurred, disconnect from UniBoard
     if (this -> status == NETWORK_ERROR)
         this -> disconnect();
+    else
+    {
+        // Create empty memory map
+        memory_map = new MemoryMap();
+
+        // Get memory map from currently loaded firmware
+        for(unsigned i = 0; i < this -> num_fpgas; i++)
+        {
+            this -> populateRegisterList(id_device_map[i]);
+        }
+    }
 }
 
 // Disconnect from board
@@ -64,6 +85,67 @@ STATUS UniBoard::getStatus()
     return status;
 }
 
+// When connected to a UniBoard, some form of firmware will be loaded. This function
+// will extract the memory map from the loaded firmware
+RETURN UniBoard::populateRegisterList(DEVICE device)
+{
+    // Read the memory map from the loaded firmware
+    VALUES vals = connections[device_id_map[device]] -> readRegister(ROM_SYSTEM_INFO, ROM_SYSTEM_INFO_OFFSET);
+
+    // Check if read succeeded
+    if (vals.error == FAILURE)
+    {
+        DEBUG_PRINT("UniBoard::populateRegisterList. Failed to load ROM_SYSTEM_INFO");
+        return FAILURE;
+    }
+
+    // Cast received data to input string stream and discard original data
+    char *chr_str = (char *) vals.values;
+    string info(chr_str);
+    delete[] vals.values;
+
+    // Process the read register map
+    istringstream info_stream(info);
+    string   register_name;
+    UINT     address, offset;
+
+    // Loop until end of input string
+    while (!info_stream.eof())
+    {
+        // Read register name
+        info_stream >> register_name;
+        if (info_stream.fail() || info_stream.bad())
+        {
+            DEBUG_PRINT("UniBoard::populateRegisterList. Error while loading register map, invalid address/offset");
+            return FAILURE;
+        }
+
+        // Read base address and offset
+        info_stream >> hex >> address;
+        info_stream >> dec >> offset;
+
+        // Sanity check
+        if (info_stream.fail() || info_stream.bad())
+        {
+            DEBUG_PRINT("UniBoard::populateRegisterList. Error while loading register map, invalid address/offset");
+            return FAILURE;
+        }
+
+        if (address == 0 || offset == 0)
+        {
+            DEBUG_PRINT("UniBoard::populateRegisterList. Error while loading register map, corrupt address/offset");
+            return FAILURE;
+        }
+
+        // Add new register to memory map
+        if (memory_map->addRegisterEntry(device, register_name.c_str(), address, offset) == FAILURE)
+            DEBUG_PRINT("UniBoard::populateRegisterList. Error while loading register map, failed to add register to map");
+    }
+
+    // All done, return
+    return SUCCESS;
+}
+
 // Get register list from memory map
 REGISTER_INFO *UniBoard::getRegisterList(UINT *num_registers, bool load_values)
 {
@@ -81,24 +163,17 @@ REGISTER_INFO *UniBoard::getRegisterList(UINT *num_registers, bool load_values)
 // Synchronously load firmware to FPGA
 RETURN UniBoard::loadFirmwareBlocking(DEVICE device, const char *bitstream)
 {
-    // A new firmware need to be loaded onto one of the FPGAs
+    // A new firmware needs to be loaded onto one of the FPGAs
     // NOTE: It is assumed that the new XML mapping contains all the
     // mappings (for 8 FPGAs), so we just need to reload
     // the memory map
 
-    // Load the bitfile on the device
-
-    // Get XML file and re-create the memory map
-    char *xml_file = extractXMLFile(bitstream);
-
-    // Create a new memory map
-    // Lock to avoid conflicts
-    pthread_mutex_lock(&mutex);
-    memory_map = new MemoryMap(xml_file);
-    pthread_mutex_unlock(&mutex);
+    // Every time a new firmware is loaded, we need to reset the memory
+    // map for the specific node
+    memory_map -> resetDevice(device);
 
     // All done
-    return SUCCESS;
+    return NOT_IMPLEMENTED;
 }
 
 // Set register value
@@ -129,7 +204,7 @@ RETURN UniBoard::writeRegister(DEVICE device, REGISTER reg, UINT *values, UINT n
     if (info -> bitmask != 0xFFFFFFFF)
     {
         // Read values from board
-        VALUES vals = connections[(int) log2(device + 1)] -> readRegister(info -> address, n, offset);
+        VALUES vals = connections[device_id_map[device]] -> readRegister(info -> address, n, offset);
 
         if (vals.error == FAILURE)
         {
@@ -143,7 +218,7 @@ RETURN UniBoard::writeRegister(DEVICE device, REGISTER reg, UINT *values, UINT n
     }
 
     // Finished pre-processing, write values to register
-    return connections[(int) log2(device + 1)] -> writeRegister(info -> address, values, n, offset);
+    return connections[device_id_map[device]] -> writeRegister(info -> address, values, n, offset);
 }
 
 // Get register value
@@ -167,7 +242,7 @@ VALUES UniBoard::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
     }
 
     // Otherwise , send request through protocol
-    VALUES vals = connections[(int) log2(device + 1)] -> readRegister(info -> address, n, offset);
+    VALUES vals = connections[device_id_map[device]] -> readRegister(info -> address, n, offset);
 
     // If failed, return
     if (vals.error == FAILURE)
@@ -183,13 +258,13 @@ VALUES UniBoard::readRegister(DEVICE device, REGISTER reg, UINT n, UINT offset)
 // Get address value
 VALUES UniBoard::readAddress(DEVICE device, UINT address, UINT n)
 {
-    return connections[(int) log2(device + 1)] -> readRegister(address, n);
+    return connections[device_id_map[device]] -> readRegister(address, n);
 }
 
 // Set address value
 RETURN UniBoard::writeAddress(DEVICE device, UINT address, UINT *values, UINT n)
 {
-    return connections[(int) log2(device + 1)] -> writeRegister(address, values, n);
+    return connections[device_id_map[device]] -> writeRegister(address, values, n);
 }
 
 // Get fifo register value
@@ -208,7 +283,7 @@ VALUES UniBoard::readFifoRegister(DEVICE device, REGISTER reg, UINT n)
     // NOTE: It is assumed that no bit-masking is required for a FIFO register
 
     // Send request through protocol and return values
-    VALUES vals = connections[(int) log2(device + 1)] -> readFifoRegister(info -> address, n);
+    VALUES vals = connections[device_id_map[device]] -> readFifoRegister(info -> address, n);
 
     return vals;
 }
@@ -229,7 +304,7 @@ RETURN UniBoard::writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UI
     // NOTE: It is assumed that no bit-masking is required for a FIFO register
 
     // Write values to register
-    return connections[(int) log2(device + 1)] -> writeFifoRegister(info -> address, values, n);
+    return connections[device_id_map[device]] -> writeFifoRegister(info -> address, values, n);
 }
 
 

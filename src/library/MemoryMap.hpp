@@ -19,6 +19,9 @@ class MemoryMap
         // MemoryMap constructor accepting filepath
         MemoryMap(char *filepath);
 
+        // MemoryMap constructor which is initialised empty
+        MemoryMap();
+
     private:
         // Class to hold register information
         class RegisterInfo
@@ -60,8 +63,17 @@ class MemoryMap
         REGISTER_INFO* getRegisterList(UINT *num_registers);
 
     private:
-        // Get bitmask for register
+        // Get register information
         RegisterInfo *getRegisterInfo(DEVICE device, REGISTER reg);
+
+        // Add a new register entry
+        RETURN addRegisterEntry(DEVICE device, REGISTER reg, UINT address, UINT offset);
+
+        // Remove a register entry
+        RETURN removeRegisterEntry(DEVICE device, REGISTER reg);
+
+        // Reset device map
+        RETURN resetDevice(DEVICE device);
 
     private:
         char        *filepath;                                    // Store filepath to memory map XML file
