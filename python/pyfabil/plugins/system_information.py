@@ -9,7 +9,7 @@ class UniBoardSystemInformation(FirmwareBlock):
     """ FirmwareBlock tests class """
 
     @compatibleboards(BoardMake.UniboardBoard)
-    @friendlyname('uniboard_beamformer')
+    @friendlyname('uniboard_system_information')
     @maxinstances(1)
     def __init__(self, board):
         """ UniBoardSystemInformation initialiser
@@ -57,8 +57,8 @@ class UniBoardSystemInformation(FirmwareBlock):
 
         # Extract information about register from first node, assume that the register
         # on each node has the same size
-        if "fpga1.%s" % self._information_register in self.board._registerList.keys():
-            system_info_size = self.board._registerList["fpga1.%s" % self._information_register]['size']
+        if "fpga1.%s" % self._information_register in self.board.register_list.keys():
+            system_info_size = self.board.register_list["fpga1.%s" % self._information_register]['size']
         else:
             raise LibraryError("System information register not available")
 

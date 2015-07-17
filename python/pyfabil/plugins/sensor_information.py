@@ -9,7 +9,7 @@ class UniBoardSensorInformation(FirmwareBlock):
     """ FirmwareBlock tests class """
 
     @compatibleboards(BoardMake.UniboardBoard)
-    @friendlyname('uniboard_beamformer')
+    @friendlyname('uniboard_sensor_information')
     @maxinstances(1)
     def __init__(self, board):
         """ UniBoardSensorInformation initialiser
@@ -52,8 +52,8 @@ class UniBoardSensorInformation(FirmwareBlock):
 
         # Extract information about register from first node, assume that the register
         # on each node has the same size
-        if "fpga1.%s" % self._sensor_register in self.board._registerList.keys():
-            system_info_size = self.board._registerList["fpga1.%s" % self._sensor_register]['size']
+        if "fpga1.%s" % self._sensor_register in self.board.register_list.keys():
+            system_info_size = self.board.register_list["fpga1.%s" % self._sensor_register]['size']
         else:
             raise LibraryError("System information register not available")
 
@@ -65,11 +65,16 @@ class UniBoardSensorInformation(FirmwareBlock):
                 print "Error retrieving sensor information for node %d" % node
 
             # Print class-specific information
-            print "Node Index:\t\t%d" % node
-            print "FPGA Temperature:\t%d" % values[0]
-            print "ETH PHY Temperature:\t%d" % values[1]
-            print "UNB supply current:\t%4.1f [A]" % (values[2] * SENS_HOT_SWAP_I_UNIT_SENSE)
-            print "UNB supply voltage:\t%4.1f [V]" % (values[3] * I2C_LTC4260_V_UNIT_SOURCE)
-            if values[4] != 0:
-                print "Something went wrong with I2C access"
-            print
+            if node == 7:
+                print "Node Index:\t\t%d" % node
+                print "FPGA Temperature:\t%d [C]" % values[0]
+                print "ETH PHY Temperature:\t%d" % values[1]
+                print "UNB supply current:\t%4.1f [A]" % (values[2] * SENS_HOT_SWAP_I_UNIT_SENSE)
+                print "UNB supply voltage:\t%4.1f [V]" % (values[3] * I2C_LTC4260_V_UNIT_SOURCE)
+                print "UNB supply power:\t%4.0f [W]" % (values[3] * I2C_LTC4260_V_UNIT_SOURCE * values[2] * SENS_HOT_SWAP_I_UNIT_SENSE)
+
+                if values[4] != 0:
+                    print "Something went wrong with I2C access"
+            else:
+                print "Node %d FPGA Temperature:\t%d" % (node, values[0])
+

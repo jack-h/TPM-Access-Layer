@@ -1,6 +1,5 @@
 from pyfabil.boards.fpgaboard import FPGABoard, DeviceNames
 from pyfabil.base.interface import *
-from pyfabil.base.utils import *
 from concurrent import futures
 from math import log
 
@@ -49,7 +48,8 @@ class UniBoard(FPGABoard):
         self._programmed = True
 
         # Since nodes are always loaded, we can load the register list
-        self.get_register_list()
+        if self.status == Status.OK:
+            self.get_register_list()
 
     def connect(self, ip, port):
         """ Connect to board
@@ -272,42 +272,6 @@ class UniBoard(FPGABoard):
 
         return return_values
 
-    # TODO: This should be included in information plugin
-    def sensor_information(self, nodes = 'ALL'):
-        """ Get sensor information from nodes
-        :param nodes: Nodes to query
-        """
-
-        I2C_LTC4260_V_UNIT_SENSE   = 0.0003
-        I2C_LTC4260_V_UNIT_SOURCE  = 0.4
-        SENS_HOT_SWAP_R_SENSE      =  0.005
-        SENS_HOT_SWAP_I_UNIT_SENSE = I2C_LTC4260_V_UNIT_SENSE / SENS_HOT_SWAP_R_SENSE
-
-        # Extract information about register from first node, assume that the register
-        # on each node has the same size
-        system_info_size = 1
-        if "fpga1.%s" % self._sensor_register in self.register_list.keys():
-            system_info_size = self.register_list["fpga1.%s" % self._sensor_register]['size']
-        else:
-            raise LibraryError("System information register not available")
-
-        # Get required information from all nodes at once
-        for (node, result, values) in self.read_register("%s.%s" % (nodes, self._sensor_register), system_info_size):
-
-            # Check for errors
-            if result != 0:
-                print "Error retrieving sensor information for node %d" % node
-
-            # Print class-specific information
-            print "Node Index:\t\t%d" % node
-            print "FPGA Temperature:\t%d" % values[0]
-            print "ETH PHY Temperature:\t%d" % values[1]
-            print "UNB supply current:\t%4.1f [A]" % (values[2] * SENS_HOT_SWAP_I_UNIT_SENSE)
-            print "UNB supply voltage:\t%4.1f [V]" % (values[3] * I2C_LTC4260_V_UNIT_SOURCE)
-            if values[4] != 0:
-                print "Something went wrong with I2C access"
-            print
-
     def _convert_node_to_device(self, node):
         """ Convert a node from a nodelist to a device
         :param node: Node
@@ -435,6 +399,8 @@ if __name__ == "__main__":
     devices = [Device.FPGA_1, Device.FPGA_2, Device.FPGA_3, Device.FPGA_4,
                Device.FPGA_5, Device.FPGA_6, Device.FPGA_7, Device.FPGA_8]
     unb.load_firmware_blocking(devices, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml")
+
+    print "HOLA"
 
     unb.write_register('1.regfile.date_code', 45)
     print unb.read_register('1.regfile.date_code')

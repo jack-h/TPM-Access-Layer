@@ -6,7 +6,7 @@ class FirmwareTest(FirmwareBlock):
     """ FirmwareBlock tests class """
 
     @compatibleboards(BoardMake.TpmBoard)
-    @friendlyname('firmware_test')
+    @friendlyname('firmware_tesst')
     @maxinstances(2)
     def __init__(self, board):
         """ FirmwareTest initialiser
