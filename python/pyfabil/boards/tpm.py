@@ -29,8 +29,8 @@ class TPM(FPGABoard):
 
         elif type(key) is str:
             # Check if a device is specified in the register name
-            if self._registerList.has_key(key):
-                reg = self._registerList[key]
+            if self.register_list.has_key(key):
+                reg = self.register_list[key]
                 return self.read_register(key, reg['size'])
         else:
             raise LibraryError("Unrecognised key type, must be register name, memory address or SPI device tuple")
@@ -58,7 +58,7 @@ class TPM(FPGABoard):
 
         elif type(key) is str:      
             # Check if device is specified in the register name
-            if self._registerList.has_key(key):
+            if self.register_list.has_key(key):
                 return self.write_register(key, value)
         else:
             raise LibraryError("Unrecognised key type, must be register name or memory address")
@@ -78,7 +78,7 @@ class TPM(FPGABoard):
 
         # Split register list into devices
         registers = { }
-        for k, v in self._registerList.iteritems():
+        for k, v in self.register_list.iteritems():
             if v['device'] not in registers.keys():
                 registers[v['device']] = []
             registers[v['device']].append(v)

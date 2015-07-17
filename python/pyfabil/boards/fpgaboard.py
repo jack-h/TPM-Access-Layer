@@ -23,7 +23,7 @@ class FPGABoard(object):
         """ Class constructor for FPGABoard"""
 
         # Set defaults
-        self._registerList = None
+        self.register_list = None
         self._firmwareList = None
         self._fpga_board    = 0
         self._deviceList   = None
@@ -276,7 +276,7 @@ class FPGABoard(object):
 
         ret = call_disconnect_board(self.id)
         if ret == Error.Success:
-            self._registerList = None
+            self.register_list = None
             self._logger.info(self.log("Disconnected from board with ID %s" % self.id))
             self.id = None
 
@@ -336,19 +336,19 @@ class FPGABoard(object):
         """
 
         # Check if register list has already been acquired, and if so return it
-        if self._registerList is not None:
-            return self._registerList
+        if self.register_list is not None:
+            return self.register_list
 
         # Check if device is programmed
         if not self._programmed:
             raise LibraryError("Cannot get_register_list from board which has not been programmed")
 
         # Call function
-        self._registerList = call_get_register_list(self.id, load_values)
+        self.register_list = call_get_register_list(self.id, load_values)
         self._logger.debug(self.log("Called get_register_list on board"))
 
         # All done, return
-        return self._registerList
+        return self.register_list
 
     def get_device_list(self):
         """ Get list of SPI devices """
@@ -389,7 +389,7 @@ class FPGABoard(object):
             raise LibraryError("Device argument for read_register should be of type Device")
 
         # Call function
-        if self._registerList[register]['type'] == RegisterType.FifoRegister:
+        if self.register_list[register]['type'] == RegisterType.FifoRegister:
             values = call_read_fifo_register(self.id, device, self._remove_device(register), n)
         else:
             values = call_read_register(self.id, device, self._remove_device(register), n, offset)
@@ -430,7 +430,7 @@ class FPGABoard(object):
                 LibraryError("Parameter device must be of type Device")
 
         # Call function and return
-        if self._registerList[register]['type'] == RegisterType.FifoRegister:
+        if self.register_list[register]['type'] == RegisterType.FifoRegister:
             err = call_write_fifo_register(self.id, device, self._remove_device(register), values)
         else:
             err = call_write_register(self.id, device, self._remove_device(register), values, offset)
@@ -514,7 +514,7 @@ class FPGABoard(object):
 
         # Split register list into devices
         registers = { }
-        for k, v in self._registerList.iteritems():
+        for k, v in self.register_list.iteritems():
             if v['device'] not in registers.keys():
                 registers[v['device']] = []
             registers[v['device']].append(k)
@@ -553,7 +553,7 @@ class FPGABoard(object):
         # Go through all registers and store the name of registers
         # which generate a match
         matches = []
-        for k, v in self._registerList.iteritems():
+        for k, v in self.register_list.iteritems():
             if re.search(string, k) is not None:
                 matches.append(v)
 
@@ -605,8 +605,8 @@ class FPGABoard(object):
 
     def __len__(self):
         """ Override __len__, return number of registers """
-        if self._registerList is not None:
-            return len(self._registerList.keys())
+        if self.register_list is not None:
+            return len(self.register_list.keys())
 
     def _checks(self):
         """ Check prior to function calls """
@@ -620,7 +620,7 @@ class FPGABoard(object):
             raise LibraryError("Cannot getRegisterList from board which has not been programmed")
 
         # Check if register list has been populated
-        if self._registerList is None:
+        if self.register_list is None:
             self.get_register_list()
 
         return True

@@ -18,7 +18,7 @@ class UniBoard(FPGABoard):
         # A mapping between node number and FPGABoard device type numbering
         # is required. It is assumed that the nodelist will be in node
         # number ascending order
-        self._nodes = { }
+        self.nodes = { }
 
         # A UniBoard is composed of a number of nodes, split into front
         # nodes and back nodes. Each type of node generally load the same
@@ -28,17 +28,17 @@ class UniBoard(FPGABoard):
             if node_type not in ['F', 'B']:
                 raise LibraryError("UniBoard. Unrecognised node type %s" % node_type)
             else:
-                self._nodes[node_number] = { 'type'   : node_type,
+                self.nodes[node_number] = { 'type'   : node_type,
                                              'device' : Device(2**i),
                                              'names'  : [str(node_number), 'FPGA' + str(node_number + 1), 'NODE' + str(node_number)]}
 
         # Get all node names (and combination of) for faster processing
-        self._names = [v for node in self._nodes.values() for v in node['names']]
+        self._names = [v for node in self.nodes.values() for v in node['names']]
         self._names.extend(['ALL', 'FRONT', 'BACK'])
 
         # Create a map between nodes and devices for fast access
         self._device_node_map = { }
-        for k, v in self._nodes.iteritems():
+        for k, v in self.nodes.iteritems():
             self._device_node_map[v['device']] = k
 
         # Call super class initialiser
@@ -50,20 +50,6 @@ class UniBoard(FPGABoard):
 
         # Since nodes are always loaded, we can load the register list
         self.get_register_list()
-
-        # Map of UniBoard peripherals
-        self._peripheral_map = { 7 : "eth1g",
-                                 6 : "eth10g",
-                                 5 : "tr_mesh",
-                                 4 : "tr_back",
-                                 3 : "ddr3_I",
-                                 2 : "ddr3_II",
-                                 1 : "adc",
-                                 0 : "wdi" }
-
-        # Pre-defined registers
-        self._sensor_register = "REG_UNB_SENS"
-        self._information_register = "PIO_SYSTEM_INFO"
 
     def connect(self, ip, port):
         """ Connect to board
@@ -168,13 +154,13 @@ class UniBoard(FPGABoard):
 
         # Check if write length is valid
         if (len(values) if type(values) is list else 1) * 4 + offset > \
-            self._registerList[reg_str]['size'] * 4:
-            print (len(values) if type(values) is list else 1) + offset, self._registerList[reg_str]['size']
+            self.register_list[reg_str]['size'] * 4:
+            print (len(values) if type(values) is list else 1) + offset, self.register_list[reg_str]['size']
             #raise LibraryError("Too much data to write to register %s on nodes %s" %
             #                   (register, ', '.join([str(node) for node in nodes])))
 
         result = []
-        if self._registerList[reg_str]['type'] == RegisterType.FifoRegister:
+        if self.register_list[reg_str]['type'] == RegisterType.FifoRegister:
             # Write to be performed on a FIFO register
             if len(nodes) == 1:
                 result.append([call_write_fifo_register(self.id, nodes[0], register, values)])
@@ -236,10 +222,10 @@ class UniBoard(FPGABoard):
 
         # Get the register type (whether firo or normal)
         reg_str = 'fpga%d.%s' % (int(log(nodes[0].value, 2) + 1), register)
-        register_type = self._registerList[reg_str]['type']
+        register_type = self.register_list[reg_str]['type']
 
         # Check if write length is valid
-        if n * 4 + offset > self._registerList[reg_str]['size'] * 4:
+        if n * 4 + offset > self.register_list[reg_str]['size'] * 4:
             raise LibraryError("Too much data to read from register %s on nodes %s" %
                                (register, ', '.join([str(node) for node in nodes])))
 
@@ -286,131 +272,7 @@ class UniBoard(FPGABoard):
 
         return return_values
 
-    # def write_address(self, address, values, device = None):
-    #     """ Override write to memory address
-    #     :param address: Address to write to
-    #     :param values: Values to write
-    #     :param device: List of nodes need to be explicitly specified
-    #     :return: Values
-    #     """
-    #
-    #     # Perform basic checks
-    #     if not self._checks():
-    #         return
-    #
-    #     # Get list of nodes
-    #     if device is None:
-    #         raise LibraryError("List of nodes must be specified")
-    #     nodes = self._get_nodes(device)
-    #
-    #     # Change nodes to list if it is not already a list
-    #     nodes = nodes if type(nodes) is list else [nodes]
-    #
-    #     # Perform write
-    #     result = []
-    #     if len(nodes) == 1:
-    #         result.append([call_write_address(self.id, address)])
-    #     else:
-    #         # Use thread pool to parallelise calls over nodes
-    #         with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:
-    #             for res in executor.map(lambda p: call_write_address(*p),
-    #                                     [(self.id, node, address, values) for node in nodes]):
-    #                 result.append(res)
-    #
-    #     self._logger.debug(self.log("Called write_register"))
-    #     if any([True for res in result if res == Error.Failure]):
-    #         raise BoardError("Failed to write_address %s on nodes %s" % (hex(address), ', '.join([str(node) for node in nodes])))
-    #
-    # def read_address(self, address, n = 1, device = None):
-    #     """ Override read from memory address
-    #     :param address: Address to read from
-    #     :param n: Values to read
-    #     :param device: List of nodes need to be explicitly specified
-    #     :return: Values
-    #     """
-    #
-    #     # Perform checks
-    #     if not self._checks():
-    #         return
-    #
-    #     # Get list of nodes
-    #     if device is None:
-    #         raise LibraryError("List of nodes must be specified")
-    #     nodes = self._get_nodes(device)
-    #
-    #      # Change nodes to list if it is not already a list
-    #     nodes = nodes if type(nodes) is list else [nodes]
-    #
-    #     # Perform read
-    #     result = []
-    #     if len(nodes) == 1:
-    #         values = call_read_address(self.id, nodes[0], address, n)
-    #         result.append((nodes[0], values.error, values.values))
-    #     else:
-    #         # Use thread pool to parallelise calls over nodes
-    #         with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:
-    #             for node in nodes:
-    #                 result.append((node, executor.submit(lambda p: call_read_address(*p),
-    #                                                          [self.id, node, address, n])))
-    #
-    #     # Finished reading, process return values
-    #     return_values = []
-    #     if len(nodes) == 1:
-    #         for node, error, values in result:
-    #             if error == Error.Failure:
-    #                 raise BoardError("Failed to read_register %s from node %s" % ('1', '2'))
-    #             else:
-    #                 return_values.append((self._device_node_map[node], error, [values[i] for i in range(n)]))
-    #     else:
-    #         for node, future in result:
-    #             result = future.result()
-    #             if result.error == Error.Failure:
-    #                 raise BoardError("Failed to read_register %s from node %s" % ('1', '2'))
-    #             else:
-    #                 return_values.append((self._device_node_map[node], result.error,
-    #                                       [result.values[i] for i in range(n)]))
-    #
-    #     return return_values
-
-    def system_information(self, nodes = 'ALL'):
-        """ Extract system information from loaded firmware for each node
-            :param nodes: Nodes to quert
-        """
-
-        # Extract information about register from first node, assume that the register
-        # on each node has the same size
-        system_info_size = 1
-        if "fpga1.%s" % self._information_register in self._registerList.keys():
-            system_info_size = self._registerList["fpga1.%s" % self._information_register]['size']
-        else:
-            raise LibraryError("System information register not available")
-
-        # Get required information from all nodes at once
-        for (node, result, values) in self.read_register("%s.%s" % (nodes, self._information_register), system_info_size):
-
-            # Check for errors
-            if result != 0:
-                print "Error retrieving system information for node %d" % node
-
-            # Print class-specific information
-            print "Node Index:\t\t%d" % node
-            print "Node Type:\t\t%s" % {'B' : 'Back', 'F' : 'Front'}[self._nodes[node]['type']]
-            print "Device:\t\t\t%d" % self._nodes[node]['device'].value
-            print "Compatible Names:\t%s" % ', '.join(self._nodes[node]['names'])
-
-            # Process system information from board
-            print "g_sim:\t\t\t%d" % ((values[0] & 0x400) != 0)
-            print "Firmware Version:\t%d.%d" % ((values[0] & 0xF00000) >> 20, (values[0] & 0x0F0000) >> 16)
-            print "Hardware Version:\t%d" % ((values[0] & 0x300) >> 8)
-            print "Design Name:\t\t%s" % convert_uint_to_string(values[2:10])
-            print "Design Note:\t\t%s" % convert_uint_to_string(values[13:21])
-            print "Stamp date:\t\t%d"  % values[10]
-            print "Stamp time:\t\t%d"  % values[11]
-            print "Stamp SVN:\t\t%d"   % values[12]
-            for item in high_bits(values[1], 32):
-                print "Using peripheral:\t%s" % self._peripheral_map[item]
-            print
-
+    # TODO: This should be included in information plugin
     def sensor_information(self, nodes = 'ALL'):
         """ Get sensor information from nodes
         :param nodes: Nodes to query
@@ -424,8 +286,8 @@ class UniBoard(FPGABoard):
         # Extract information about register from first node, assume that the register
         # on each node has the same size
         system_info_size = 1
-        if "fpga1.%s" % self._sensor_register in self._registerList.keys():
-            system_info_size = self._registerList["fpga1.%s" % self._sensor_register]['size']
+        if "fpga1.%s" % self._sensor_register in self.register_list.keys():
+            system_info_size = self.register_list["fpga1.%s" % self._sensor_register]['size']
         else:
             raise LibraryError("System information register not available")
 
@@ -453,17 +315,17 @@ class UniBoard(FPGABoard):
         """
         node = node.upper()
         if node == 'ALL':     # All nodes
-            return [ self._nodes[n]['device'] for n in self._nodes.iterkeys() ]
+            return [ self.nodes[n]['device'] for n in self.nodes.iterkeys() ]
         elif node == 'FRONT': # Front nodes
-            return [ self._nodes[n]['device'] for n in self._nodes.iterkeys()
-                     if self._nodes[n]['type'] == 'F']
+            return [ self.nodes[n]['device'] for n in self.nodes.iterkeys()
+                     if self.nodes[n]['type'] == 'F']
         elif node == 'BACK':  # Back nodes
-            return [ self._nodes[n]['device'] for n in self._nodes.iterkeys()
-                     if self._nodes[n]['type'] == 'B']
+            return [ self.nodes[n]['device'] for n in self.nodes.iterkeys()
+                     if self.nodes[n]['type'] == 'B']
         else:                  # Specific node
-            for i, k in enumerate(self._nodes):
-                if node in self._nodes[k]['names']:
-                    return self._nodes[k]['device']
+            for i, k in enumerate(self.nodes):
+                if node in self.nodes[k]['names']:
+                    return self.nodes[k]['device']
         raise LibraryError("Node '%s' contains invalid nodes" % node)
 
     def _get_nodes(self, nodes):
@@ -478,12 +340,12 @@ class UniBoard(FPGABoard):
             if type(nodes[0]) is str:
                 for entry in nodes:
                     entry = entry.upper()
-                    for i, k in enumerate(self._nodes):
-                        if entry in self._nodes[k]['names']:
-                            devs.append(self._nodes[k]['device'])
+                    for i, k in enumerate(self.nodes):
+                        if entry in self.nodes[k]['names']:
+                            devs.append(self.nodes[k]['device'])
             elif type(nodes[0]) is int:
                 for node in nodes:
-                    devs.append(self._nodes[node]['device'])
+                    devs.append(self.nodes[node]['device'])
             elif type(nodes[0]) is Device:
                 return nodes
             else:
@@ -497,7 +359,7 @@ class UniBoard(FPGABoard):
         # Node number
         elif type(nodes) is int:
             if 0 <= nodes <= 7:
-                return self._nodes[nodes]['device']
+                return self.nodes[nodes]['device']
             else:
                 raise LibraryError("Node number should be between 0 and 7, inclusive")
 
@@ -547,7 +409,7 @@ class UniBoard(FPGABoard):
 
         # Split register list into devices
         registers = { }
-        for k, v in self._registerList.iteritems():
+        for k, v in self.register_list.iteritems():
             if v['device'] not in registers.keys():
                 registers[v['device']] = []
             registers[v['device']].append(v)

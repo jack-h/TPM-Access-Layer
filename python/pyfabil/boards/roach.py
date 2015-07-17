@@ -32,20 +32,20 @@ class Roach(FPGABoard):
         super(Roach, self).get_register_list(load_values)
 
         # Check if any register are present
-        if self._registerList is None:
+        if self.register_list is None:
             return None
 
         # The super class will prepend the device type to the register name.
         # Since everyting on the roach is controlled by a single entity,
         # we don't need this. Remove prepended device type
         newRegList = { }
-        for k in self._registerList.keys():
+        for k in self.register_list.keys():
             newKey = k.replace("fpga1.", "")
-            newRegList[newKey] = self._registerList[k]
+            newRegList[newKey] = self.register_list[k]
             newRegList[newKey]['name'] = newKey
-        self._registerList = newRegList
+        self.register_list = newRegList
 
-        return self._registerList
+        return self.register_list
 
     def get_firmware_list(self):
         """ Roach helper for getFirmwareList """
@@ -92,8 +92,8 @@ class Roach(FPGABoard):
 
         # Check if register is valid
         if type(key) is str:
-            if self._registerList.has_key(key):
-                return self.read_register(key, self._registerList[key]['size'])
+            if self.register_list.has_key(key):
+                return self.read_register(key, self.register_list[key]['size'])
         else:
             raise LibraryError("Unrecognised key type, must be register name or memory address")
 
@@ -109,7 +109,7 @@ class Roach(FPGABoard):
 
         if type(key) is str:      
             # Check if register is valid
-            if self._registerList.has_key(key):
+            if self.register_list.has_key(key):
                 return self.write_register(key, value)
         else:
             raise LibraryError("Unrecognised key type, must be register name or memory address")
@@ -121,7 +121,7 @@ class Roach(FPGABoard):
         """ Override __getattr__, get value from board """
         if name in self.__dict__:
             return self.__dict__[name]
-        elif self._registerList is not None and name in self._registerList:
+        elif self.register_list is not None and name in self.register_list:
             return self.read_register(name)
         else:
             raise AttributeError("Register %s not found" % name)
@@ -133,7 +133,7 @@ class Roach(FPGABoard):
         # Allow attributes to be defined normally during initialisation
         elif not self.__dict__.has_key('_FPGABoard__initialised'):
             return  dict.__setattr__(self, name, value)
-        elif self._registerList is not None and name in self._registerList:
+        elif self.register_list is not None and name in self.register_list:
             self.write_register(name, value)
         else:
             raise AttributeError("Register %s not found % name")
