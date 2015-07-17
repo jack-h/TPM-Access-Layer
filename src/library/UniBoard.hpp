@@ -89,6 +89,10 @@ class UniBoard: public Board
         // The basic design also has standard information, which can be access with the following
         UINT PIO_SYSTEM_INFO        = 0x0;
         UINT PIO_SYSTEM_INFO_OFFSET = 32;
+
+        // Sensor information location
+        UINT REG_UNB_SENS           = 0x0;
+        UINT REG_UNB_SENS_OFFSET    = 1;
 };
 
 #endif // UNIBOARD_CLASS
