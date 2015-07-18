@@ -114,7 +114,7 @@ class UniBoardAduI2CCommander(FirmwareBlock):
         if 'nodes' not in kwargs.keys():
             raise PluginError("UniBoardAduI2CCommander: List of nodes not specified")
 
-        # Check if list of nodes are valid, and are all back-nodes
+        # Convert to list of nodes if required
         self._nodes = self.board._get_nodes(kwargs['nodes'])
         if type(self._nodes) is not list:
             self._nodes = [self._nodes]

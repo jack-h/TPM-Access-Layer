@@ -19,6 +19,7 @@ from pyfabil.plugins.uniboard.bsn_scheduler           import UniBoardBsnSchedule
 from pyfabil.plugins.uniboard.tr_nonbonded            import UniBoardNonBondedTr
 from pyfabil.plugins.uniboard.beamformer              import UniBoardBeamformer
 from pyfabil.plugins.uniboard.bsn_source              import UniBoardBsnSource
+from pyfabil.plugins.uniboard.aduh_quad               import UniBoardAduhQuad
 
 
 

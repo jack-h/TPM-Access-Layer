@@ -173,8 +173,10 @@ class FPGABoard(object):
             max_instances = constr['_max_instances']
 
         # Count number of instances already loaded
-        if friendly_name in self.__dict__.keys() and len(self.__dict__[friendly_name]) > max_instances:
-            raise LibraryError("Cannot load more instances on plugin %s" % plugin)
+        # 0 mean an unlimited number can be loaded
+        if max_instances > 0:
+            if friendly_name in self.__dict__.keys() and len(self.__dict__[friendly_name]) > max_instances:
+                raise LibraryError("Cannot load more instances on plugin %s" % plugin)
 
         # Get list of class methods and remove those availale in superclass
         methods = [name for name, mtype in
