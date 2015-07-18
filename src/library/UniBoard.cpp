@@ -92,8 +92,6 @@ RETURN UniBoard::populateRegisterList(DEVICE device)
     // Read the memory map from the loaded firmware
     VALUES vals = connections[device_id_map[device]] -> readRegister(0x1000, ROM_SYSTEM_INFO_OFFSET);
 
-    printf("Received values\n");
-
     // Check if read succeeded
     if (vals.error == FAILURE)
     {
@@ -144,7 +142,7 @@ RETURN UniBoard::populateRegisterList(DEVICE device)
         }
 
         // Add new register to memory map
-        if (memory_map->addRegisterEntry(device, register_name.c_str(), address, offset) == FAILURE)
+        if (memory_map->addRegisterEntry(device, register_name.c_str(), address, offset / 4) == FAILURE)
             DEBUG_PRINT("UniBoard::populateRegisterList. Error while loading register map, failed to add register to map");
     }
 

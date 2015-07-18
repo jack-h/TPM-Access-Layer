@@ -40,8 +40,8 @@ class UniBoardSensorInformation(FirmwareBlock):
         logging.info("UniBoardSensorInformation : Cleaning up")
         return True
 
-    def print_system_information(self, nodes='ALL'):
-        """ Extract system information from loaded firmware for each node
+    def print_sensor_information(self, nodes='ALL'):
+        """ Extract sensor information from loaded firmware for each node
             :param nodes: Nodes to query
         """
 
@@ -53,12 +53,12 @@ class UniBoardSensorInformation(FirmwareBlock):
         # Extract information about register from first node, assume that the register
         # on each node has the same size
         if "fpga1.%s" % self._sensor_register in self.board.register_list.keys():
-            system_info_size = self.board.register_list["fpga1.%s" % self._sensor_register]['size']
+            sensor_info_size = self.board.register_list["fpga1.%s" % self._sensor_register]['size']
         else:
-            raise LibraryError("System information register not available")
+            raise LibraryError("Sensor information register not available")
 
         # Get required information from all nodes at once
-        for (node, result, values) in self.board.read_register("%s.%s" % (nodes, self._sensor_register), system_info_size):
+        for (node, result, values) in self.board.read_register("%s.%s" % (nodes, self._sensor_register), sensor_info_size):
 
             # Check for errors
             if result != 0:

@@ -23,6 +23,8 @@ class UniBoard(FPGABoard):
         # nodes and back nodes. Each type of node generally load the same
         # firmware, so some operations can be performed on all nodes of
         # the same type.
+        self.back_nodes = []
+        self.front_nodes = []
         for i, (node_number, node_type) in enumerate(kwargs['nodelist']):
             if node_type not in ['F', 'B']:
                 raise LibraryError("UniBoard. Unrecognised node type %s" % node_type)
@@ -30,6 +32,10 @@ class UniBoard(FPGABoard):
                 self.nodes[node_number] = { 'type'   : node_type,
                                              'device' : Device(2**i),
                                              'names'  : [str(node_number), 'FPGA' + str(node_number + 1), 'NODE' + str(node_number)]}
+                if node_type == 'F':
+                    self.front_nodes.append(node_number)
+                else:
+                    self.back_nodes.append(node_number)
 
         # Get all node names (and combination of) for faster processing
         self._names = [v for node in self.nodes.values() for v in node['names']]
@@ -50,6 +56,15 @@ class UniBoard(FPGABoard):
         # Since nodes are always loaded, we can load the register list
         if self.status == Status.OK:
             self.get_register_list()
+
+        # Status Codes
+        self.ST_OK           = 0
+        self.ST_REGISTER_ERR = 1
+        self.ST_TIMEOUT_ERR  = 2
+        self.ST_FORMAT_ERR   = 3
+        self.ST_PACK_ERR     = 4
+        self.ST_UNPACK_ERR   = 5
+        self.ST_SIZE_ERR     = 6
 
     def connect(self, ip, port):
         """ Connect to board
@@ -173,12 +188,12 @@ class UniBoard(FPGABoard):
         else:
             # Write to be performed on a normal register or memory block
             if len(nodes) == 1:
-                result.append([call_write_register(self.id, nodes[0], register, values)])
+                result.append([call_write_register(self.id, nodes[0], register, values, offset)])
             else:
                 # Use thread pool to parallelise calls over nodes
                 with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:
                     for res in executor.map(lambda p: call_write_register(*p),
-                                            [(self.id, node, register, values) for node in nodes]):
+                                            [(self.id, node, register, values, offset) for node in nodes]):
                         result.append(res)
 
         self._logger.debug(self.log("Called write_register"))
@@ -240,7 +255,7 @@ class UniBoard(FPGABoard):
                 with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:
                     for node in nodes:
                         result.append((node, executor.submit(lambda p: call_read_fifo_register(*p),
-                                                             [self.id, node, register, n])))
+                                                             [self.id, node, register, n, offset])))
         else:
             # Write to be performed on a normal register or memory block
             if len(nodes) == 1:
@@ -251,7 +266,7 @@ class UniBoard(FPGABoard):
                 with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:
                     for node in nodes:
                         result.append((node, executor.submit(lambda p: call_read_register(*p),
-                                                             [self.id, node, register, n])))
+                                                             [self.id, node, register, n, offset])))
 
         # Finished reading, process return values
         return_values = []
@@ -390,6 +405,14 @@ class UniBoard(FPGABoard):
 
         # Return string representation
         return string
+
+    @staticmethod
+    def device_to_fpga(device):
+        """ Convert device enum to FPGA number
+        :param device: Device
+        :return: FPGA number
+        """
+        return int(log(device.value, 2) + 1)
 
 if __name__ == "__main__":
     # Simple tests, make sure uniboard_simulator.py is running

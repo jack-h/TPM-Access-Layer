@@ -18,7 +18,6 @@ class BoardState(Enum):
     Safe_State = 10     # ???
     All        = 20
 
-
 class Error(Enum):
     """ Error enumeration """
     Success = 0
@@ -69,6 +68,7 @@ class Permission(Enum):
     Read      = 1
     Write     = 2
     ReadWrite = 3
+
 
 # --------------- Structures --------------------------
 class Values(object):
