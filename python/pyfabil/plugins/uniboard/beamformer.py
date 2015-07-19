@@ -60,7 +60,7 @@ class UniBoardBeamformer(FirmwareBlock):
                 self.board.load_plugin("UniBoardBeamformingUnit", nof_weights =  kwargs['nof_weights'],
                                         nof_signal_paths = kwargs['nof_signal_paths'], nof_input_streams = kwargs['nof_input_streams'],
                                         stat_data_width = kwargs['stat_data_w'], nof_regs_per_stat = kwargs['stat_data_sz'],
-                                        xst_enable = True, instance_number = j, nodes = self.board.front_nodes)
+                                        xst_enable = True, instance_number = j, nodes = self.board.front_nodes[i])
         self.bf = self.board.uniboard_beamforming_unit
 
     #########################################################################################
@@ -179,7 +179,7 @@ class UniBoardBeamformer(FirmwareBlock):
                 beamlet_list = []
                 for x in range(self._config['nof_subbands']):
                     for y in range(self._nof_beamlets[k * self._config['nof_subbands'] + x]):
-                        beamlet_list.append(weights[k*self._config['nof_subbands'] + x][j][y])
+                        beamlet_list.append(weights[k * self._config['nof_subbands'] + x][j][y])
                 sp_list.append(beamlet_list)
             nodes_list.append(sp_list)
 
@@ -192,9 +192,11 @@ class UniBoardBeamformer(FirmwareBlock):
         for k in range(len(self.board.front_nodes)):
             for j in range(self._config['nof_signal_paths']):
                 for i in range(self._config['nof_bf_units_per_node']):
-                    self.bf[k * self._config['nof_bf_units_per_node']+i].write_weights(
+                    self.bf[k * self._config['nof_bf_units_per_node'] + i].write_weights(
                         concat_complex(nodes_list[k][j][i * self._config['nof_weights']:(i + 1) * self._config['nof_weights']],
                                        self._config['in_weight_w']), j)
+
+        print 'setAllWeights: All Weights are written'
 
     ##################### Superclass method implementations #################################
 

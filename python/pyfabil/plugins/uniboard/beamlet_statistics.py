@@ -20,18 +20,19 @@ class UniBoardBeamletStatistics(FirmwareBlock):
         self._instance_number       = kwargs.get('instance_number', 0)
         self._xst_enable            = kwargs.get('xst_enable', False)
         self._instance_number       = kwargs.get('instance_number', 0)
-        self._nof_stats             = kwargs.get('nof_stats', 256) if not self._xst_enable else\
-                                                                    kwargs.get('nof_stats', 256) * c_nof_complex
+        self._nof_stats             = kwargs.get('nof_stats', 256) * c_nof_complex if self._xst_enable else \
+                                      kwargs.get('nof_stats', 256)
         self._nof_regs_per_stat     = kwargs.get('nof_regs_per_stat', 2)
         self._nof_regs_per_instance = self._nof_regs_per_stat * self._nof_stats
         self._stat_data_width       = kwargs.get('stat_data_width', 56)
-        self._reg_span = 2
+        self._reg_span              = 2
 
         self._ram_address = 'RAM_ST_SST'
         self._reg_address = 'REG_ST_SST'
 
         # Check if list of nodes are valid and all are front nodes
         self._nodes = self.board._get_nodes(kwargs['nodes'])
+        self._nodes = self._nodes if type(self._nodes) is list else [self._nodes]
         for node in self._nodes:
             if self.board.nodes[self.board._device_node_map[node]]['type'] != 'F':
                 raise PluginError("UniBoardBeamletStatistics: Specified node must be a front node")
@@ -104,15 +105,16 @@ class UniBoardBeamletStatistics(FirmwareBlock):
             ni_stats = []
             ni_complex_stats=[]
             for k in xrange(0, self._nof_stats):
-                temp =long((node_data[2*k+1] << c_word_w) + (node_data[2*k] & (c_word_mod-1)) & 2**self._stat_data_width-1)
-                if temp & 2**(self._stat_data_width-1):
+                temp = long((node_data[2 * k + 1] << c_word_w) + (node_data[2 * k] &
+                            (c_word_mod - 1)) & 2**self._stat_data_width - 1)
+                if temp & 2**(self._stat_data_width - 1):
                     temp += -2 ** self._stat_data_width
                 ni_stats.append(temp)
             print 'FN %d Read statistics (instance = %d)' % (node, self._instance_number)
-
+            self.append_log_data(ni_stats, 'dec', 16, 8, True, 0, 0, 0, 0)
             if self._xst_enable:
-                for k in xrange(0, self._nof_stats/c_nof_complex):
-                     ni_complex_stats.append(complex(ni_stats[k], ni_stats[k+self._nof_stats/c_nof_complex]))
+                for k in xrange(0, self._nof_stats / c_nof_complex):
+                     ni_complex_stats.append(complex(ni_stats[k], ni_stats[k + self._nof_stats/c_nof_complex]))
             else:
                 for k in xrange(0, self._nof_stats):
                      ni_complex_stats.append(complex(ni_stats[k], 0))
@@ -160,3 +162,41 @@ class UniBoardBeamletStatistics(FirmwareBlock):
         """
         logging.info("UniBoardBeamletStatistics : Cleaning up")
         return True
+
+
+    #################################### LOG
+    # NOTE: Temporary
+        # Print the contents of an array to the test log file
+    def append_log_data(self, data, radix='dec', dataWidth=8, nofColumns=16, rulers=False, noTime=0, noVLevel=0, noTestId=0, noSectionId=0):
+        r = 0
+        columnWidth = dataWidth + 1  # use 1 space between columns
+        if rulers:
+            rowStr = 'Col:'
+            for i in range(nofColumns):
+                rowStr += '%*d' % (columnWidth, i)
+            print rowStr, noTime, noVLevel, noTestId, noSectionId
+            print 'Row:', noTime, noVLevel, noTestId, noSectionId
+            rowStr = ('%-4d' % r)
+
+        k = 0
+
+        # Make sure data is a list, otherwise the following fails
+        if depth(data)==0:
+            data=listify(data)
+
+        n = len(data)
+        for i in range(n):
+            if radix=='uns': rowStr += ' %*d' % (dataWidth, data[i])
+            if radix=='dec': rowStr += ' %*d' % (dataWidth, data[i])
+            if radix=='hex': rowStr += ' %0*x' % (dataWidth, data[i])
+            if k < nofColumns-1:
+                k += 1
+            else:
+                print rowStr, noTime, noVLevel, noTestId, noSectionId
+                rowStr = ''
+                r += 1
+                if rulers:
+                    rowStr += '%-4d' % r
+                k = 0
+        if k!=0:
+           print noTime, noVLevel, noTestId, noSectionId

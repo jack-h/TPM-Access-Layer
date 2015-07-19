@@ -111,6 +111,7 @@ class UniBoardSSReorder(FirmwareBlock):
         # Write the selects to the node(s)
         addr_offset = 0 + self._instance_number * self._address_span
         self.board.write_register(self._ram_address, write_data, offset = addr_offset, device = self._nodes)
+        print 'write_selects InstanceNr:' + str(self._instance_number)
 
     def create_reference(self, x_re_arr, x_im_arr, select_buf):
         # Create reference output based on settings of the select buffer

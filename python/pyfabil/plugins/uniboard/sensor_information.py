@@ -8,10 +8,16 @@ import logging
 class UniBoardSensorInformation(FirmwareBlock):
     """ FirmwareBlock tests class """
 
+
+    I2C_LTC4260_V_UNIT_SENSE   = 0.0003
+    I2C_LTC4260_V_UNIT_SOURCE  = 0.4
+    SENS_HOT_SWAP_R_SENSE      =  0.005
+    SENS_HOT_SWAP_I_UNIT_SENSE = I2C_LTC4260_V_UNIT_SENSE / SENS_HOT_SWAP_R_SENSE
+
     @compatibleboards(BoardMake.UniboardBoard)
     @friendlyname('uniboard_sensor_information')
     @maxinstances(1)
-    def __init__(self, board):
+    def __init__(self, board, **kwargs):
         """ UniBoardSensorInformation initialiser
         :param board: Pointer to board instance
         :return: Nothing
@@ -19,7 +25,17 @@ class UniBoardSensorInformation(FirmwareBlock):
         super(UniBoardSensorInformation, self).__init__(board)
 
         # Required register names
-        self._sensor_register = "REG_UNB_SENS"
+        self._reg_address = "REG_UNB_SENS"
+
+        # Check if list of nodes are valid and all are front nodes
+        self._nodes = self.board._get_nodes(kwargs['nodes'])
+
+        # Check if registers are available on all nodes
+        for node in self._nodes:
+            fpga_number = self.board.device_to_fpga(node)
+            register_str = "fpga%d.%s" % (fpga_number, self._reg_address)
+            if register_str not in self.board.register_list.keys():
+                raise PluginError("UniBoardSensorInformation: Node %d does not have register %s" % (fpga_number, self._reg_address))
 
     def initialise(self):
         """ Initialise FirmwareTest """
@@ -44,37 +60,20 @@ class UniBoardSensorInformation(FirmwareBlock):
         """ Extract sensor information from loaded firmware for each node
             :param nodes: Nodes to query
         """
-
-        I2C_LTC4260_V_UNIT_SENSE   = 0.0003
-        I2C_LTC4260_V_UNIT_SOURCE  = 0.4
-        SENS_HOT_SWAP_R_SENSE      =  0.005
-        SENS_HOT_SWAP_I_UNIT_SENSE = I2C_LTC4260_V_UNIT_SENSE / SENS_HOT_SWAP_R_SENSE
-
-        # Extract information about register from first node, assume that the register
-        # on each node has the same size
-        if "fpga1.%s" % self._sensor_register in self.board.register_list.keys():
-            sensor_info_size = self.board.register_list["fpga1.%s" % self._sensor_register]['size']
-        else:
-            raise LibraryError("Sensor information register not available")
-
         # Get required information from all nodes at once
-        for (node, result, values) in self.board.read_register("%s.%s" % (nodes, self._sensor_register), sensor_info_size):
-
-            # Check for errors
-            if result != 0:
-                print "Error retrieving sensor information for node %d" % node
+        for (node, status, node_data) in self.board.read_register(self._reg_address, device = self._nodes):
 
             # Print class-specific information
             if node == 7:
                 print "Node Index:\t\t%d" % node
-                print "FPGA Temperature:\t%d [C]" % values[0]
-                print "ETH PHY Temperature:\t%d" % values[1]
-                print "UNB supply current:\t%4.1f [A]" % (values[2] * SENS_HOT_SWAP_I_UNIT_SENSE)
-                print "UNB supply voltage:\t%4.1f [V]" % (values[3] * I2C_LTC4260_V_UNIT_SOURCE)
-                print "UNB supply power:\t%4.0f [W]" % (values[3] * I2C_LTC4260_V_UNIT_SOURCE * values[2] * SENS_HOT_SWAP_I_UNIT_SENSE)
+                print "FPGA Temperature:\t%d [C]" % node_data[0]
+                print "ETH PHY Temperature:\t%d" % node_data[1]
+                print "UNB supply current:\t%4.1f [A]" % (node_data[2] * self.SENS_HOT_SWAP_I_UNIT_SENSE)
+                print "UNB supply voltage:\t%4.1f [V]" % (node_data[3] * self.I2C_LTC4260_V_UNIT_SOURCE)
+                print "UNB supply power:\t%4.0f [W]"   % (node_data[3] * self.I2C_LTC4260_V_UNIT_SOURCE * node_data[2] * self.SENS_HOT_SWAP_I_UNIT_SENSE)
 
-                if values[4] != 0:
+                if node_data[4] != 0:
                     print "Something went wrong with I2C access"
             else:
-                print "Node %d FPGA Temperature:\t%d" % (node, values[0])
+                print "Node %d FPGA Temperature:\t%d" % (node, node_data[0])
 

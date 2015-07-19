@@ -51,6 +51,7 @@ class UniBoardSSWide(FirmwareBlock):
 
         # Check if list of nodes are valid
         self._nodes = self.board._get_nodes(kwargs['nodes'])
+        self._nodes = self._nodes if type(self._nodes) is list else [self._nodes]
 
         # Check if registers are available on all nodes
         for node in self._nodes:
@@ -84,7 +85,7 @@ class UniBoardSSWide(FirmwareBlock):
             addr_offset = instance_offset + k * self._address_single_channel
             self.board.write_register(self._ram_address, data[k * self._nof_select_per_channel : (k +1) * self._nof_select_per_channel],
                                       offset = addr_offset, device = self._nodes)
-            print 'write_selects (Instance Nr = %d)' % self._instance_number
+            print '[%s] SS-WIDE write_selects (Instance Nr = %d)' % (str(self._nodes), self._instance_number)
 
     @staticmethod
     def subband_select(in_list, sel_list):

@@ -1,3 +1,4 @@
+from pyfabil.tests.uniboard_aavs_test_plotting import *
 from pyfabil.base.utils import *
 from pyfabil import UniBoard
 import time
@@ -48,7 +49,7 @@ c_close_figures        = False
 c_use_default_settings = True   # Set to True in order to skip the mm writes to ss_parallel, ss_wides and weights. To boost simulation time.
 c_write_settings       = True
 
-###################################################################################
+#########################################################################################################
 
 nodelist = [(0,'F'), (1,'F'),(2,'F'), (3,'F'), (4,'B'), (5,'B'), (6,'B'), (7,'B')]
 unb = UniBoard(ip = "10.99.0.1", port = 5000, nodelist = nodelist)
@@ -83,7 +84,7 @@ quad = unb.load_plugin("UniBoardAduhQuad", nodes='BACK')
 # Load wave generator plugins (one per SP / BN combination)
 for node in unb.back_nodes: # Number of back nodes
     for si in range(sp_per_node): # Number of signal paths
-        unb.load_plugin("UniBoardWBWaveGenerator", instance_number = si, nodes=unb.nodes[node]['names'][0])
+        unb.load_plugin("UniBoardWBWaveGenerator", instance_number = si, nodes = node)
 
 # Get pointer to internal list representation of loaded wave generator plugins
 wg = unb.uniboard_wb_wave_generator
@@ -125,6 +126,41 @@ for i in range(c_nof_iblets):
     def_nof_beamlets_per_iblet.append(10)
 
 ##############################################################################################################
+
+#######################################################################
+# Write filter filterbankcoefficients to memory in case the .mif files
+# were not in place. In most cases this step is skipped, since the
+# coefficients are already defined in the .mif files that are located
+# in $UNB\Firmware\dsp\filter\build\data\*.mif.
+# This code shows how to upload different coefficients.
+#######################################################################
+if c_write_coefs:
+    # Read all the coefficients from the file into a list.
+    coefs_list_from_file =[]
+    f = file(c_coefs_input_file, "r")
+    for i in range(c_nof_coefs_in_file):
+        s = int(f.readline())
+        s &= 2 ** c_coefs_width - 1
+        coefs_list_from_file.append(s)
+    f.close()
+
+    # Downsample the list to the number of required coefficients, based on the c_nof_taps and the c_fft_size
+    coefs_list = []
+    for i in range(c_nof_taps*c_fft_size):
+        s = coefs_list_from_file[i*c_downsample_factor]
+        coefs_list.append(s)
+
+    # Write the coefficients to the memories
+    for l in range(c_nof_input_signals_per_bn):
+        for k in range(c_wb_factor):
+            for j in range(c_nof_taps):
+                write_list=[]
+                for i in range(c_fft_size/c_wb_factor):
+                    write_list.append(coefs_list[j*c_fft_size+i*c_wb_factor + c_wb_factor-1-k])
+                write_list_rev = []
+                for i in range(c_fft_size/c_wb_factor):                          # Reverse the list
+                    write_list_rev.append(write_list[c_fft_size/c_wb_factor-i-1])
+                fil.write_coefs(write_list_rev,l,j,k)
 
 # Stop the datastream that is currently running
 bsn_source.write_disable()
@@ -188,7 +224,7 @@ else:
 
 # Apply subband selection to beamformer
 beamformer.select_subbands(iblets, nof_beamlets_per_iblet, write_settings = c_write_settings)
-
+import sys; sys.exit()
 #######################################################################
 # Create weights for all signal paths, all selected subband(iblets) and
 # for every beam(nof_beamlets_per_iblet).
@@ -211,66 +247,81 @@ for h in range(c_nof_iblets):                       # Selected subbands (384)
             if c_use_default_settings:     # Make all weights real and set to +1
                 n_weights += 1
                 sp_iblet_weights.append(complex(32760,0))
-            elif c_single_beam and (j < nof_beamlets_per_iblet[0]):
+            elif c_single_beam == True and (j < nof_beamlets_per_iblet[0]):
                 n_weights += 1
                 if i%2 == 0:
                     sp_iblet_weights.append(complex(1024,0))
                 else:
                     sp_iblet_weights.append(complex(1024,0))
-            elif not c_single_beam and i == (j+first_si):
+            elif c_single_beam == False and i == (j+first_si):
                 n_weights += 1
                 sp_iblet_weights.append(complex(32760,0))
             else:
                 sp_iblet_weights.append(complex(0,0))
         iblet_weights.append(sp_iblet_weights)
     weights.append(iblet_weights)
-print  'Number of nonzero values in weight matrix is ' + str(n_weights)
+print 'Number of nonzero values in weight matrix is ' + str(n_weights)
 
 if c_write_settings:
     bsn_source.write_disable()
     beamformer.set_all_weights(weights)
     bsn_source.write_restart_pps()
 
-# # Wait a while before reading out the statistics(allow at least four sync periods to pass to have the filter settled)
-# time.sleep(2)
-#
-# fig_cnt  = 0
-# #######################################################################
-# # Download the subband statistics. After capturing, the subband
-# # statistics can be found in stati_h.sub_stati (real values) and in
-# # stati_h.db_sub_stati (logarithmic values).
-# #######################################################################
-#
-# if c_read_subband_stats:
-#     a, b = subband_stati_capture(sst)
-#
-#     #######################################################################
-#     # Plot the subband statistics.
-#     #######################################################################
-#     plot_subband_stati(a, b, figs='one', xas=xas_type, norm='dBFS',lim_axis='off', bck_fft='off', fig_nr=fig_cnt, pl_legend='on')
-#     fig_cnt+=1
-#
-# #######################################################################
-# # Download the beamlet statistics.
-# #######################################################################
-# if c_read_beamlet_stats:
-#     beamlets = beamlet_stati_capture(bst)
-#
-#     #######################################################################
-#     # Plot the beamlet statistics.
-#     #######################################################################
-#     plot_iblets = []
-#     plot_nof_beamlets_per_iblet = []
-#
-#     # Check which front nodes are in the system. Only those beamlet statistics have been read and can be plotted.
-#     for i in range(len(unb.front_nodes)):
-#             plot_iblets.append(iblets[i*c_nof_subbands:(i+1)*c_nof_subbands])
-#             plot_nof_beamlets_per_iblet.append(nof_beamlets_per_iblet[i*c_nof_subbands:(i+1)*c_nof_subbands])
-#
-#     plot_beamlet_subband(beamlets, norm='dB', xas='freq_z2', plot_type='freq',iblets=flatten(plot_iblets),
-#                          nof_beamlets_per_iblet=flatten(plot_nof_beamlets_per_iblet), beams_to_plot=10,
-#                          fig_nr=fig_cnt, pl_legend='on',lim_axis='off')
-#     fig_cnt+=1
-#
-#     pl.show()
-# ################################################################################
+# Wait a while before reading out the statistics(allow at least four sync periods to pass to have the filter settled)
+time.sleep(2)
+
+# Create objects for post processing tools
+stati_conf = statiConfiguration(c_fft_size, c_nof_wb_ffts, c_bsn_period, c_blocks_per_sync,
+                                c_stat_input_bits, c_wb_factor, c_nof_bf_units)
+stati_h    = Stati_functions(stati_conf)
+
+
+#######################################################################
+# Download the subband statistics. After capturing, the subband
+# statistics can be found in stati_h.sub_stati (real values) and in
+# stati_h.db_sub_stati (logarithmic values).
+#######################################################################
+# Wait a while before reading out the statistics(allow at least four sync periods to pass to have the filter settled)
+time.sleep(1)
+
+stati_h.plot_init()
+xas_type = 'freq_z2'
+fig_cnt  = 0
+
+if c_read_subband_stats:
+    stati_h.subband_stati_capture(sst)
+
+    #######################################################################
+    # Plot the subband statistics.
+    #######################################################################
+    stati_h.plot_subband_stati(figs='one', xas=xas_type, norm='dBFS',lim_axis='off', bck_fft='off', fig_nr=fig_cnt, pl_legend='on'); fig_cnt+=1
+
+ #######################################################################
+    # Download the beamlet statistics.
+    #######################################################################
+    if c_read_beamlet_stats:
+        beamlets = stati_h.beamlet_stati_capture(bst)
+        import sys; sys.exit()
+
+        #######################################################################
+        # Plot the beamlet statistics.
+        #######################################################################
+        plot_iblets = []
+        plot_nof_beamlets_per_iblet = []
+        # Check which front nodes are in the system. Only those beamlet statistics have been read and can be plotted.
+        for i in range(4):
+            plot_iblets.append(iblets[i*c_nof_subbands:(i+1)*c_nof_subbands])
+            plot_nof_beamlets_per_iblet.append(nof_beamlets_per_iblet[i*c_nof_subbands:(i+1)*c_nof_subbands])
+        stati_h.plot_beamlet_subband(beamformer.bf, norm='dB', xas=xas_type, plot_type='freq',iblets=flatten(plot_iblets), nof_beamlets_per_iblet=flatten(plot_nof_beamlets_per_iblet), beams_to_plot=10, fig_nr=fig_cnt, pl_legend='on',lim_axis='off'); fig_cnt+=1
+
+        c_threshold_high = 100000
+        if c_verify_beamlet_stats:
+            for i in range(len(beamlets)):
+                for j in range(c_nof_weights):
+                    if beamlets[i][j].real > c_threshold_high and ((((i % c_nof_bf_units)*c_nof_weights + j)/10-16) % 32 != 0):
+                        print 'FAILED'
+                        stri = 'Spike on unexpected bin! ' + "i=" + str(i) + " j=" + str(j) + "  " + str(beamlets[i][j])
+                        print stri
+
+#######################################################################################################################
+stati_h.plot_last()

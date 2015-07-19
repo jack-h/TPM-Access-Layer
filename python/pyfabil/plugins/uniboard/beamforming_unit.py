@@ -39,6 +39,7 @@ class UniBoardBeamformingUnit(FirmwareBlock):
 
         # Check if list of nodes are valid and all are front nodes
         self._nodes = self.board._get_nodes(kwargs['nodes'])
+        self._nodes = self._nodes if type(self._nodes) is list else [self._nodes]
         for node in self._nodes:
             if self.board.nodes[self.board._device_node_map[node]]['type'] != 'F':
                 raise PluginError("UniBoardBeamformingUnit: Specified node must be a front node")
@@ -114,7 +115,7 @@ class UniBoardBeamformingUnit(FirmwareBlock):
         data = self.board.read_register(self._ram_address, offset = addr_offset, device = self._nodes)
         return [node_data for (node, status, node_data) in data]
 
-    def write_weights(self, data, signal_path_number=0):
+    def write_weights(self, data, signal_path_number = 0):
         n = len(data)
         if n > self._nof_weights:
             print 'write_weights: Number of weights is too high  (%d > %d). Will truncate' % (n, self._nof_weights)
@@ -125,14 +126,16 @@ class UniBoardBeamformingUnit(FirmwareBlock):
         # Write the weights to the node(s)
         addr_offset = self._instance_number * self._nof_signal_paths * self._nof_weights + signal_path_number * self._nof_weights
         self.board.write_register(self._ram_address,  data[:self._nof_weights], offset = addr_offset, device = self._nodes)
+        print 'write_weights (bf unit = %d, signal path = %d)' % (self._instance_number, signal_path_number)
 
-    def write_weight(self, data, signal_path_number=0, weight_number=0):
+    def write_weight(self, data, signal_path_number = 0, weight_number = 0):
         n = len(data)
         if n > 1:
             print 'write_weight: Number of weights is too high  (%d > 1). Will truncate' % n
         if signal_path_number > self._nof_signal_paths:
             print 'write_weights: Signal path number is too high  (%d > %d)' % (signal_path_number, self._nof_signal_paths)
             signal_path_number = self._nof_signal_paths - 1
+
         # Write the weight to the node(s)
         addr_offset = self._instance_number * self._nof_signal_paths * self._nof_weights + \
                       signal_path_number * self._nof_weights + weight_number

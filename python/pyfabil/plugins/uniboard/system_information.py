@@ -1,7 +1,7 @@
 __author__ = 'lessju'
 
 from pyfabil.plugins.firmwareblock import FirmwareBlock
-from pyfabil.base.utils import convert_uint_to_string
+from pyfabil.base.utils import convert_uint_to_string, high_bits
 from pyfabil.base.definitions import *
 import logging
 
@@ -11,7 +11,7 @@ class UniBoardSystemInformation(FirmwareBlock):
     @compatibleboards(BoardMake.UniboardBoard)
     @friendlyname('uniboard_system_information')
     @maxinstances(1)
-    def __init__(self, board):
+    def __init__(self, board, **kwargs):
         """ UniBoardSystemInformation initialiser
         :param board: Pointer to board instance
         :return: Nothing
@@ -19,7 +19,17 @@ class UniBoardSystemInformation(FirmwareBlock):
         super(UniBoardSystemInformation, self).__init__(board)
 
         # Required register names
-        self._information_register = "PIO_SYSTEM_INFO"
+        self._reg_register = "PIO_SYSTEM_INFO"
+
+        # Check if list of nodes are valid and all are front nodes
+        self._nodes = self.board._get_nodes(kwargs['nodes'])
+
+        # Check if registers are available on all nodes
+        for node in self._nodes:
+            fpga_number = self.board.device_to_fpga(node)
+            register_str = "fpga%d.%s" % (fpga_number, self._reg_address)
+            if register_str not in self.board.register_list.keys():
+                raise PluginError("UniBoardSystemInformation: Node %d does not have register %s" % (fpga_number, self._reg_address))
 
         # Map of UniBoard peripherals
         self._peripheral_map = { 7 : "eth1g",
@@ -50,24 +60,13 @@ class UniBoardSystemInformation(FirmwareBlock):
         logging.info("UniBoardSystemInformation : Cleaning up")
         return True
 
-    def print_system_information(self, nodes='ALL'):
+    def print_system_information(self):
         """ Extract system information from loaded firmware for each node
             :param nodes: Nodes to query
         """
 
-        # Extract information about register from first node, assume that the register
-        # on each node has the same size
-        if "fpga1.%s" % self._information_register in self.board.register_list.keys():
-            system_info_size = self.board.register_list["fpga1.%s" % self._information_register]['size']
-        else:
-            raise LibraryError("System information register not available")
-
         # Get required information from all nodes at once
-        for (node, result, values) in self.board.read_register("%s.%s" % (nodes, self._information_register), system_info_size):
-
-            # Check for errors
-            if result != 0:
-                print "Error retrieving system information for node %d" % node
+        for (node, result, values) in self.board.read_register(self._reg_register, device = self._nodes):
 
             # Print class-specific information
             print "Node Index:\t\t%d" % node
