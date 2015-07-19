@@ -28,7 +28,7 @@ class UniBoardBeamformer(FirmwareBlock):
                                'stat_data_sz', 'nof_sp_per_input_stream', 'use_backplane']
 
         # Check if all required parameters were passed
-        if len(set(required_parameters) - set(kwargs)) > 0:
+        if len(set(required_parameters) - set(kwargs.keys())) > 0:
             raise PluginError("Insufficient parameters for UniBoardBeamformer, missing: %s" % \
                               [str(x) for x in set(required_parameters) - set(kwargs)])
 
@@ -55,13 +55,13 @@ class UniBoardBeamformer(FirmwareBlock):
                                               frame_size_in = self._frame_size_in, frame_size_out = self._frame_size_out)
 
         # Create Beamforming Units plugins
-        for i in range(self.board.front_nodes):
-            for j in kwargs['nof_bf_units_per_node']:
+        for i in range(len(self.board.front_nodes)):
+            for j in range(kwargs['nof_bf_units_per_node']):
                 self.board.load_plugin("UniBoardBeamformingUnit", nof_weights =  kwargs['nof_weights'],
-                                        nof_signal_paths = kwargs['nof_signals_paths'], nof_input_streams = kwargs['nof_input_streams'],
+                                        nof_signal_paths = kwargs['nof_signal_paths'], nof_input_streams = kwargs['nof_input_streams'],
                                         stat_data_width = kwargs['stat_data_w'], nof_regs_per_stat = kwargs['stat_data_sz'],
                                         xst_enable = True, instance_number = j, nodes = self.board.front_nodes)
-        self._bf = self.board.uniboard_beamforming_units
+        self.bf = self.board.uniboard_beamforming_unit
 
     #########################################################################################
 
@@ -86,8 +86,8 @@ class UniBoardBeamformer(FirmwareBlock):
         [result, Rin, Dram, Dsel, Rout, Errout] = self._ss_par.create_settings(self._ss_par.create_Din(), Dout)
 
         # Convert the returned settings to register settings fro the ss_parallel unit:
-        reorder_in_buf  = self._ss_par.ssReorderIn.create_selection_buf(Rin)
-        reorder_out_buf = self._ss_par.ssReorderOut.create_selection_buf(Rout)
+        reorder_in_buf  = self._ss_par.ss_reorder_in.create_selection_buf(Rin)
+        reorder_out_buf = self._ss_par.ss_reorder_out.create_selection_buf(Rout)
         select_buf      = flatten(Dsel)
 
         # Replace -1 with 0
@@ -124,13 +124,13 @@ class UniBoardBeamformer(FirmwareBlock):
                 bf_ss_wide_buf.append(bf_select_buf)
                 if write_settings:
                     for n in range(self._config['nof_input_streams']):
-                        self._bf[i*self._config['nof_bf_units_per_node']+k].ss_wide[n].write_selects(flatten(bf_select_buf))
+                        self.bf[i * self._config['nof_bf_units_per_node'] + k].ss_wide[n].write_selects(flatten(bf_select_buf))
 
         # Write the settings to the ss_parallel peripheral
         if write_settings:
-            self._ss_par.ssReorderIn.write_selects(reorder_in_buf)
-            self._ss_par.ssReorderOut.write_selects(reorder_out_buf)
-            self._ss_par.ssWide.write_selects(select_buf)
+            self._ss_par.ss_reorder_in.write_selects(reorder_in_buf)
+            self._ss_par.ss_reorder_out.write_selects(reorder_out_buf)
+            self._ss_par.ss_wide.write_selects(select_buf)
 
         return reorder_in_buf, reorder_out_buf, Dsel, bf_ss_wide_buf
 
@@ -192,7 +192,7 @@ class UniBoardBeamformer(FirmwareBlock):
         for k in range(len(self.board.front_nodes)):
             for j in range(self._config['nof_signal_paths']):
                 for i in range(self._config['nof_bf_units_per_node']):
-                    self._bf[k * self._config['nof_bf_units_per_node']+i].write_weights(
+                    self.bf[k * self._config['nof_bf_units_per_node']+i].write_weights(
                         concat_complex(nodes_list[k][j][i * self._config['nof_weights']:(i + 1) * self._config['nof_weights']],
                                        self._config['in_weight_w']), j)
 
@@ -267,7 +267,7 @@ class SelMatrix:
                     for k in range(self._nof_cols / sig_per_bn):
                         self._cells[j][k + i * (self._nof_cols/sig_per_bn)].sb = subbands[h]
                         self._cells[j][k + i * (self._nof_cols/sig_per_bn)].sp = i
-                        self._cells[j][k + i * (self._nof_cols/sig_per_bn)].DinIndex = self._cells[0][0].find_index(i, subbands[h])
+                        self._cells[j][k + i * (self._nof_cols/sig_per_bn)].DinIndex = self._cells[0][0].find_Dindex(i, subbands[h])
                         h += 1
 
         # Single Uniboard system with MESH connections only.
@@ -278,7 +278,7 @@ class SelMatrix:
                     for k in range(self._config['nof_subbands']):
                         self._cells[i + j * sig_per_bn][k].sb = subbands[h]
                         self._cells[i + j * sig_per_bn][k].sb = i
-                        self._cells[i + j * sig_per_bn][k].DinIndex = self._cells[0][0].find_index(i, subbands[h])
+                        self._cells[i + j * sig_per_bn][k].DinIndex = self._cells[0][0].find_Dindex(i, subbands[h])
                         h += 1
 
     def create_Dout(self):

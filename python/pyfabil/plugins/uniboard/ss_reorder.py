@@ -54,7 +54,7 @@ class UniBoardSSReorder(FirmwareBlock):
         self._frame_size      = kwargs.get('frame_size', 128)
 
         # Required register names
-        self._ram_address = 'RAM_SS_REORDER' if self._instance_name == '' else 'RAM_SS_REORDER_%' + self._instance_name
+        self._ram_address = 'RAM_SS_REORDER' if self._instance_name == '' else 'RAM_SS_REORDER_' + self._instance_name
 
         # Check if list of nodes are valid
         self._nodes = self.board._get_nodes(kwargs['nodes'])
@@ -63,7 +63,7 @@ class UniBoardSSReorder(FirmwareBlock):
         for node in self._nodes:
             fpga_number = self.board.device_to_fpga(node)
             register_str = "fpga%d.%s" % (fpga_number, self._ram_address)
-            if register_str % () not in self.board.register_list.keys():
+            if register_str not in self.board.register_list.keys():
                 raise PluginError("UniBoardSSReorder: Node %d does not have register %s" % (fpga_number, self._ram_address))
 
         self._select_w         = ceil_log2(self._nof_inputs)
@@ -116,6 +116,7 @@ class UniBoardSSReorder(FirmwareBlock):
         # Create reference output based on settings of the select buffer
         ref_re_arr = []
         ref_im_arr = []
+
         for i in range(self._nof_outputs):
             ref_stream_re = []
             ref_stream_im = []

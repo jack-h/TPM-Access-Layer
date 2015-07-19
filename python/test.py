@@ -1,3 +1,4 @@
+from pyfabil.base.utils import *
 from pyfabil import UniBoard
 import time
 
@@ -34,6 +35,18 @@ c_bsn_delay                = 5
 c_bg_buf_size              = c_fft_size / c_wb_factor
 c_stat_input_bits          = 16
 c_coefs_width              = 16
+
+# General purpose vars
+c_write_coefs          = False
+c_align_mesh           = True
+c_use_adc_data         = False
+c_read_subband_stats   = True
+c_read_beamlet_stats   = True
+c_verify_beamlet_stats = False
+c_single_beam          = False
+c_close_figures        = False
+c_use_default_settings = True   # Set to True in order to skip the mm writes to ss_parallel, ss_wides and weights. To boost simulation time.
+c_write_settings       = True
 
 ###################################################################################
 
@@ -75,22 +88,41 @@ for node in unb.back_nodes: # Number of back nodes
 # Get pointer to internal list representation of loaded wave generator plugins
 wg = unb.uniboard_wb_wave_generator
 
+# - Create filter instance
+fil = unb.load_plugin("UniBoardPpfFilterbank", nof_instances = c_nof_input_signals_per_bn, nof_taps = c_nof_taps,
+                      nof_bands = c_fft_size, wb_factor = c_wb_factor, nodes = 'BACK')
+
+# Create statistics instances for the subband statistics
+for i in range(c_nof_wb_ffts * c_wb_factor):
+    unb.load_plugin("UniBoardSubbandStatistics", nof_stats = c_fft_size / c_wb_factor, stat_data_width = c_stat_data_w,
+                    nof_regs_per_stat = c_stat_data_sz, xst_enable = False, instance_number = i, nodes = 'BACK')
+sst = unb.uniboard_subband_statistics
+
 # Create beamformer
-beamformer = unb.load_plugin("UniBoardBeamformer", fft_size                 = c_fft_size,\
-                                                   nof_input_signals_per_bn = c_nof_input_signals_per_bn,\
-                                                   nof_wb_ffts              = c_nof_wb_ffts,\
-                                                   nof_iblets               = c_nof_iblets,\
-                                                   nof_bf_units_per_node    = c_nof_bf_units,\
-                                                   nof_signal_paths         = c_nof_signal_paths,\
-                                                   nof_weights              = c_nof_weights,\
-                                                   nof_subbands             = c_nof_subbands,\
-                                                   nof_input_streams        = c_nof_input_streams,\
-                                                   in_weight_w              = c_in_weight_w,\
-                                                   wb_factor                = c_wb_factor,\
-                                                   stat_data_w              = c_stat_data_w,\
-                                                   stat_data_sz             = c_stat_data_sz,\
-                                                   nof_sp_per_input_stream  = c_nof_sp_per_input_stream,\
-                                                   use_backplane            = False )
+beamformer = unb.load_plugin("UniBoardBeamformer", fft_size                 = c_fft_size,
+                                                   nof_input_signals_per_bn = c_nof_input_signals_per_bn,
+                                                   nof_wb_ffts              = c_nof_wb_ffts,
+                                                   nof_iblets               = c_nof_iblets,
+                                                   nof_bf_units_per_node    = c_nof_bf_units,
+                                                   nof_signal_paths         = c_nof_signal_paths,
+                                                   nof_weights              = c_nof_weights,
+                                                   nof_subbands             = c_nof_subbands,
+                                                   nof_input_streams        = c_nof_input_streams,
+                                                   in_weight_w              = c_in_weight_w,
+                                                   wb_factor                = c_wb_factor,
+                                                   stat_data_w              = c_stat_data_w,
+                                                   stat_data_sz             = c_stat_data_sz,
+                                                   nof_sp_per_input_stream  = c_nof_sp_per_input_stream,
+                                                   use_backplane            = False)
+
+# Get pointer to internal list of beamforming statistics plugins
+bst = unb.uniboard_beamlet_statistics
+
+def_iblets = []
+def_nof_beamlets_per_iblet = []
+for i in range(c_nof_iblets):
+    def_iblets.append(i)
+    def_nof_beamlets_per_iblet.append(10)
 
 ##############################################################################################################
 
@@ -119,6 +151,17 @@ for i in range(signal_paths):
 for i in range(signal_paths):
     wg[i].write_mode_sinus()    # Enable the waveform generator in sinewave-mode
 
+# Switch between ADC of wave generators
+if c_use_adc_data:
+    for i in range(16):
+        wg[i].write_mode_off()      # Disable the waveform generator
+
+    for ai in range(len(adu)):            # Enable the ADCs
+        aduI2C[ai].write_set_adc()
+
+    quad.read_lock_status()
+    quad.read_lock_status()
+
 # Set up BSN and restart
 bsn_source.write_restart_pps()
 time.sleep(1)
@@ -129,10 +172,105 @@ time.sleep(1)
 bsn = bsn_scheduler.read_current_bsn()
 bsn = bsn[0] + bsn_scheduler.bsn_latency
 bsn_scheduler.write_scheduled_bsn(bsn)
-# time.sleep(1)
+time.sleep(1)
 
-print bsn_source.read_current_bsn()
-# time.sleep(1)
-print bsn_source.read_current_bsn()
-# time.sleep(3)
-print bsn_source.read_current_bsn()
+# Select subbands and specify the number of beamlets to be created.
+iblets = []
+nof_beamlets_per_iblet = []
+if c_use_default_settings:
+    iblets = def_iblets
+    nof_beamlets_per_iblet = def_nof_beamlets_per_iblet
+else:
+    # Create custom selection of subbands here:
+    for i in range(c_nof_iblets):
+        iblets.append(i + 127)
+        nof_beamlets_per_iblet.append(10)
+
+# Apply subband selection to beamformer
+beamformer.select_subbands(iblets, nof_beamlets_per_iblet, write_settings = c_write_settings)
+
+#######################################################################
+# Create weights for all signal paths, all selected subband(iblets) and
+# for every beam(nof_beamlets_per_iblet).
+#
+#   The weights[x][y][z] format is as follows:
+#
+#     x represents the Iblet-number ranging from 0-383
+#     y represents the Signalpath-number ranging from 0-63
+#     z represents the Beamlet-number ranging from 0-1023 (peak) 10 (average)
+#       The range of z is equal for all y's, but unique for every x.
+#######################################################################
+first_si = 0
+n_weights = 0
+weights = []
+for h in range(c_nof_iblets):                       # Selected subbands (384)
+    iblet_weights = []
+    for i in range(c_nof_signal_paths):             # inputs (16)
+        sp_iblet_weights = []
+        for j in range(nof_beamlets_per_iblet[h]):  # beamlets (avg=10)
+            if c_use_default_settings:     # Make all weights real and set to +1
+                n_weights += 1
+                sp_iblet_weights.append(complex(32760,0))
+            elif c_single_beam and (j < nof_beamlets_per_iblet[0]):
+                n_weights += 1
+                if i%2 == 0:
+                    sp_iblet_weights.append(complex(1024,0))
+                else:
+                    sp_iblet_weights.append(complex(1024,0))
+            elif not c_single_beam and i == (j+first_si):
+                n_weights += 1
+                sp_iblet_weights.append(complex(32760,0))
+            else:
+                sp_iblet_weights.append(complex(0,0))
+        iblet_weights.append(sp_iblet_weights)
+    weights.append(iblet_weights)
+print  'Number of nonzero values in weight matrix is ' + str(n_weights)
+
+if c_write_settings:
+    bsn_source.write_disable()
+    beamformer.set_all_weights(weights)
+    bsn_source.write_restart_pps()
+
+# # Wait a while before reading out the statistics(allow at least four sync periods to pass to have the filter settled)
+# time.sleep(2)
+#
+# fig_cnt  = 0
+# #######################################################################
+# # Download the subband statistics. After capturing, the subband
+# # statistics can be found in stati_h.sub_stati (real values) and in
+# # stati_h.db_sub_stati (logarithmic values).
+# #######################################################################
+#
+# if c_read_subband_stats:
+#     a, b = subband_stati_capture(sst)
+#
+#     #######################################################################
+#     # Plot the subband statistics.
+#     #######################################################################
+#     plot_subband_stati(a, b, figs='one', xas=xas_type, norm='dBFS',lim_axis='off', bck_fft='off', fig_nr=fig_cnt, pl_legend='on')
+#     fig_cnt+=1
+#
+# #######################################################################
+# # Download the beamlet statistics.
+# #######################################################################
+# if c_read_beamlet_stats:
+#     beamlets = beamlet_stati_capture(bst)
+#
+#     #######################################################################
+#     # Plot the beamlet statistics.
+#     #######################################################################
+#     plot_iblets = []
+#     plot_nof_beamlets_per_iblet = []
+#
+#     # Check which front nodes are in the system. Only those beamlet statistics have been read and can be plotted.
+#     for i in range(len(unb.front_nodes)):
+#             plot_iblets.append(iblets[i*c_nof_subbands:(i+1)*c_nof_subbands])
+#             plot_nof_beamlets_per_iblet.append(nof_beamlets_per_iblet[i*c_nof_subbands:(i+1)*c_nof_subbands])
+#
+#     plot_beamlet_subband(beamlets, norm='dB', xas='freq_z2', plot_type='freq',iblets=flatten(plot_iblets),
+#                          nof_beamlets_per_iblet=flatten(plot_nof_beamlets_per_iblet), beams_to_plot=10,
+#                          fig_nr=fig_cnt, pl_legend='on',lim_axis='off')
+#     fig_cnt+=1
+#
+#     pl.show()
+# ################################################################################

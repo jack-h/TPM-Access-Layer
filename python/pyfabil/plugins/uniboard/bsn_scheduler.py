@@ -52,7 +52,7 @@ class UniBoardBsnScheduler(FirmwareBlock):
         for node in self._nodes:
             fpga_number = self.board.device_to_fpga(node)
             register_str = "fpga%d.%s" % (fpga_number, self._bsn_register)
-            if register_str % () not in self.board.register_list.keys():
+            if register_str not in self.board.register_list.keys():
                 raise PluginError("UniBoardBsnScheduler: Node %d does not have register %s" % (fpga_number, self._bsn_register))
 
         # Minimal control response time in BSN units needed to schedule a new BSN relative to the just read current BSN

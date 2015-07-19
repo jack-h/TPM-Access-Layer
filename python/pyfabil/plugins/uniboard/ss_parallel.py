@@ -9,7 +9,7 @@ class UniBoardSSParallel(FirmwareBlock):
     """ UniBoardSSParallel tests class """
 
     @compatibleboards(BoardMake.UniboardBoard)
-    @friendlyname('uniboard_ss_reorder')
+    @friendlyname('uniboard_ss_parallel')
     @maxinstances(1)
     def __init__(self, board, **kwargs):
         """ UniBoardSSParallel initialiser
@@ -26,30 +26,30 @@ class UniBoardSSParallel(FirmwareBlock):
         self._nof_internals   = kwargs.get('nof_internals', 16)
 
         # Required register names
-        self._ram_address = 'RAM_SS_PARALLEL'
+        # self._ram_address = 'RAM_SS_PARALLEL' NOTE: Doesn't seem to be used anywhere
 
         # Check if list of nodes are valid
         self._nodes = self.board._get_nodes(kwargs['nodes'])
 
         # Check if registers are available on all nodes
-        for node in self._nodes:
-            fpga_number = self.board.device_to_fpga(node)
-            register_str = "fpga%d.%s" % (fpga_number, self._ram_address)
-            if register_str % () not in self.board.register_list.keys():
-                raise PluginError("UniBoardSSParallel: Node %d does not have register %s" % (fpga_number, self._ram_address))
+        # for node in self._nodes:
+        #     fpga_number = self.board.device_to_fpga(node)
+        #     register_str = "fpga%d.%s" % (fpga_number, self._ram_address)
+        #     if register_str not in self.board.register_list.keys():
+        #         raise PluginError("UniBoardSSParallel: Node %d does not have register %s" % (fpga_number, self._ram_address))
 
         # Load required plugins
-        self._ss_reorder_in = self.board.load_plugin("UniBoardSSReorder", nof_inputs = self._nof_inputs,
-                                                     nof_output = self._nof_internals, frame_size = self._frame_size_in,
+        self.ss_reorder_in = self.board.load_plugin("UniBoardSSReorder", nof_inputs = self._nof_inputs,
+                                                     nof_outputs = self._nof_internals, frame_size = self._frame_size_in,
                                                      instance_number = self._instance_number, nodes = kwargs['nodes'],
                                                      instance_name = 'IN')
 
-        self._ss_reorder_out = self.board.load_plugin("UniBoardSSReorder", nof_inputs = self._nof_internals,
-                                                     nof_output = self._nof_outputs, frame_size = self._frame_size_out,
+        self.ss_reorder_out = self.board.load_plugin("UniBoardSSReorder", nof_inputs = self._nof_internals,
+                                                     nof_outputs = self._nof_outputs, frame_size = self._frame_size_out,
                                                      instance_number = self._instance_number, nodes = kwargs['nodes'],
                                                      instance_name = 'OUT')
 
-        self._ss_wide = self.board.load_plugin("UniBoardSSWide", nof_select = self._frame_size_out,
+        self.ss_wide = self.board.load_plugin("UniBoardSSWide", nof_select = self._frame_size_out,
                                                wb_factor = self._nof_internals, instance_number = self._instance_number,
                                                nodes = kwargs['nodes'])
 
@@ -57,31 +57,31 @@ class UniBoardSSParallel(FirmwareBlock):
 
     def create_reference_and_verify(self, x_re_arr, x_im_arr, reorder_in_buf, select_buf,
                                           reorder_out_buf, dut_re_arr, dut_im_arr):
-        (ref_re_arr, ref_im_arr) = self._ss_reorder_in.create_reference(x_re_arr, x_im_arr, reorder_in_buf)
+        (ref_re_arr, ref_im_arr) = self.ss_reorder_in.create_reference(x_re_arr, x_im_arr, reorder_in_buf)
         sel_re_arr = []
         sel_im_arr = []
         for i in range(len(ref_re_arr)):
-            sel_re_arr.append(self._ss_wide.subband_select(ref_re_arr[i], select_buf[(i+1)*len(ref_re_arr[0]):i*len(ref_re_arr[0])]))
-            sel_im_arr.append(self._ss_wide.subband_select(ref_im_arr[i], select_buf[(i+1)*len(ref_im_arr[0]):i*len(ref_im_arr[0])]))
-        self._ss_reorder_out.create_reference_and_verify(sel_re_arr, sel_im_arr, reorder_out_buf, dut_re_arr, dut_im_arr)
+            sel_re_arr.append(self.ss_wide.subband_select(ref_re_arr[i], select_buf[(i+1)*len(ref_re_arr[0]):i*len(ref_re_arr[0])]))
+            sel_im_arr.append(self.ss_wide.subband_select(ref_im_arr[i], select_buf[(i+1)*len(ref_im_arr[0]):i*len(ref_im_arr[0])]))
+        self.ss_reorder_out.create_reference_and_verify(sel_re_arr, sel_im_arr, reorder_out_buf, dut_re_arr, dut_im_arr)
 
     def create_reference(self, x_re_arr, x_im_arr, Rin, Dsel, Rout):
         # Create the register settings for the reorder units
-        reorder_in_buf  = self._ss_reorder_in.create_selection_buf(Rin)
-        reorder_out_buf = self._ss_reorder_out.create_selection_buf(Rout)
+        reorder_in_buf  = self.ss_reorder_in.create_selection_buf(Rin)
+        reorder_out_buf = self.ss_reorder_out.create_selection_buf(Rout)
 
         # Apply the input reordering:
-        (ref_re_arr, ref_im_arr) = self._ss_reorder_in.create_reference(x_re_arr, x_im_arr, reorder_in_buf)
+        (ref_re_arr, ref_im_arr) = self.ss_reorder_in.create_reference(x_re_arr, x_im_arr, reorder_in_buf)
 
         # Apply the subband selection
         sel_re_arr = []
         sel_im_arr = []
         for i in range(self._nof_internals):
-            sel_re_arr.append(self._ss_wide.subband_select(ref_re_arr[i], Dsel[i]))
-            sel_im_arr.append(self._ss_wide.subband_select(ref_im_arr[i], Dsel[i]))
+            sel_re_arr.append(self.ss_wide.subband_select(ref_re_arr[i], Dsel[i]))
+            sel_im_arr.append(self.ss_wide.subband_select(ref_im_arr[i], Dsel[i]))
 
         # Apply the output reordering
-        (res_re_arr, res_im_arr) = self._ss_reorder_out.create_reference(sel_re_arr, sel_im_arr, reorder_out_buf)
+        (res_re_arr, res_im_arr) = self.ss_reorder_out.create_reference(sel_re_arr, sel_im_arr, reorder_out_buf)
 
         return res_re_arr, res_im_arr
 
@@ -93,11 +93,12 @@ class UniBoardSSParallel(FirmwareBlock):
         result = True
         Rin    = self.init_array(self._nof_internals, self._frame_size_in,  0)
         Rout   = self.init_array(self._nof_outputs,   self._frame_size_out, 0)
-        Dram   = self.init_array(self._nof_internals, self._frame_size_in,  [-1,-1])
+        Dram   = self.init_array(self._nof_internals, self._frame_size_in,  [-1, -1])
         Dsel   = self.init_array(self._nof_internals, self._frame_size_out, -1)
         misses = 0
 
         for m in range(self._frame_size_out):
+            print 'create_settings: processing column %d of %d)' % (m + 1, self._frame_size_out)
             for n in range(self._nof_outputs):
                 # Check if the current Dout value is already placed in Dram. This is only the case when
                 # Dout contains multiple copies of the same input value.(For instance when a subband is
@@ -308,7 +309,7 @@ class UniBoardSSParallel(FirmwareBlock):
         for i in range(self._nof_inputs):
             row = []
             for j in range(self._frame_size_in):
-                row.append([i,j])
+                row.append([i, j])
             result.append(row)
 
         return result

@@ -10,7 +10,7 @@ class UniBoardBeamformingUnit(FirmwareBlock):
 
     @compatibleboards(BoardMake.UniboardBoard)
     @friendlyname('uniboard_beamforming_unit')
-    @maxinstances(1)
+    @maxinstances(16)
     def __init__(self, board, **kwargs):
         """ UniBoardBeamformingUnit initialiser
         :param board: Pointer to board instance
@@ -21,9 +21,9 @@ class UniBoardBeamformingUnit(FirmwareBlock):
         required_parameters = ['nof_weights', 'nof_signal_paths', 'nof_input_streams']
 
         # Check if all required parameters were passed
-        if set(required_parameters) - len(set(kwargs)) > 0:
+        if len(set(required_parameters) - set(kwargs.keys())) > 0:
             raise PluginError("Insufficient parameters for UniBoardBeamformingUnit, missing: %s" % \
-                              [str(x) for x in set(required_parameters) - len(set(kwargs))])
+                              [str(x) for x in set(required_parameters) - set(kwargs.keys())])
 
         # All OK, add to class instance
         self._nof_weights       = kwargs['nof_weights']
@@ -34,21 +34,24 @@ class UniBoardBeamformingUnit(FirmwareBlock):
         self._xst_enable        = kwargs.get('xst_enable', False)
         self._instance_number   = kwargs.get('instance_number', 0)
 
-        self._reg_address = 'REG_BF_OFFSETS'
+       # self._reg_address = 'REG_BF_OFFSETS'  # NOTE: Seems that this is not used anywhere here
         self._ram_address = 'RAM_BF_WEIGHTS'
 
-        # Check if list of nodes are valid
+        # Check if list of nodes are valid and all are front nodes
         self._nodes = self.board._get_nodes(kwargs['nodes'])
+        for node in self._nodes:
+            if self.board.nodes[self.board._device_node_map[node]]['type'] != 'F':
+                raise PluginError("UniBoardBeamformingUnit: Specified node must be a front node")
 
         # Check if registers are available on all nodes
         for node in self._nodes:
             fpga_number = self.board.device_to_fpga(node)
-            register_str = "fpga%d.%s" % (fpga_number, self._reg_address)
-            if register_str % () not in self.board.register_list.keys():
-                raise PluginError("UniBoardBeamformingUnit: Node %d does not have register %s" % (fpga_number, self._reg_address))
+         #   register_str = "fpga%d.%s" % (fpga_number, self._reg_address)
+         #   if register_str not in self.board.register_list.keys():
+         #       raise PluginError("UniBoardBeamformingUnit: Node %d does not have register %s" % (fpga_number, self._reg_address))
 
             register_str = "fpga%d.%s" % (fpga_number, self._ram_address)
-            if register_str % () not in self.board.register_list.keys():
+            if register_str  not in self.board.register_list.keys():
                 raise PluginError("UniBoardBeamformingUnit: Node %d does not have register %s" % (fpga_number, self._ram_address))
 
 
@@ -70,16 +73,19 @@ class UniBoardBeamformingUnit(FirmwareBlock):
 
         # SS
         self._nof_signal_paths_per_stream = self._nof_signal_paths / self._nof_input_streams
-        self._ss_wide = []
+        self.ss_wide = []
         for i in range(self._nof_input_streams):
             x = self.board.load_plugin("UniBoardSSWide", nof_select = self._nof_weights,
                                                          wb_factor = self._nof_signal_paths_per_stream,
-                                                         instance_number = self._instance_number * self._nof_input_streams,
+                                                         instance_number = self._instance_number * self._nof_input_streams + i,
                                                          nodes = kwargs['nodes'])
-            self._ss_wide.append(x)
+            self.ss_wide.append(x)
 
-        # ST Beamlet statistics
-        # self.st = pi_st_sst.PiStSst(tc, io, nofWeights, statDataWidth, nofRegsPerStat, xstEnable, instanceNr, nodeNr=tc.selected_nodes(nodeNr))
+        # Load ST Beamlet statistics plugin
+        self.st = self.board.load_plugin("UniBoardBeamletStatistics", nof_stats = self._nof_weights,
+                                         stat_data_width = self._stat_data_width, nof_regs_per_stat = self._nof_regs_per_stat,
+                                         xst_enable = self._xst_enable, instance_number = self._instance_number,
+                                         nodes = kwargs['nodes'])
 
     #########################################################################################
 
@@ -118,7 +124,7 @@ class UniBoardBeamformingUnit(FirmwareBlock):
 
         # Write the weights to the node(s)
         addr_offset = self._instance_number * self._nof_signal_paths * self._nof_weights + signal_path_number * self._nof_weights
-        self.board.writeRegister(self._ram_address,  data[:self._nof_weights], offset = addr_offset, device = self._nodes)
+        self.board.write_register(self._ram_address,  data[:self._nof_weights], offset = addr_offset, device = self._nodes)
 
     def write_weight(self, data, signal_path_number=0, weight_number=0):
         n = len(data)
@@ -154,7 +160,7 @@ class UniBoardBeamformingUnit(FirmwareBlock):
         bfUnitData=[]
         for i in range(self._nof_input_streams):
             for j in range(self._nof_signal_paths_per_stream):
-                bfUnitData.append(self._ss_wide[0].subband_select(input_data[i], selection[j]))
+                bfUnitData.append(self.ss_wide[0].subband_select(input_data[i], selection[j]))
 
         # Calculate all beamlets
         beamlets=[]

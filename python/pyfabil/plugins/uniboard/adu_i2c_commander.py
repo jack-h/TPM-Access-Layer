@@ -158,7 +158,7 @@ class UniBoardAduI2CCommander(FirmwareBlock):
         time.sleep(self.CMD_DEFAULT_TO)
 
         # Get the register data from the node(s)
-        data = self.board.readRegister(self._reg_address, offset = self.PROTOCOL_STATUS_WI, n = 3, device = self._nodes)
+        data = self.board.read_register(self._reg_address, offset = self.PROTOCOL_STATUS_WI, n = 3, device = self._nodes)
 
         # Evaluate per node
         result = []
@@ -180,7 +180,7 @@ class UniBoardAduI2CCommander(FirmwareBlock):
         time.sleep(self.CMD_DEFAULT_TO)
 
         # Get the register data from the node(s)
-        data = self.board.readRegister(self._reg_address, offset = self.PROTOCOL_STATUS_WI, n = 2, device = self._nodes)
+        data = self.board.read_register(self._reg_address, offset = self.PROTOCOL_STATUS_WI, n = 2, device = self._nodes)
 
         # Evaluate per node
         for (node, status, node_data) in data:
@@ -193,13 +193,13 @@ class UniBoardAduI2CCommander(FirmwareBlock):
     def _do_wr_only_cmd(self, cmd_wi, cmd_str, cmd_to):
         """ Use general _do_wr_only_cmd for all commands that only write I2C and do not read I2C data """
         # Write the register data to the node(s)
-        self.board.writeRegister(self._reg_address, 0, offset = cmd_wi, device = self._nodes)
+        self.board.write_register(self._reg_address, 0, offset = cmd_wi, device = self._nodes)
 
         # Wait until the I2C access has finished on the node(s)
         time.sleep(cmd_to)
 
         # Get the register data from the node(s)
-        data = self.board.readRegister(self._reg_address, offset = self.PROTOCOL_STATUS_WI, n = 2, device = self._nodes)
+        data = self.board.read_register(self._reg_address, offset = self.PROTOCOL_STATUS_WI, n = 2, device = self._nodes)
 
         # Evaluate per node
         for (node, status, node_data) in data:
