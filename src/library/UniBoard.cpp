@@ -85,12 +85,43 @@ STATUS UniBoard::getStatus()
     return status;
 }
 
+// Reset board
+RETURN UniBoard::reset(DEVICE device)
+{
+    // Check if reset register is in memory map for device
+    REGISTER reg = "REG_WDI";
+    UINT value   =  0xB007FAC7;
+    MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(device, reg);
+
+    // If register was not found, return error
+    if (info == NULL)
+    {
+        DEBUG_PRINT("UniBoard::reset. Register " << reg << " on device " << device << " not found in memory map");
+        return FAILURE;
+    }
+
+    // Set reset register
+    if (connections[device_id_map[device]] -> writeRegister(info -> address, &value) == SUCCESS)
+    {
+        // Reset memory map for device
+        memory_map -> resetDevice(device);
+
+        // Populate memory map for factory firmware
+        return this -> populateRegisterList(device);
+    }
+    else
+    {
+        DEBUG_PRINT("UniBoard::reset. Failed to reset board (error setting reset register");
+        return FAILURE;
+    }
+}
+
 // When connected to a UniBoard, some form of firmware will be loaded. This function
 // will extract the memory map from the loaded firmware
 RETURN UniBoard::populateRegisterList(DEVICE device)
 {
     // Read the memory map from the loaded firmware
-    VALUES vals = connections[device_id_map[device]] -> readRegister(0x1000, ROM_SYSTEM_INFO_OFFSET);
+    VALUES vals = connections[device_id_map[device]] -> readRegister(ROM_SYSTEM_INFO, ROM_SYSTEM_INFO_OFFSET);
 
     // Check if read succeeded
     if (vals.error == FAILURE)

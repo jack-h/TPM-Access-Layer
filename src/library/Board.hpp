@@ -26,6 +26,9 @@ class Board
         // Clear everything and remove connection
         virtual void disconnect() = 0;
 
+        // Reset board
+        virtual RETURN reset(DEVICE device) = 0;
+
         // Get board status
         virtual STATUS getStatus() = 0;
 

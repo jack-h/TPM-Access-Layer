@@ -116,9 +116,22 @@ RETURN disconnectBoard(ID id)
 
 // Rest board. Note that return from this function is not determined, due to
 // the board being reset
-RETURN  resetBoard(ID id)
-{    
-    return FAILURE;
+RETURN resetBoard(ID id, DEVICE device)
+{
+    // Check if board exists
+    map<unsigned int, Board *>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end())
+    {
+        DEBUG_PRINT("AccessLayer::reset. " << id << " not connected");
+        return FAILURE;
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    // Return register list
+    return board -> reset(device);
 }
 
 // Get board status

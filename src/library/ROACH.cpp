@@ -134,6 +134,10 @@ RETURN ROACH::loadFirmwareBlocking(DEVICE device, const char* bitstream)
 
 // =========================== NOT IMPLEMENTED FOR ROACH ===========================
 
+// Reset board
+RETURN ROACH::reset(DEVICE device)
+{ return NOT_IMPLEMENTED; }
+
 // Get address value. Not applicable to ROACH
 VALUES ROACH::readAddress(DEVICE device, UINT address, UINT n)
 { return {NULL, NOT_IMPLEMENTED}; }

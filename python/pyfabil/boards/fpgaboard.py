@@ -282,6 +282,12 @@ class FPGABoard(object):
             self._logger.info(self.log("Disconnected from board with ID %s" % self.id))
             self.id = None
 
+    def reset(self, device):
+        """ Reset device on board
+        :param device: Device on board to reset
+        """
+        return call_reset_board(self.id, device)
+
     def get_status(self):
         """ Get board status
         :return: Status

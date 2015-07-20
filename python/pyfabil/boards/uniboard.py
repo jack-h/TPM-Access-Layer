@@ -93,6 +93,23 @@ class UniBoard(FPGABoard):
             self.id = board_id
             self.status = Status.OK
 
+    def reset(self, nodes):
+        """ Override reset board
+        :param nodes: nodes to reset """
+        nodes = self._get_nodes(nodes)
+        nodes = nodes if type(nodes) is list else [nodes]
+
+        print self
+
+        # Call reset board
+        if not all([call_reset_board(self.id, node) == Error.Success for node in nodes]):
+            raise LibraryError("Reset failed")
+
+        # Updated register list
+        self.get_register_list()
+
+        print self
+
     def load_firmware_blocking(self, device, filepath):
         """ Override load firmware blocking to be able to specify nodes as well as devices
         :param device: devices or nodes
@@ -117,7 +134,7 @@ class UniBoard(FPGABoard):
                 for res in executor.map(lambda p: call_load_firmware_blocking(*p), [(self.id, node, filepath) for node in nodes]):
                     result.append(res)
 
-        # If calld succeeded, get register and device list
+        # If call succeeded, get register and device list
         if all([r for r in result if result == Error.Success]):
             self._programmed = True
             self.status = Status.OK
@@ -178,7 +195,7 @@ class UniBoard(FPGABoard):
         if self.register_list[reg_str]['type'] == RegisterType.FifoRegister:
             # Write to be performed on a FIFO register
             if len(nodes) == 1:
-                result.append([call_write_fifo_register(self.id, nodes[0], register, values, offset)])
+                result.append([call_write_fifo_register(self.id, nodes[0], register, values)])
             else:
                 # Use thread pool to parallelise calls over nodes
                 with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:

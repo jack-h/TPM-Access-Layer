@@ -25,6 +25,9 @@ class ROACH: public Board
         // Get board status
         STATUS getStatus();
 
+        // Reset board
+        RETURN reset(DEVICE device);
+
         // Get register list
         REGISTER_INFO *getRegisterList(UINT *num_registers, bool load_values);
 

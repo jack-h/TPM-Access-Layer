@@ -340,6 +340,10 @@ RETURN TPM::loadFirmwareBlocking(DEVICE device, const char* bitstream)
     return SUCCESS;
 }
 
+// Reset board
+RETURN TPM::reset(DEVICE device)
+{ return NOT_IMPLEMENTED; }
+
 // FIFO register are not yet implemented on the TPM
 VALUES TPM::readFifoRegister(DEVICE device, REGISTER reg, UINT n)
 { return VALUES(); }

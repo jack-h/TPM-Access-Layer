@@ -33,6 +33,10 @@ def initialise_library(filepath = None):
     library.disconnectBoard.argtypes = [ctypes.c_uint32]
     library.disconnectBoard.restype  = ctypes.c_int
 
+    # Define reset function
+    library.resetBoard.argtypes = [ctypes.c_uint32, ctypes.c_int]
+    library.resetBoard.restype = ctypes.c_int
+
     # Define getFirmware function
     library.getFirmware.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.POINTER(ctypes.c_int)]
     library.getFirmware.restype = ctypes.POINTER(ctypes.c_char_p)
@@ -111,6 +115,15 @@ def call_disconnect_board(board_id):
     """
     global library
     return Error(library.disconnectBoard(board_id))
+
+def call_reset_board(board_id, device):
+    """ Call resetBoard on bord
+    :param board_id: ID of board to communicate with
+    :param device: Device on board to reset
+    :return: Success or Failure
+    """
+    global library
+    return Error(library.resetBoard(board_id, device.value))
 
 def call_get_status(board_id):
     """ Call getStatus on board

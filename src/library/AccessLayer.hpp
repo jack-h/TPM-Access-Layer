@@ -43,7 +43,7 @@ extern "C" RETURN disconnectBoard(ID id);
 //   id    Board ID
 // Returns:
 //   RETURN
-extern "C" RETURN resetBoard(ID id);
+extern "C" RETURN resetBoard(ID id, DEVICE device);
 
 // Get board status
 // Arguments:
