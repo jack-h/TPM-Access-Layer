@@ -19,7 +19,6 @@ class UniBoardBeamletStatistics(FirmwareBlock):
 
         self._instance_number       = kwargs.get('instance_number', 0)
         self._xst_enable            = kwargs.get('xst_enable', False)
-        self._instance_number       = kwargs.get('instance_number', 0)
         self._nof_stats             = kwargs.get('nof_stats', 256) * c_nof_complex if self._xst_enable else \
                                       kwargs.get('nof_stats', 256)
         self._nof_regs_per_stat     = kwargs.get('nof_regs_per_stat', 2)
@@ -76,7 +75,7 @@ class UniBoardBeamletStatistics(FirmwareBlock):
             err_cnt = 0
             if self._xst_enable:
                 for k in xrange(0, self._nof_stats/c_nof_complex):
-                    ni_complex_stats.append(complex(ni_stats[k], ni_stats[k+self._nof_stats/c_nof_complex]))
+                    ni_complex_stats.append(complex(ni_stats[k], ni_stats[k + self._nof_stats / c_nof_complex]))
                     if reference[k] != ni_complex_stats[k]:
                         err_cnt += 1
                         print 'Bf ='+ str(ni_complex_stats[k]) + 'Reference = ' + str(reference[k])
@@ -97,8 +96,8 @@ class UniBoardBeamletStatistics(FirmwareBlock):
     def read_stats(self, return_complex=True):
         # Get the statistics from the node(s)
         addr_offset = self._instance_number * self._nof_regs_per_instance
-        data = self.board.read_register(self._ram_address, offset = addr_offset, n = self._nof_regs_per_instance, device = self._nodes)
-
+        data = self.board.read_register(self._ram_address, offset = addr_offset,
+                                        n = self._nof_regs_per_instance, device = self._nodes)
         # Evaluate per node
         result = []
         for (node, status, node_data) in data:
@@ -111,7 +110,6 @@ class UniBoardBeamletStatistics(FirmwareBlock):
                     temp += -2 ** self._stat_data_width
                 ni_stats.append(temp)
             print 'FN %d Read statistics (instance = %d)' % (node, self._instance_number)
-            self.append_log_data(ni_stats, 'dec', 16, 8, True, 0, 0, 0, 0)
             if self._xst_enable:
                 for k in xrange(0, self._nof_stats / c_nof_complex):
                      ni_complex_stats.append(complex(ni_stats[k], ni_stats[k + self._nof_stats/c_nof_complex]))
@@ -124,15 +122,15 @@ class UniBoardBeamletStatistics(FirmwareBlock):
                 result.append(ni_stats)
         return result
 
-    def read_treshold(self):
-        # Write the treshold to the node(s)
+    def read_threshold(self):
+        # Write the threshold to the node(s)
         addr_offset = self._reg_span * self._instance_number
         data = self.board.read_register(self._reg_address, offset = addr_offset, n = 1, device = self._nodes)
         return [node_data for (node, status, node_data) in data]
 
 
-    def write_treshold(self, data):
-        # Write the treshold to the node(s)
+    def write_threshold(self, data):
+        # Write the threshold to the node(s)
         addr_offset = self._reg_span * self._instance_number
         self.board.writeRegister(self._reg_address, data, offset = addr_offset, device = self._nodes)
 
@@ -162,41 +160,3 @@ class UniBoardBeamletStatistics(FirmwareBlock):
         """
         logging.info("UniBoardBeamletStatistics : Cleaning up")
         return True
-
-
-    #################################### LOG
-    # NOTE: Temporary
-        # Print the contents of an array to the test log file
-    def append_log_data(self, data, radix='dec', dataWidth=8, nofColumns=16, rulers=False, noTime=0, noVLevel=0, noTestId=0, noSectionId=0):
-        r = 0
-        columnWidth = dataWidth + 1  # use 1 space between columns
-        if rulers:
-            rowStr = 'Col:'
-            for i in range(nofColumns):
-                rowStr += '%*d' % (columnWidth, i)
-            print rowStr, noTime, noVLevel, noTestId, noSectionId
-            print 'Row:', noTime, noVLevel, noTestId, noSectionId
-            rowStr = ('%-4d' % r)
-
-        k = 0
-
-        # Make sure data is a list, otherwise the following fails
-        if depth(data)==0:
-            data=listify(data)
-
-        n = len(data)
-        for i in range(n):
-            if radix=='uns': rowStr += ' %*d' % (dataWidth, data[i])
-            if radix=='dec': rowStr += ' %*d' % (dataWidth, data[i])
-            if radix=='hex': rowStr += ' %0*x' % (dataWidth, data[i])
-            if k < nofColumns-1:
-                k += 1
-            else:
-                print rowStr, noTime, noVLevel, noTestId, noSectionId
-                rowStr = ''
-                r += 1
-                if rulers:
-                    rowStr += '%-4d' % r
-                k = 0
-        if k!=0:
-           print noTime, noVLevel, noTestId, noSectionId

@@ -39,7 +39,7 @@ c_coefs_width              = 16
 
 # General purpose vars
 c_write_coefs          = False
-c_align_mesh           = True
+c_align_mesh           = False
 c_use_adc_data         = False
 c_read_subband_stats   = True
 c_read_beamlet_stats   = True
@@ -47,16 +47,15 @@ c_verify_beamlet_stats = False
 c_single_beam          = False
 c_close_figures        = False
 c_use_default_settings = True   # Set to True in order to skip the mm writes to ss_parallel, ss_wides and weights. To boost simulation time.
-c_write_settings       = True
+c_write_settings       = False
+
+signal_paths = 4
 
 #########################################################################################################
 
 nodelist = [(0,'F'), (1,'F'),(2,'F'), (3,'F'), (4,'B'), (5,'B'), (6,'B'), (7,'B')]
 unb = UniBoard(ip = "10.99.0.1", port = 5000, nodelist = nodelist)
 print "Connected to UniBoard with start ip 10.99.0.1. ID: %d" % unb.id
-
-signal_paths = 16
-sp_per_node  = 4
 
 # WG constants
 phase    = 0.0          # phase : 0.0 to 360.0 degrees
@@ -83,21 +82,15 @@ quad = unb.load_plugin("UniBoardAduhQuad", nodes='BACK')
 
 # Load wave generator plugins (one per SP / BN combination)
 for node in unb.back_nodes: # Number of back nodes
-    for si in range(sp_per_node): # Number of signal paths
-        unb.load_plugin("UniBoardWBWaveGenerator", instance_number = si, nodes = node)
+     for si in range(c_nof_input_signals_per_bn): # Number of signal paths
+         unb.load_plugin("UniBoardWBWaveGenerator", instance_number = si, nodes = node)
 
 # Get pointer to internal list representation of loaded wave generator plugins
 wg = unb.uniboard_wb_wave_generator
 
 # - Create filter instance
 fil = unb.load_plugin("UniBoardPpfFilterbank", nof_instances = c_nof_input_signals_per_bn, nof_taps = c_nof_taps,
-                      nof_bands = c_fft_size, wb_factor = c_wb_factor, nodes = 'BACK')
-
-# Create statistics instances for the subband statistics
-for i in range(c_nof_wb_ffts * c_wb_factor):
-    unb.load_plugin("UniBoardSubbandStatistics", nof_stats = c_fft_size / c_wb_factor, stat_data_width = c_stat_data_w,
-                    nof_regs_per_stat = c_stat_data_sz, xst_enable = False, instance_number = i, nodes = 'BACK')
-sst = unb.uniboard_subband_statistics
+                       nof_bands = c_fft_size, wb_factor = c_wb_factor, nodes = 'BACK')
 
 # Create beamformer
 beamformer = unb.load_plugin("UniBoardBeamformer", fft_size                 = c_fft_size,
@@ -116,6 +109,12 @@ beamformer = unb.load_plugin("UniBoardBeamformer", fft_size                 = c_
                                                    nof_sp_per_input_stream  = c_nof_sp_per_input_stream,
                                                    use_backplane            = False)
 
+# Create statistics instances for the subband statistics
+for i in range(c_nof_wb_ffts * c_wb_factor):
+    unb.load_plugin("UniBoardSubbandStatistics", nof_stats = c_fft_size / c_wb_factor, stat_data_width = c_stat_data_w,
+                    nof_regs_per_stat = c_stat_data_sz, xst_enable = False, instance_number = i, nodes = 'BACK')
+sst = unb.uniboard_subband_statistics
+
 # Get pointer to internal list of beamforming statistics plugins
 bst = unb.uniboard_beamlet_statistics
 
@@ -127,6 +126,15 @@ for i in range(c_nof_iblets):
 
 ##############################################################################################################
 
+# Create objects for post processing tools
+stati_conf = statiConfiguration(c_fft_size, c_nof_wb_ffts, c_bsn_period, c_blocks_per_sync,
+                                c_stat_input_bits, c_wb_factor, c_nof_bf_units)
+stati_h    = Stati_functions(stati_conf)
+
+stati_h.plot_init()
+xas_type = 'freq_z2'
+fig_cnt  = 0
+
 #######################################################################
 # Write filter filterbankcoefficients to memory in case the .mif files
 # were not in place. In most cases this step is skipped, since the
@@ -134,57 +142,57 @@ for i in range(c_nof_iblets):
 # in $UNB\Firmware\dsp\filter\build\data\*.mif.
 # This code shows how to upload different coefficients.
 #######################################################################
-if c_write_coefs:
-    # Read all the coefficients from the file into a list.
-    coefs_list_from_file =[]
-    f = file(c_coefs_input_file, "r")
-    for i in range(c_nof_coefs_in_file):
-        s = int(f.readline())
-        s &= 2 ** c_coefs_width - 1
-        coefs_list_from_file.append(s)
-    f.close()
-
-    # Downsample the list to the number of required coefficients, based on the c_nof_taps and the c_fft_size
-    coefs_list = []
-    for i in range(c_nof_taps*c_fft_size):
-        s = coefs_list_from_file[i*c_downsample_factor]
-        coefs_list.append(s)
-
-    # Write the coefficients to the memories
-    for l in range(c_nof_input_signals_per_bn):
-        for k in range(c_wb_factor):
-            for j in range(c_nof_taps):
-                write_list=[]
-                for i in range(c_fft_size/c_wb_factor):
-                    write_list.append(coefs_list[j*c_fft_size+i*c_wb_factor + c_wb_factor-1-k])
-                write_list_rev = []
-                for i in range(c_fft_size/c_wb_factor):                          # Reverse the list
-                    write_list_rev.append(write_list[c_fft_size/c_wb_factor-i-1])
-                fil.write_coefs(write_list_rev,l,j,k)
+# if c_write_coefs:
+#     # Read all the coefficients from the file into a list.
+#     coefs_list_from_file =[]
+#     f = file(c_coefs_input_file, "r")
+#     for i in range(c_nof_coefs_in_file):
+#         s = int(f.readline())
+#         s &= 2 ** c_coefs_width - 1
+#         coefs_list_from_file.append(s)
+#     f.close()
+#
+#     # Downsample the list to the number of required coefficients, based on the c_nof_taps and the c_fft_size
+#     coefs_list = []
+#     for i in range(c_nof_taps*c_fft_size):
+#         s = coefs_list_from_file[i*c_downsample_factor]
+#         coefs_list.append(s)
+#
+#     # Write the coefficients to the memories
+#     for l in range(c_nof_input_signals_per_bn):
+#         for k in range(c_wb_factor):
+#             for j in range(c_nof_taps):
+#                 write_list=[]
+#                 for i in range(c_fft_size/c_wb_factor):
+#                     write_list.append(coefs_list[j*c_fft_size+i*c_wb_factor + c_wb_factor-1-k])
+#                 write_list_rev = []
+#                 for i in range(c_fft_size/c_wb_factor):                          # Reverse the list
+#                     write_list_rev.append(write_list[c_fft_size/c_wb_factor-i-1])
+#                 fil.write_coefs(write_list_rev,l,j,k)
 
 # Stop the datastream that is currently running
 bsn_source.write_disable()
 
 # Setting the interval of the sync pulse to 781250 packets, which corresponds to 1 second integration time.
-bsn_source.write_blocks_per_sync(781250)
+bsn_source.write_blocks_per_sync(c_blocks_per_sync)
 
 # Set up mesh
-trnb_mesh.write_tx_align_enable()
-time.sleep(0.5)
-trnb_mesh.write_rx_align_enable()
-trnb_mesh.write_rx_align_enable(0)
-# We don't want to take away the alignment pattern too soon..RX needs some time to align
-time.sleep(3)
-trnb_mesh.write_tx_align_enable(0)
+if c_align_mesh:
+    trnb_mesh.write_tx_align_enable()
+    time.sleep(0.5)
+    trnb_mesh.write_rx_align_enable()
+    trnb_mesh.write_rx_align_enable(0)
+    # We don't want to take away the alignment pattern too soon..RX needs some time to align
+    time.sleep(3)
+    trnb_mesh.write_tx_align_enable(0)
 
 # Set up wave generators, giving each signal a unique frequency
-
-freqStep   = 1.0 / ( 2 * signal_paths)
+freqStep   = 1.0 / ( 2 * c_nof_signal_paths)
 freqOffset = 1.0 / 64
-for i in range(signal_paths):
+for i in range(c_nof_signal_paths):
     wg[i].write_sinus_settings(phase, freqStep * i + freqOffset, amplitude = 0.8)  # Specify the waveform
 
-for i in range(signal_paths):
+for i in range(c_nof_signal_paths):
     wg[i].write_mode_sinus()    # Enable the waveform generator in sinewave-mode
 
 # Switch between ADC of wave generators
@@ -195,7 +203,6 @@ if c_use_adc_data:
     for ai in range(len(adu)):            # Enable the ADCs
         aduI2C[ai].write_set_adc()
 
-    quad.read_lock_status()
     quad.read_lock_status()
 
 # Set up BSN and restart
@@ -224,7 +231,7 @@ else:
 
 # Apply subband selection to beamformer
 beamformer.select_subbands(iblets, nof_beamlets_per_iblet, write_settings = c_write_settings)
-import sys; sys.exit()
+
 #######################################################################
 # Create weights for all signal paths, all selected subband(iblets) and
 # for every beam(nof_beamlets_per_iblet).
@@ -270,11 +277,6 @@ if c_write_settings:
 # Wait a while before reading out the statistics(allow at least four sync periods to pass to have the filter settled)
 time.sleep(2)
 
-# Create objects for post processing tools
-stati_conf = statiConfiguration(c_fft_size, c_nof_wb_ffts, c_bsn_period, c_blocks_per_sync,
-                                c_stat_input_bits, c_wb_factor, c_nof_bf_units)
-stati_h    = Stati_functions(stati_conf)
-
 
 #######################################################################
 # Download the subband statistics. After capturing, the subband
@@ -284,44 +286,36 @@ stati_h    = Stati_functions(stati_conf)
 # Wait a while before reading out the statistics(allow at least four sync periods to pass to have the filter settled)
 time.sleep(1)
 
-stati_h.plot_init()
-xas_type = 'freq_z2'
-fig_cnt  = 0
-
 if c_read_subband_stats:
     stati_h.subband_stati_capture(sst)
 
     #######################################################################
     # Plot the subband statistics.
     #######################################################################
-    stati_h.plot_subband_stati(figs='one', xas=xas_type, norm='dBFS',lim_axis='off', bck_fft='off', fig_nr=fig_cnt, pl_legend='on'); fig_cnt+=1
+    stati_h.plot_subband_stati(figs='one', xas=xas_type, norm='dBFS',lim_axis='off', bck_fft='off',
+                               fig_nr=fig_cnt, pl_legend='on')
+    fig_cnt += 1
 
- #######################################################################
+    #######################################################################
     # Download the beamlet statistics.
     #######################################################################
     if c_read_beamlet_stats:
         beamlets = stati_h.beamlet_stati_capture(bst)
-        import sys; sys.exit()
 
         #######################################################################
         # Plot the beamlet statistics.
         #######################################################################
         plot_iblets = []
         plot_nof_beamlets_per_iblet = []
-        # Check which front nodes are in the system. Only those beamlet statistics have been read and can be plotted.
-        for i in range(4):
-            plot_iblets.append(iblets[i*c_nof_subbands:(i+1)*c_nof_subbands])
-            plot_nof_beamlets_per_iblet.append(nof_beamlets_per_iblet[i*c_nof_subbands:(i+1)*c_nof_subbands])
-        stati_h.plot_beamlet_subband(beamformer.bf, norm='dB', xas=xas_type, plot_type='freq',iblets=flatten(plot_iblets), nof_beamlets_per_iblet=flatten(plot_nof_beamlets_per_iblet), beams_to_plot=10, fig_nr=fig_cnt, pl_legend='on',lim_axis='off'); fig_cnt+=1
 
-        c_threshold_high = 100000
-        if c_verify_beamlet_stats:
-            for i in range(len(beamlets)):
-                for j in range(c_nof_weights):
-                    if beamlets[i][j].real > c_threshold_high and ((((i % c_nof_bf_units)*c_nof_weights + j)/10-16) % 32 != 0):
-                        print 'FAILED'
-                        stri = 'Spike on unexpected bin! ' + "i=" + str(i) + " j=" + str(j) + "  " + str(beamlets[i][j])
-                        print stri
+        # Check which front nodes are in the system. Only those beamlet statistics have been read and can be plotted.
+        for i in range(len(unb.front_nodes)):
+            plot_iblets.append(iblets[i * c_nof_subbands:(i + 1) * c_nof_subbands])
+            plot_nof_beamlets_per_iblet.append(nof_beamlets_per_iblet[i*c_nof_subbands:(i+1)*c_nof_subbands])
+        stati_h.plot_beamlet_subband(beamformer.bf, norm='dB', xas=xas_type, plot_type='freq',iblets=flatten(plot_iblets),
+                                     nof_beamlets_per_iblet=flatten(plot_nof_beamlets_per_iblet), beams_to_plot=10,
+                                     fig_nr=fig_cnt, pl_legend='on',lim_axis='off')
+        fig_cnt += 1
 
 #######################################################################################################################
 stati_h.plot_last()

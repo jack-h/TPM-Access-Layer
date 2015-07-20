@@ -179,33 +179,33 @@ class UniBoardBeamformingUnit(FirmwareBlock):
         for i in xrange(0, self._nof_weights):
             if use_16b:
                 # Quantize the beamlets for 16 bit output that is used for the BST and the UDP offload via 1GbE to a PC
-                realPart = int_requantize(inp = int(beamlets[i].real), inp_w = self._sum_w, outp_w = self._bst_dat_w,
-                                          lsb_w = self._bst_lsb_w, lsb_round = True, msb_clip = False, gain_w = 0)
-                imagPart = int_requantize(inp = int(beamlets[i].imag), inp_w = self._sum_w, outp_w = self._bst_dat_w,
-                                          lsb_w = self._bst_lsb_w, lsb_round = True, msb_clip = False, gain_w = 0)
+                real_part = int_requantize(inp = int(beamlets[i].real), inp_w = self._sum_w, outp_w = self._bst_dat_w,
+                                           lsb_w = self._bst_lsb_w, lsb_round = True, msb_clip = False, gain_w = 0)
+                imag_part = int_requantize(inp = int(beamlets[i].imag), inp_w = self._sum_w, outp_w = self._bst_dat_w,
+                                           lsb_w = self._bst_lsb_w, lsb_round = True, msb_clip = False, gain_w = 0)
             else:
                 # Quantize the beamlets for 8 bit output that is used for the UDP offload via 10GbE to the correlator
-                realPart = int_requantize(inp = int(beamlets[i].real), inp_w = self._sum_w, outp_w = self._out_dat_w,
-                                          lsb_w = self._out_lsb_w, lsb_round = True, msb_clip = False, gain_w = 0)
-                imagPart = int_requantize(inp = int(beamlets[i].imag), inp_w = self._sum_w, outp_w = self._out_dat_w,
-                                          lsb_w = self._out_lsb_w, lsb_round = True, msb_clip = False, gain_w = 0)
-            beamlets[i]=complex(realPart, imagPart)
+                real_part = int_requantize(inp = int(beamlets[i].real), inp_w = self._sum_w, outp_w = self._out_dat_w,
+                                           lsb_w = self._out_lsb_w, lsb_round = True, msb_clip = False, gain_w = 0)
+                imag_part = int_requantize(inp = int(beamlets[i].imag), inp_w = self._sum_w, outp_w = self._out_dat_w,
+                                           lsb_w = self._out_lsb_w, lsb_round = True, msb_clip = False, gain_w = 0)
+            beamlets[i]=complex(real_part, imag_part)
         return beamlets
 
-    def calculate_beamlet_statistics(self, beamlets, nofIntegration):
+    def calculate_beamlet_statistics(self, beamlets, nof_integrations):
         # Calculate beamlet statistics for nof_blocks_per_sync
-        statisticsAccumulated = []
+        statistics_accumulated = []
         statistics = []
 
         for i in xrange(0, self._nof_weights):
-            statistic=beamlets[i] * beamlets[i].conjugate()
+            statistic = beamlets[i] * beamlets[i].conjugate()
             statistics.append(statistic)
 
         # Calculate the integrated values
         for i in xrange(0, self._nof_weights):
-            statisticsAccumulated.append(nofIntegration * statistics[i].real)
+            statistics_accumulated.append(nof_integrations * statistics[i].real)
 
-        return statisticsAccumulated
+        return statistics_accumulated
 
     def calculate_bf_unit_statistics(self, input_data, selection, weights, nof_integrations, use_16b = True):
         beamlets=self.calculate_beamlets_sum(input_data, selection, weights)

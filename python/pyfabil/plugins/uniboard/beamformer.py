@@ -61,6 +61,7 @@ class UniBoardBeamformer(FirmwareBlock):
                                         nof_signal_paths = kwargs['nof_signal_paths'], nof_input_streams = kwargs['nof_input_streams'],
                                         stat_data_width = kwargs['stat_data_w'], nof_regs_per_stat = kwargs['stat_data_sz'],
                                         xst_enable = True, instance_number = j, nodes = self.board.front_nodes[i])
+
         self.bf = self.board.uniboard_beamforming_unit
 
     #########################################################################################

@@ -178,7 +178,7 @@ class UniBoard(FPGABoard):
         if self.register_list[reg_str]['type'] == RegisterType.FifoRegister:
             # Write to be performed on a FIFO register
             if len(nodes) == 1:
-                result.append([call_write_fifo_register(self.id, nodes[0], register, values)])
+                result.append([call_write_fifo_register(self.id, nodes[0], register, values, offset)])
             else:
                 # Use thread pool to parallelise calls over nodes
                 with futures.ThreadPoolExecutor(max_workers=len(nodes)) as executor:
@@ -248,7 +248,7 @@ class UniBoard(FPGABoard):
         if register_type == RegisterType.FifoRegister:
             # Write to be performed on a FIFO register
             if len(nodes) == 1:
-                values = call_read_fifo_register(self.id, nodes[0], register, n)
+                values = call_read_fifo_register(self.id, nodes[0], register, n, offset)
                 result.append((nodes[0], values.error, values.values))
             else:
                 # Use thread pool to parallelise calls over nodes
@@ -259,7 +259,7 @@ class UniBoard(FPGABoard):
         else:
             # Write to be performed on a normal register or memory block
             if len(nodes) == 1:
-                values = call_read_register(self.id, nodes[0], register, n)
+                values = call_read_register(self.id, nodes[0], register, n, offset)
                 result.append((nodes[0], values.error, values.values))
             else:
                 # Use thread pool to parallelise calls over nodes
