@@ -20,6 +20,7 @@ from pyfabil.plugins.uniboard.beamlet_statistics      import UniBoardBeamletStat
 from pyfabil.plugins.uniboard.subband_statistics      import UniBoardSubbandStatistics
 from pyfabil.plugins.uniboard.ppf_filterbank          import UniBoardPpfFilterbank
 from pyfabil.plugins.uniboard.bsn_scheduler           import UniBoardBsnScheduler
+from pyfabil.plugins.uniboard.remote_update           import UniBoardRemoteUpdate
 from pyfabil.plugins.uniboard.tr_nonbonded            import UniBoardNonBondedTr
 from pyfabil.plugins.uniboard.ss_parallel             import UniBoardSSParallel
 from pyfabil.plugins.uniboard.beamformer              import UniBoardBeamformer

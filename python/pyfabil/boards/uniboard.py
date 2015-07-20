@@ -99,8 +99,6 @@ class UniBoard(FPGABoard):
         nodes = self._get_nodes(nodes)
         nodes = nodes if type(nodes) is list else [nodes]
 
-        print self
-
         # Call reset board
         if not all([call_reset_board(self.id, node) == Error.Success for node in nodes]):
             raise LibraryError("Reset failed")
@@ -108,7 +106,25 @@ class UniBoard(FPGABoard):
         # Updated register list
         self.get_register_list()
 
-        print self
+    def remote_update(self, nodes):
+        """ Override reset board
+        :param nodes: nodes to reset """
+
+        # Use UniBoardRemoteUpdate plugin to perform remote update, however
+        # do not load plugin as usual
+        from pyfabil.plugins.uniboard.remote_update import UniBoardRemoteUpdate
+        remu = UniBoardRemoteUpdate(self, nodes = nodes)
+
+        # Perform user re-configure
+        remu.write_user_reconfigure()
+
+        # Booting...
+        from time import sleep
+        sleep(5)
+
+        # Notify underlying library that a new firmware has been loaded
+        self.load_firmware_blocking(nodes, None)
+
 
     def load_firmware_blocking(self, device, filepath):
         """ Override load firmware blocking to be able to specify nodes as well as devices
@@ -140,10 +156,12 @@ class UniBoard(FPGABoard):
             self.status = Status.OK
             self.get_register_list()
             self.get_device_list()
-            self._logger.info(self.log("Successfuly loaded firmware %s on board" % filepath))
+            print 'Oh yeah'
+            self._logger.info(self.log("Successfully loaded firmware %s on board" % filepath))
         else:
             self._programmed = False
             self.status = Status.LoadingFirmwareError
+            print 'Oh no'
             raise BoardError("load_firmware_blocking failed on board")
 
     def write_register(self, register, values, offset = 0, device = None):

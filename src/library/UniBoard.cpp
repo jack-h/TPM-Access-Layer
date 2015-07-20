@@ -218,8 +218,11 @@ RETURN UniBoard::loadFirmwareBlocking(DEVICE device, const char *bitstream)
     // map for the specific node
     memory_map -> resetDevice(device);
 
+    // And populate the memory map with registry map within the new firmware
+    this -> populateRegisterList(device);
+
     // All done
-    return NOT_IMPLEMENTED;
+    return SUCCESS;
 }
 
 // Set register value
