@@ -53,11 +53,8 @@ class UniBoard: public Board
         // Get list of firmware from board
         FIRMWARE getFirmware(DEVICE device, UINT *num_firmware);
 
-        // Asynchronously load firmware to FPGA.
-        RETURN loadFirmware(DEVICE device, const char* bitstream);
-
-        // Synchronously load firmware to FPGA
-        RETURN loadFirmwareBlocking(DEVICE device, const char* bitstream);
+    // Synchronously load firmware to FPGA
+        RETURN loadFirmware(DEVICE device, const char *bitstream);
 
         // Functions dealing with on-board devices (such as SPI devices)
         SPI_DEVICE_INFO *getDeviceList(UINT *num_devices);

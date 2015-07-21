@@ -206,19 +206,10 @@ extern "C" RETURN writeDevice(ID id, REGISTER device, UINT address, UINT value);
 //    num_firmware  Return number of firmware on board
 extern "C" FIRMWARE getFirmware(ID id, DEVICE device, UINT *num_firmware);
 
-// Load firmware to DEVICE. This function return immediately. The status of the
-// board can be monitored through the getStatus call
-// Arguments:
-//   id       Board ID
-//   device   Specify to which DEVICE (if any) this applies
-//   bistream array containing data bitfile
-// Returns:
-//   RETURN
-extern "C" RETURN loadFirmware(ID id, DEVICE device, const char* bitstream);
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-extern "C" RETURN loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream);
+extern "C" RETURN loadFirmware(ID id, DEVICE device, const char* bitstream);
 
 // Request RF data from the running firmware. This is still TBD
 

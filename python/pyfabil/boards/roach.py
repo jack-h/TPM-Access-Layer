@@ -4,7 +4,7 @@ from pyfabil.boards.fpgaboard import FPGABoard
 class Roach(FPGABoard):
     """ FPGABoard subclass for communicating with a ROACH board """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """ Class constructor """
         kwargs['fpgaBoard'] = BoardMake.RoachBoard
         super(Roach, self).__init__(**kwargs)
@@ -36,7 +36,7 @@ class Roach(FPGABoard):
             return None
 
         # The super class will prepend the device type to the register name.
-        # Since everyting on the roach is controlled by a single entity,
+        # Since everything on the roach is controlled by a single entity,
         # we don't need this. Remove prepended device type
         newRegList = { }
         for k in self.register_list.keys():
@@ -47,31 +47,27 @@ class Roach(FPGABoard):
 
         return self.register_list
 
-    def get_firmware_list(self):
+    def get_firmware_list(self, device = Device.FPGA_1):
         """ Roach helper for getFirmwareList """
-        return super(Roach, self).get_firmware_list(Device.FPGA_1)
+        return super(Roach, self).get_firmware_list(device)
 
-    def read_register(self, register, n = 1, offset = 0):
+    def read_register(self, register, n = 1, offset = 0, device = Device.FPGA_1):
         """ Roach helper for readRegister """
         return super(Roach, self).read_register(register, n, offset, device = Device.FPGA_1)
 
-    def write_register(self, register, values, offset = 0):
+    def write_register(self, register, values, offset = 0, device = Device.FPGA_1):
         """ Roach helper for writeRegister"""
         return super(Roach, self).write_register(register, values, offset, device = Device.FPGA_1)
 
-    def load_firmware_blocking(self, boffile):
+    def load_firmware(self, boffile, load_values = False):
         """ Roach helper for loadFirmwareBlocking """
-        return super(Roach, self).load_firmware_blocking(Device.FPGA_1, boffile)
+        return super(Roach, self).load_firmware(Device.FPGA_1, boffile)
 
-    def load_firmware(self, boffile):
-       """ Roach helpder for loadFirmware """
-       return super(Roach, self).loadFirmware(Device.FPGA_1, boffile)
-
-    def read_address(self, address, n = 1):
+    def read_address(self, address, n = 1, device = None):
         """ Roach helper for readAddress """
         raise NotImplemented("Read memory address not supported for ROACH")
 
-    def write_address(self, address, values):
+    def write_address(self, address, values, device = None):
         """ Roach helper for writeAddress """
         raise NotImplemented("Write memory address not supported for ROACH")
 

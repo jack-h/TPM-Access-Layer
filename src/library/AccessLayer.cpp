@@ -367,13 +367,17 @@ FIRMWARE  getFirmware(ID id, DEVICE device, UINT *num_firmware)
     return board -> getFirmware(device, num_firmware);
 }
 
-// Load firmware to FPGA. This function return immediately. The status of the
-// board can be monitored through the getStatus call
+// Same as loadFirmware, however return only after the bitstream is loaded or
+// an error occurs
 RETURN  loadFirmware(ID id, DEVICE device, const char* bitstream)
 {
     // Check if device is valid
-    if (!(device == FPGA_1 || device == FPGA_2))
+    if (!(device == FPGA_1 || device == FPGA_2 || device == FPGA_3 || device == FPGA_4 ||
+          device == FPGA_5 || device == FPGA_6 || device == FPGA_7 || device == FPGA_8))
+    {
+        DEBUG_PRINT("AccessLayer::loadFirmware. Invalid device");
         return FAILURE;
+    }
 
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -386,37 +390,9 @@ RETURN  loadFirmware(ID id, DEVICE device, const char* bitstream)
 
     // Get pointer to board
     Board *board = it -> second;
-    
+
     // Call loadFirmware on board instance
-    return board -> loadFirmwareBlocking(device, bitstream);
-}
-
-// Same as loadFirmware, however return only after the bitstream is loaded or
-// an error occurs
-RETURN  loadFirmwareBlocking(ID id, DEVICE device, const char* bitstream)
-{
-    // Check if device is valid
-    if (!(device == FPGA_1 || device == FPGA_2 || device == FPGA_3 || device == FPGA_4 ||
-          device == FPGA_5 || device == FPGA_6 || device == FPGA_7 || device == FPGA_8))
-    {
-        DEBUG_PRINT("AccessLayer::loadFirmwareBlocking. Invalid device");
-        return FAILURE;
-    }
-
-    // Check if board exists
-    map<unsigned int, Board *>::iterator it;
-    it = boards.find(id);
-    if (it == boards.end()) 
-    {
-        DEBUG_PRINT("AccessLayer::loadFirmwareBlocking. " << id << " not connected");
-        return FAILURE;   
-    }
-
-    // Get pointer to board
-    Board *board = it -> second;
-
-    // Call loadFirmwareBlocking on board instance
-    return board -> loadFirmwareBlocking(device, bitstream);
+    return board -> loadFirmware(device, bitstream);
 }
 /*
 // [Optional] Set a periodic register

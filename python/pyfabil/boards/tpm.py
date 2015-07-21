@@ -20,7 +20,7 @@ class TPM(FPGABoard):
         if type(key) is int:
             return self.read_address(key)
 
-        # Checkl if the specified key is a tuple, in which case we are reading from a device
+        # Check if the specified key is a tuple, in which case we are reading from a device
         if type(key) is tuple:
             if len(key) == 2:
                 return self.read_device(key[0], key[1])

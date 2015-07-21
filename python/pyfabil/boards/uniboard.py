@@ -123,11 +123,11 @@ class UniBoard(FPGABoard):
         sleep(5)
 
         # Notify underlying library that a new firmware has been loaded
-        self.load_firmware_blocking(nodes, None)
+        self.load_firmware(nodes, None)
 
 
-    def load_firmware_blocking(self, device, filepath):
-        """ Override load firmware blocking to be able to specify nodes as well as devices
+    def load_firmware(self, device, filepath, load_values = False):
+        """ Override load firmware to be able to specify nodes as well as devices
         :param device: devices or nodes
         :param filepath: Firmware to load
         """
@@ -136,10 +136,10 @@ class UniBoard(FPGABoard):
         nodes = self._get_nodes(device)
         nodes = nodes if type(nodes) is list else [nodes]
 
-        # Call load firmware blocking for all specified nodes
+        # Call load firmware for all specified nodes
         self.status = Status.LoadingFirmware
 
-        self._logger.debug(self.log("Calling load_firmware_blocking"))
+        self._logger.debug(self.log("Calling load_firmware"))
 
         if len(nodes) == 1:
             result = [call_load_firmware(self.id, nodes[0], filepath)]
@@ -147,7 +147,7 @@ class UniBoard(FPGABoard):
             result = []
             # Use thread pool to parallelise calls over nodes
             with futures.ThreadPoolExecutor(max_workers = len(nodes)) as executor:
-                for res in executor.map(lambda p: call_load_firmware_blocking(*p), [(self.id, node, filepath) for node in nodes]):
+                for res in executor.map(lambda p: call_load_firmware(*p), [(self.id, node, filepath) for node in nodes]):
                     result.append(res)
 
         # If call succeeded, get register and device list
@@ -162,7 +162,7 @@ class UniBoard(FPGABoard):
             self._programmed = False
             self.status = Status.LoadingFirmwareError
             print 'Oh no'
-            raise BoardError("load_firmware_blocking failed on board")
+            raise BoardError("load_firmware failed on board")
 
     def write_register(self, register, values, offset = 0, device = None):
         """ Override superclass write register to support multiple nodes on a uniboard
@@ -456,7 +456,7 @@ if __name__ == "__main__":
 
     devices = [Device.FPGA_1, Device.FPGA_2, Device.FPGA_3, Device.FPGA_4,
                Device.FPGA_5, Device.FPGA_6, Device.FPGA_7, Device.FPGA_8]
-    unb.load_firmware_blocking(devices, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml")
+    unb.load_firmware(devices, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml")
 
     print "HOLA"
 

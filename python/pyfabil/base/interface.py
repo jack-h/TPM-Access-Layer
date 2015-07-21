@@ -158,18 +158,8 @@ def call_get_firmware_list(board_id, device):
 
     return firmwareList
 
-def call_load_firmware_blocking(board_id, device, filepath):
-    """ Load firmware on board in blocking mode
-    :param board_id: ID of board to communicate with
-    :param device: Device on board to load firmware onto
-    :param filepath: Filepath or name of firmware to load
-    :return: Success or Failure
-    """
-    global library
-    return Error(library.loadFirmwareBlocking(board_id, device.value, filepath))
-
 def call_load_firmware(board_id, device, filepath):
-    """ Load firmware on board in async mode
+    """ Load firmware on board in blocking mode
     :param board_id: ID of board to communicate with
     :param device: Device on board to load firmware onto
     :param filepath: Filepath or name of firmware to load

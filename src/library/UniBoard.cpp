@@ -207,7 +207,7 @@ REGISTER_INFO *UniBoard::getRegisterList(UINT *num_registers, bool load_values)
 }
 
 // Synchronously load firmware to FPGA
-RETURN UniBoard::loadFirmwareBlocking(DEVICE device, const char *bitstream)
+RETURN UniBoard::loadFirmware(DEVICE device, const char *bitstream)
 {
     // A new firmware needs to be loaded onto one of the FPGAs
     // NOTE: It is assumed that the new XML mapping contains all the
@@ -356,12 +356,6 @@ RETURN UniBoard::writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UI
     return connections[device_id_map[device]] -> writeFifoRegister(info -> address, values, n);
 }
 
-
-// Load firmware asynchronously
-RETURN UniBoard::loadFirmware(DEVICE device, const char *bitstream)
-{
-    return NOT_IMPLEMENTED;
-}
 
 // =========================== NOT IMPLEMENTED FOR UNIBOARD ===========================
 

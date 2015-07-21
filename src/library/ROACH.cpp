@@ -111,19 +111,13 @@ FIRMWARE ROACH::getFirmware(DEVICE device, UINT *num_firmware)
     return katcp -> listFirmware(num_firmware);
 }
 
-// Asynchronously load firmware to FPGA.
-RETURN ROACH::loadFirmware(DEVICE device, const char* bitstream)
-{
-    return NOT_IMPLEMENTED;
-}
-
 // Synchronously load firmware to FPGA
-RETURN ROACH::loadFirmwareBlocking(DEVICE device, const char* bitstream)
+RETURN ROACH::loadFirmware(DEVICE device, const char *bitstream)
 {
     // Check if device is valid
     if (device != FPGA_1)
     {
-        DEBUG_PRINT("ROACH::loadFirmwareBlocking. Invalid device specific, only FPGA_1 is valid for ROACH");
+        DEBUG_PRINT("ROACH::loadFirmware. Invalid device specific, only FPGA_1 is valid for ROACH");
         return FAILURE;
     }
 

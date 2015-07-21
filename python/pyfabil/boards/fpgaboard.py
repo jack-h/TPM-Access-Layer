@@ -109,7 +109,7 @@ class FPGABoard(object):
             raise BoardError("Firmware must be specified in configuration file")
 
         #TODO: Make this generic to any board
-        self.load_firmware_blocking(Device.FPGA_1, config['firmware'])
+        self.load_firmware(Device.FPGA_1, config['firmware'])
 
         #TODO: Perform board-specific intialisation , if any
 
@@ -310,7 +310,7 @@ class FPGABoard(object):
 
         return self._firmwareList
 
-    def load_firmware_blocking(self, device, filepath, load_values = False):
+    def load_firmware(self, device, filepath, load_values = False):
         """ Blocking call to load firmware
          :param device: Device on board to load firmware to
          :param filepath: Path to firmware
@@ -319,12 +319,12 @@ class FPGABoard(object):
         
         # Check if device argument is of type Device
         if not type(device) is Device:
-            raise LibraryError("Device argument for load_firmware_blocking should be of type Device")
+            raise LibraryError("Device argument for load_firmware should be of type Device")
 
         # All OK, call function
         self.status = Status.LoadingFirmware
-        err = call_load_firmware_blocking(self.id, device, filepath)
-        self._logger.debug(self.log("Called load_firmware_blocking"))
+        err = call_load_firmware(self.id, device, filepath)
+        self._logger.debug(self.log("Called load_firmware"))
 
         # If call succeeded, get register and device list
         if err == Error.Success:
@@ -332,11 +332,11 @@ class FPGABoard(object):
             self.status = Status.OK
             self.get_register_list(load_values)
             self.get_device_list()
-            self._logger.info(self.log("Successfuly loaded firmware %s on board" % filepath))
+            self._logger.info(self.log("Successfully loaded firmware %s on board" % filepath))
         else:
             self._programmed = False
             self.status = Status.LoadingFirmwareError
-            raise BoardError("load_firmware_blocking failed on board")
+            raise BoardError("load_firmware failed on board")
 
     def get_register_list(self, load_values = False):
         """ Get list of registers
@@ -681,7 +681,7 @@ if __name__ == "__main__":
     tpm = TPM()
     # Simple TPM tests
     # tpm = TPM(ip="127.0.0.1", port=10000)
-    # tpm.loadFirmwareBlocking(Device.FPGA_1, "/home/lessju/map.xml")
+    # tpm.loadFirmware(Device.FPGA_1, "/home/lessju/map.xml")
     # tpm['fpga1.regfile.block2048b'] = [1] * 512
     # print tpm['fpga1.regfile.block2048b']
     # tpm.disconnect()
@@ -689,7 +689,7 @@ if __name__ == "__main__":
     # # Simple ROACH tests
     # roach = Roach(ip="192.168.100.2", port=7147)
     # roach.getFirmwareList()
-    # roach.loadFirmwareBlocking("fenggbe.bof")
+    # roach.loadFirmware("fenggbe.bof")
     # roach.amp_EQ0_coeff_bram = range(4096)
     # print roach.readRegister('amp_EQ0_coeff_bram', 4096)
     # roach.disconnect()

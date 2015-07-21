@@ -111,7 +111,7 @@ class TestUniBoard(unittest.TestCase):
         self.assertEqual(unb.get_status(), Status.OK)
 
         # Call load firmware on all nodes
-        unb.load_firmware_blocking(self._devices.values(), self._config_file)
+        unb.load_firmware(self._devices.values(), self._config_file)
         self.assertTrue(unb._programmed)
         self.assertEqual(unb.get_status(), Status.OK)
 
@@ -121,7 +121,7 @@ class TestUniBoard(unittest.TestCase):
         self.assertEqual(unb.get_status(), Status.OK)
 
         # Call load firmware on all nodes
-        unb.load_firmware_blocking(self._devices.values(), self._config_file)
+        unb.load_firmware(self._devices.values(), self._config_file)
         self.assertTrue(unb._programmed)
         self.assertEqual(unb.get_status(), Status.OK)
 

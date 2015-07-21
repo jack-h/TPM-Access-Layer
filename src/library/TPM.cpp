@@ -269,14 +269,8 @@ FIRMWARE TPM::getFirmware(DEVICE device, UINT *num_firmware)
     return NULL;
 }
 
-// Asynchronously load firmware to FPGA.
-RETURN TPM::loadFirmware(DEVICE device, const char* bitstream)
-{
-    return FAILURE;
-}
-
 // Synchronously load firmware to FPGA
-RETURN TPM::loadFirmwareBlocking(DEVICE device, const char* bitstream)
+RETURN TPM::loadFirmware(DEVICE device, const char *bitstream)
 {
     // A new firmware needs to be loaded onto one of the FPGAs
     // NOTE: It is assumed that the new XML mapping contains all the

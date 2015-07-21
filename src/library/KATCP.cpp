@@ -587,7 +587,7 @@ REGISTER_INFO* KATCP::getRegisterList(UINT *num_registers)
 // Load boffile
 RETURN KATCP::loadFirmwareBlocking(const char* boffile)
 {
-	DEBUG_PRINT("KATCP::loadFirmwareBlocking. Loading firmware");
+	DEBUG_PRINT("KATCP::loadFirmware. Loading firmware");
 	
     // Send command to board
     sendRequest(string("progdev"), { string(boffile) });
@@ -623,12 +623,12 @@ RETURN KATCP::loadFirmwareBlocking(const char* boffile)
                 if (line.substr(0, okString.size()) == okString)
                     programmed = true;                
                 else
-                    DEBUG_PRINT("KATCP::loadFirmwareBlocking. Command failed on board");
+                    DEBUG_PRINT("KATCP::loadFirmware. Command failed on board");
                 processed = true;
             }
             else if (line.substr(0, progdevFailed.size()) == progdevFailed)
             {
-                DEBUG_PRINT("KATCP::loadFirmwareBlocking. Command failed on board");
+                DEBUG_PRINT("KATCP::loadFirmware. Command failed on board");
                 processed = true;
                 programmed = false;
             }

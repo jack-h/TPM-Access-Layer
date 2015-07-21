@@ -56,11 +56,8 @@ class Board
         // Get list of firmware from board
         virtual FIRMWARE getFirmware(DEVICE device, UINT *num_firmware) = 0;
 
-        // Asynchronously load firmware to FPGA.
-        virtual RETURN loadFirmware(DEVICE device, const char* bitstream) = 0;
-
-        // Synchronously load firmware to FPGA
-        virtual RETURN loadFirmwareBlocking(DEVICE device, const char* bitstream) = 0;
+    // Synchronously load firmware to FPGA
+        virtual RETURN loadFirmware(DEVICE device, const char *bitstream) = 0;
 
         // Functions dealing with on-board devices (such as SPI devices)
         virtual SPI_DEVICE_INFO *getDeviceList(UINT *num_devices) = 0;
