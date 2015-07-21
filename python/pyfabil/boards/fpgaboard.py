@@ -338,13 +338,15 @@ class FPGABoard(object):
             self.status = Status.LoadingFirmwareError
             raise BoardError("load_firmware failed on board")
 
-    def get_register_list(self, load_values = False):
+    def get_register_list(self, reset = False, load_values = False):
         """ Get list of registers
         :param load_values: Load register values
         """
 
+        print "Loading register list"
+
         # Check if register list has already been acquired, and if so return it
-        if self.register_list is not None:
+        if self.register_list is not None and not reset:
             return self.register_list
 
         # Check if device is programmed

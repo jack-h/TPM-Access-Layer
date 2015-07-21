@@ -42,10 +42,6 @@ def initialise_library(filepath = None):
     library.getFirmware.restype = ctypes.POINTER(ctypes.c_char_p)
 
     # Define loadFirmwareBlocking function
-    library.loadFirmwareBlocking.argtypes =  [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
-    library.loadFirmwareBlocking.restype = ctypes.c_int
-
-    # Define loadFirmwareBlocking function
     library.loadFirmware.argtypes =  [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
     library.loadFirmware.restype = ctypes.c_int
 

@@ -44,7 +44,7 @@ To use, you need to export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path_to_project/src
 Using the Python wrapper
 ------------------------
 
-Requirements: enum34 (pip should install it)
+Requirements: enum34, futures (setup will install them automatically)
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path_to_project/src/library
 

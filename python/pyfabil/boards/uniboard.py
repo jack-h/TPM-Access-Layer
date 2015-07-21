@@ -110,6 +110,11 @@ class UniBoard(FPGABoard):
         """ Override reset board
         :param nodes: nodes to reset """
 
+        # Reset devices first
+        self.reset(nodes)
+        import time
+        time.sleep(2)
+
         # Use UniBoardRemoteUpdate plugin to perform remote update, however
         # do not load plugin as usual
         from pyfabil.plugins.uniboard.remote_update import UniBoardRemoteUpdate
@@ -151,12 +156,11 @@ class UniBoard(FPGABoard):
                     result.append(res)
 
         # If call succeeded, get register and device list
-        if all([r for r in result if result == Error.Success]):
+        if all([r == Error.Success for r in result]):
             self._programmed = True
             self.status = Status.OK
-            self.get_register_list()
+            self.get_register_list(reset = True)
             self.get_device_list()
-            print 'Oh yeah'
             self._logger.info(self.log("Successfully loaded firmware %s on board" % filepath))
         else:
             self._programmed = False
