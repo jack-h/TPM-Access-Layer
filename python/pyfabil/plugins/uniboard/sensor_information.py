@@ -8,7 +8,6 @@ import logging
 class UniBoardSensorInformation(FirmwareBlock):
     """ FirmwareBlock tests class """
 
-
     I2C_LTC4260_V_UNIT_SENSE   = 0.0003
     I2C_LTC4260_V_UNIT_SOURCE  = 0.4
     SENS_HOT_SWAP_R_SENSE      =  0.005
@@ -61,16 +60,17 @@ class UniBoardSensorInformation(FirmwareBlock):
             :param nodes: Nodes to query
         """
         # Get required information from all nodes at once
-        for (node, status, node_data) in self.board.read_register(self._reg_address, device = self._nodes):
+        for (node, status, node_data) in self.board.read_register(self._reg_address, n = 5, device = self._nodes):
 
             # Print class-specific information
             if node == 7:
-                print "Node Index:\t\t%d" % node
-                print "FPGA Temperature:\t%d [C]" % node_data[0]
-                print "ETH PHY Temperature:\t%d" % node_data[1]
-                print "UNB supply current:\t%4.1f [A]" % (node_data[2] * self.SENS_HOT_SWAP_I_UNIT_SENSE)
-                print "UNB supply voltage:\t%4.1f [V]" % (node_data[3] * self.I2C_LTC4260_V_UNIT_SOURCE)
-                print "UNB supply power:\t%4.0f [W]"   % (node_data[3] * self.I2C_LTC4260_V_UNIT_SOURCE * node_data[2] * self.SENS_HOT_SWAP_I_UNIT_SENSE)
+                print
+                print "Node Index:\t\t\t%d" % node
+                print "FPGA Temperature:\t\t%d   [C]" % node_data[0]
+                print "ETH PHY Temperature:\t\t%d   [C]" % node_data[1]
+                print "UNB supply current:\t\t%.1f  [A]" % (node_data[2] * self.SENS_HOT_SWAP_I_UNIT_SENSE)
+                print "UNB supply voltage:\t\t%.1f [V]" % (node_data[3] * self.I2C_LTC4260_V_UNIT_SOURCE)
+                print "UNB supply power:\t\t%.0f  [W]"   % (node_data[3] * self.I2C_LTC4260_V_UNIT_SOURCE * node_data[2] * self.SENS_HOT_SWAP_I_UNIT_SENSE)
 
                 if node_data[4] != 0:
                     print "Something went wrong with I2C access"

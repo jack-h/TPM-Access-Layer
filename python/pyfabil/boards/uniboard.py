@@ -106,37 +106,11 @@ class UniBoard(FPGABoard):
         # Updated register list
         self.get_register_list()
 
-    def remote_update(self, nodes):
-        """ Override reset board
-        :param nodes: nodes to reset """
-
-        # Reset devices first
-        self.reset(nodes)
-        import time
-        time.sleep(2)
-
-        # Use UniBoardRemoteUpdate plugin to perform remote update, however
-        # do not load plugin as usual
-        from pyfabil.plugins.uniboard.remote_update import UniBoardRemoteUpdate
-        remu = UniBoardRemoteUpdate(self, nodes = nodes)
-
-        # Perform user re-configure
-        remu.write_user_reconfigure()
-
-        # Booting...
-        from time import sleep
-        sleep(5)
-
-        # Notify underlying library that a new firmware has been loaded
-        self.load_firmware(nodes, None)
-
-
-    def load_firmware(self, device, filepath, load_values = False):
+    def load_firmware(self, device, filepath = None, load_values = False):
         """ Override load firmware to be able to specify nodes as well as devices
         :param device: devices or nodes
         :param filepath: Firmware to load
         """
-
         # Extract nodes
         nodes = self._get_nodes(device)
         nodes = nodes if type(nodes) is list else [nodes]
@@ -145,6 +119,33 @@ class UniBoard(FPGABoard):
         self.status = Status.LoadingFirmware
 
         self._logger.debug(self.log("Calling load_firmware"))
+
+        # Reset devices first
+        self.reset(nodes)
+        import time; time.sleep(2)
+
+        # If the filepath is None, then we are performing a remote update
+        if filepath is None:
+             # Use UniBoardRemoteUpdate plugin to perform remote update, however
+            # do not load plugin as usual
+            from pyfabil.plugins.uniboard.remote_update import UniBoardRemoteUpdate
+            remu = UniBoardRemoteUpdate(self, nodes = nodes)
+
+            # Perform user re-configure
+            remu.write_user_reconfigure()
+
+            # Booting...
+            from time import sleep
+            sleep(5)
+
+        # Otherwise we are downloading a new firmware to flash
+        else:
+            # Use UniBoardEpcs plugin to perform remote update, however
+            # do not load plugin as usual
+            from pyfabil.plugins.uniboard.epcs import UniBoardEpcs
+            epcs = UniBoardEpcs(self, nodes = nodes)
+            epcs.write_raw_binary_file("user", filepath)
+            epcs.read_and_verify_raw_binary_file("user", filepath)
 
         if len(nodes) == 1:
             result = [call_load_firmware(self.id, nodes[0], filepath)]
@@ -159,13 +160,12 @@ class UniBoard(FPGABoard):
         if all([r == Error.Success for r in result]):
             self._programmed = True
             self.status = Status.OK
-            self.get_register_list(reset = True)
+            self.get_register_list()
             self.get_device_list()
             self._logger.info(self.log("Successfully loaded firmware %s on board" % filepath))
         else:
             self._programmed = False
             self.status = Status.LoadingFirmwareError
-            print 'Oh no'
             raise BoardError("load_firmware failed on board")
 
     def write_register(self, register, values, offset = 0, device = None):
@@ -457,14 +457,3 @@ if __name__ == "__main__":
     # Simple tests, make sure uniboard_simulator.py is running
     nodelist = [(0,'F'), (1,'F'),(2,'F'), (3,'F'), (4,'B'), (5,'B'),(6,'B'), (7,'B')]
     unb = UniBoard(ip = "127.0.0.1", port = 50000, nodelist = nodelist)
-
-    devices = [Device.FPGA_1, Device.FPGA_2, Device.FPGA_3, Device.FPGA_4,
-               Device.FPGA_5, Device.FPGA_6, Device.FPGA_7, Device.FPGA_8]
-    unb.load_firmware(devices, "/home/lessju/Code/TPM-Access-Layer/doc/XML/uniboard_map.xml")
-
-    print "HOLA"
-
-    unb.write_register('1.regfile.date_code', 45)
-    print unb.read_register('1.regfile.date_code')
-    unb['fpga2.regfile.date_code'] = 24
-    print unb['fpga2.regfile.date_code']

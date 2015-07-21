@@ -134,7 +134,6 @@ class UniBoardAduI2CCommander(FirmwareBlock):
             if register_str % () not in self.board.register_list.keys():
                 raise PluginError("UniBoardAduI2CCommander: Node %d does not have register %s" % (fpga_number, self._wg_ram))
 
-
     #######################################################################################
 
     def read_protocol_status(self):

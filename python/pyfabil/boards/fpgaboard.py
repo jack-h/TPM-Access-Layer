@@ -310,13 +310,17 @@ class FPGABoard(object):
 
         return self._firmwareList
 
-    def load_firmware(self, device, filepath, load_values = False):
+    def load_firmware(self, device, filepath = None, load_values = False):
         """ Blocking call to load firmware
          :param device: Device on board to load firmware to
          :param filepath: Path to firmware
          :param load_values: Load register values
          """
-        
+
+        # Superclass method required filepath to be not null
+        if filepath is None:
+            raise LibraryError("Default load_firmware requires a filepath")
+
         # Check if device argument is of type Device
         if not type(device) is Device:
             raise LibraryError("Device argument for load_firmware should be of type Device")
@@ -342,8 +346,6 @@ class FPGABoard(object):
         """ Get list of registers
         :param load_values: Load register values
         """
-
-        print "Loading register list"
 
         # Check if register list has already been acquired, and if so return it
         if self.register_list is not None and not reset:

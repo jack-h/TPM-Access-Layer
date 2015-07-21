@@ -5,11 +5,6 @@ __author__ = 'Alessio Magro'
 # Plugin Superclass
 from pyfabil.plugins.firmwareblock import FirmwareBlock
 
-# Test plugins
-from pyfabil.plugins.firmwaretest2 import FirmwareTest2
-from pyfabil.plugins.firmwaretest  import FirmwareTest
-
-
 # UniBoard plugins
 from pyfabil.plugins.uniboard.wideband_wave_generator import UniBoardWBWaveGenerator
 from pyfabil.plugins.uniboard.sensor_information      import UniBoardSensorInformation
@@ -28,6 +23,9 @@ from pyfabil.plugins.uniboard.bsn_source              import UniBoardBsnSource
 from pyfabil.plugins.uniboard.ss_reorder              import UniBoardSSReorder
 from pyfabil.plugins.uniboard.aduh_quad               import UniBoardAduhQuad
 from pyfabil.plugins.uniboard.ss_wide                 import UniBoardSSWide
+from pyfabil.plugins.uniboard.epcs                    import UniBoardEpcs
+from pyfabil.plugins.uniboard.dpmm                    import UniBoardDpmm
+from pyfabil.plugins.uniboard.mmdp                    import UniBoardMmdp
 
 
 

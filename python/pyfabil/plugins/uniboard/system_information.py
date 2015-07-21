@@ -19,10 +19,11 @@ class UniBoardSystemInformation(FirmwareBlock):
         super(UniBoardSystemInformation, self).__init__(board)
 
         # Required register names
-        self._reg_register = "PIO_SYSTEM_INFO"
+        self._reg_address = "PIO_SYSTEM_INFO"
 
         # Check if list of nodes are valid and all are front nodes
         self._nodes = self.board._get_nodes(kwargs['nodes'])
+        self._nodes = self._nodes if type(self._nodes) is list else [self._nodes]
 
         # Check if registers are available on all nodes
         for node in self._nodes:
@@ -61,18 +62,16 @@ class UniBoardSystemInformation(FirmwareBlock):
         return True
 
     def print_system_information(self):
-        """ Extract system information from loaded firmware for each node
-            :param nodes: Nodes to query
-        """
+        """ Extract system information from loaded firmware for each node """
 
         # Get required information from all nodes at once
-        for (node, result, values) in self.board.read_register(self._reg_register, device = self._nodes):
+        for (node, result, values) in self.board.read_register(self._reg_address, n = 13, device = self._nodes):
 
             # Print class-specific information
             print "Node Index:\t\t%d" % node
-            print "Node Type:\t\t%s" % {'B' : 'Back', 'F' : 'Front'}[self.board._nodes[node]['type']]
-            print "Device:\t\t\t%d" % self.board._nodes[node]['device'].value
-            print "Compatible Names:\t%s" % ', '.join(self.board._nodes[node]['names'])
+            print "Node Type:\t\t%s" % {'B' : 'Back', 'F' : 'Front'}[self.board.nodes[node]['type']]
+            print "Device:\t\t\t%d" % self.board.nodes[node]['device'].value
+            print "Compatible Names:\t%s" % ', '.join(self.board.nodes[node]['names'])
 
             # Process system information from board
             print "g_sim:\t\t\t%d" % ((values[0] & 0x400) != 0)

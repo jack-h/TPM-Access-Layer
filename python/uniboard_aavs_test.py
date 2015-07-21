@@ -39,7 +39,7 @@ c_coefs_width              = 16
 
 # General purpose vars
 c_write_coefs          = False
-c_align_mesh           = False
+c_align_mesh           = True
 c_use_adc_data         = False
 c_read_subband_stats   = True
 c_read_beamlet_stats   = True
@@ -47,7 +47,7 @@ c_verify_beamlet_stats = False
 c_single_beam          = False
 c_close_figures        = False
 c_use_default_settings = True   # Set to True in order to skip the mm writes to ss_parallel, ss_wides and weights. To boost simulation time.
-c_write_settings       = False
+c_write_settings       = True
 
 signal_paths = 4
 
