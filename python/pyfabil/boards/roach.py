@@ -116,11 +116,14 @@ class Roach(FPGABoard):
     def __getattr__(self, name):
         """ Override __getattr__, get value from board """
         if name in self.__dict__:
-            return self.__dict__[name]
+            if name in [x for x, y in self.get_loaded_plugins()]:
+                return self.__dict__[name][0]
+            else:
+                return self.__dict__[name]
         elif self.register_list is not None and name in self.register_list:
             return self.read_register(name)
         else:
-            raise AttributeError("Register %s not found" % name)
+            raise AttributeError("Register or plugin %s not found" % name)
 
     def __setattr__(self, name, value):
         """ Override __setattr__, set value on board"""

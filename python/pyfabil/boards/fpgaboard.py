@@ -112,7 +112,6 @@ class FPGABoard(object):
         self.load_firmware(Device.FPGA_1, config['firmware'])
 
         #TODO: Perform board-specific intialisation , if any
-
         # Load plugins if not already loaded
         if len(self._loaded_plugins) == 0:
             # Check if any plugins are required
@@ -195,7 +194,7 @@ class FPGABoard(object):
             self.__dict__[friendly_name].append(instance)
         else:
             # Plugin not loaded yet
-            self.__dict__[friendly_name] = [instance]
+            self.__dict__[friendly_name] = PluginList((instance,))
 
             # Plugin loaded, add to list
             self._loaded_plugins[friendly_name] = []

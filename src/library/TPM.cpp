@@ -175,7 +175,6 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
     for(;;)
     {
         VALUES vals = protocol -> readRegister(spi_devices -> cmd_address);
-        printf("First Value: %d\n", (vals.values[0] & (spi_devices -> cmd_start_mask)));
         if ((vals.values[0] & (spi_devices -> cmd_start_mask)) == 0)
             break;
         sleep(1);
@@ -188,10 +187,9 @@ VALUES TPM::readDevice(REGISTER device, UINT address)
     values[2] = 0;        // Skip
     values[3] = 1 << info.first;   // spi_en
     values[4] = 1 << info.second;  // spi_sclk 
-    values[5] = 0x03;     // Read operation    
-    
-    // Issue request
-    if (protocol -> writeRegister(0x2000000, values, 6) == FAILURE)
+    values[5] = 0x03;     // Read operation
+
+    if (protocol -> writeRegister(spi_devices -> spi_address, values, 6) == FAILURE)
     {
         DEBUG_PRINT("TPM::readDevice. Failed to read from device " << device);
         return {0, FAILURE};
@@ -242,10 +240,10 @@ RETURN TPM::writeDevice(REGISTER device, UINT address, UINT value)
     values[2] = 0;        // Skip
     values[3] = 1 << info.first;   // spi_en
     values[4] = 1 << info.second;  // spi_sclk
-    values[5] = 0x01;     // Write operation    
+    values[5] = 0x01;     // Write operation
      
     // Issue request
-    if (protocol -> writeRegister(0x20000000, values, 6) == FAILURE)
+    if (protocol -> writeRegister(spi_devices -> spi_address, values, 6) == FAILURE)
     {
         DEBUG_PRINT("TPM::readDevice. Failed to read from device " << device);
         return FAILURE;
@@ -303,7 +301,7 @@ RETURN TPM::loadFirmware(DEVICE device, const char *bitstream)
     spi_devices -> spi_address = info -> address;
     
     info = memory_map -> getRegisterInfo(BOARD, "spi.address");
-    spi_devices -> spi_address += info -> address;
+    spi_devices -> spi_address = info -> address;
     spi_devices -> spi_address_mask = info -> bitmask;
 
     info = memory_map -> getRegisterInfo(BOARD, "spi.write_data");

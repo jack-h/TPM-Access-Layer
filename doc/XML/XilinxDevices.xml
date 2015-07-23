@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<!-- List of SPI devices on the TPM -->
+<!-- List of SPI devices on the Xilinx dev Board -->
 <node>
     <!-- PLL -->
-    <node id="pll" spi_en="0" spi_sclk="0" />
+    <node id="pll" spi_en="2" spi_sclk="0" />
 
     <!-- ADCs -->
     <node id="adc0" spi_en="0" spi_sclk="0" />

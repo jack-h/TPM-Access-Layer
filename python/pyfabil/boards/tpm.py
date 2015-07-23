@@ -1,5 +1,9 @@
+from pyfabil.base.utils import convert_uint_to_string
 from pyfabil.boards.fpgaboard import FPGABoard, DeviceNames
 from pyfabil.base.definitions import *
+from math import ceil
+import binascii
+import zlib
 
 class TPM(FPGABoard):
     """ FPGABoard subclass for communicating with a TPM board """
@@ -8,6 +12,53 @@ class TPM(FPGABoard):
         """ Class constructor """
         kwargs['fpgaBoard'] = BoardMake.TpmBoard
         super(TPM, self).__init__(**kwargs)
+
+        self._firmware_revison_number = 0x0
+        self._magic_number            = 0x4
+        self._xml_offset              = 0x8
+        self._another_magic_number    = 0xC
+        self._info_string_offset      = 0x10
+
+
+    def load_firmware(self, device, filepath = None, load_values = False):
+        """ Override superclass load_firmware to extract memory map from the bitfile
+            This is saved in a tmp directory and forwarded to the superclass for
+            processing
+        :param device: The device on which the firmware will be loaded
+        :param filepath: Filepath of the firmware, None if already loaded
+        :param load_values:
+        """
+
+        # If a filename is not provided, then this means that we're loading from the board itself
+        if not filepath:
+            # Read the offset where the zipped XML is stored
+            xml_off = self.read_address(self._xml_offset, device = device)
+
+            # First 4 bytes are the zipped XML file length in byte
+            xml_len = self.read_address(xml_off, device = device)
+
+            # Read the zipped XML, this should be optimized using larger accesses
+            zipped_xml = self.read_address(xml_off + 4, int(ceil(xml_len / 4.0)), device = device)
+            zipped_xml = ''.join([format(n, '08x') for n in zipped_xml])
+
+            # Convert to string
+            zipped_xml = zlib.decompress(binascii.unhexlify(zipped_xml[: 2 * xml_len]))
+
+            # Process
+            filepath = "/tmp/xml_file.xml"
+            with open(filepath, "w") as f:
+                # Add necessary XML
+                zipped_xml = "%s%s%s" % ('<node>\n', zipped_xml.replace('', 'fpga1'), "</node>")
+
+                # Write to temporary file
+                f.write(zipped_xml)
+                f.flush()
+
+                # Call superclass with this file
+                super(TPM, self).load_firmware(device=device, filepath = filepath)
+        else:
+            super(TPM, self).load_firmware(device=device, filepath = filepath)
+
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """

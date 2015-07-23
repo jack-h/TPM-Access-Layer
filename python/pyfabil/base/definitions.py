@@ -129,6 +129,14 @@ class SPIDeviceInfoStruct(ctypes.Structure):
         ('spi_en',   ctypes.c_uint32)
     ]
 
+# -------------------- Classes -------------------------
+class PluginList(list):
+    def __getattr__(self, item):
+        if len(self) == 1:
+            return self[0].__getattribute__(item)
+        elif len(self) > 1:
+            raise LibraryError("Cannot directly access methods of a plugin list with multiple entries")
+
 # ------------------- Exceptions -----------------------
 class BoardError(Exception):
     """ Define an exception which occurs when an operation occuring
