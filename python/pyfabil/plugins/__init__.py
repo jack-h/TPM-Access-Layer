@@ -28,6 +28,8 @@ from pyfabil.plugins.uniboard.dpmm                    import UniBoardDpmm
 from pyfabil.plugins.uniboard.mmdp                    import UniBoardMmdp
 
 # TPM plugins
+from pyfabil.plugins.tpm.fpga                         import TpmFpga
+from pyfabil.plugins.tpm.jesd                         import TpmJesd
 from pyfabil.plugins.tpm.pll                          import TpmPll
 from pyfabil.plugins.tpm.adc                          import TpmAdc
 

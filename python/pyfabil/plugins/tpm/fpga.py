@@ -10,7 +10,7 @@ class TpmFpga(FirmwareBlock):
     """ FirmwareBlock tests class """
 
     @compatibleboards(BoardMake.TpmBoard)
-    @friendlyname('tpm_pll')
+    @friendlyname('tpm_fpga')
     @maxinstances(1)
     def __init__(self, board, **kwargs):
         """ TpmPll initialiser
@@ -19,11 +19,22 @@ class TpmFpga(FirmwareBlock):
         super(TpmFpga, self).__init__(board)
 
         self._board_type = kwargs.get('board_type', 'XTPM')
-        self._node = self.board._get_nodes(kwargs['nodes'])
-        if len(self._nodes) > 1:
-            raise PluginError("TpmFpga: Only one node per instance is supported")
+
+        if 'node' not in kwargs.keys():
+            raise PluginError("TpmFpga: Require a node instance")
+        self._node = kwargs['node']
+
+        if self._node == Device.FPGA_1:
+            self._node = 'fpga1'
+        elif self._node == Device.FPGA_2:
+            self._node = 'fpga2'
+        else:
+            raise PluginError("TpmFpga: Invalid device %d" % self._node)
+
+        self._nof_inputs = 16
 
     #######################################################################################
+
     def fpga_start(self, input_list, enabled_list):
         """ Set up FPGA
         :param input_list: List of channel to enable
@@ -36,73 +47,63 @@ class TpmFpga(FirmwareBlock):
                 filter_list.append(n)
 
         disabled_input = 0xFFFF
-        for input in filter_list:
-            mask = 1 << input
-            disabled_input = disabled_input ^ mask
+        for item in filter_list:
+            mask = 1 << item
+            disabled_input ^= mask
 
-        rmp.wr32(0x30000008, 0x0081)  # Power down ADCs
-        rmp.wr32(0x30000010, 0x0000)  # 0x1 Turn on ADA
-        rmp.wr32(0x3000000C, 0x0)
+        # TODO: Switch the two below when XML behaviour is implemented
+        # self.board['board.regfile.ctrl'] = 0x0081  # Power down ADCs
+        # self.board['board.regfile.ada_ctrl'] = 0x0000 # 0x1 Turns on ADS
+        # self.board['board.regfile.ethernet_pause'] = 0x0
+        self.board[0x30000008] = 0x0081  # Power down ADCs
+        self.board[0x30000010] = 0x0000 # 0x1 Turns on ADS
+        self.board[0x3000000C] = 0xA000
 
-        rmp.wr32(0x00030400 + idx * 0x10000000, 0x8);  # bit per sample
+        self.board['%s.jesd_buffer.bit_per_sample' % self._node] = 0x8  # bit per sample
+        self.board['%s.jesd204_if.regfile_channel_disable' % self._node] = disabled_input
+        self.board['%s.jesd_buffer.test_pattern_enable' % self._node] = 0x1  # xTPM
+        self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._node] = 0x0
+        self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._node] = 0x1
 
-        # rmp.wr32(0x0000000C+idx*0x10000000, disabled_input);
-        rmp.wr32(0x0001F004 + idx * 0x10000000, disabled_input);
-        # rmp.wr32(0x00000004+idx*0x10000000, 0x1);#xTPM
-        rmp.wr32(0x00030404 + idx * 0x10000000, 0x1);  # xTPM
-        # rmp.wr32(0x00000008+idx*0x10000000, 0x0);
-        rmp.wr32(0x0001F000 + idx * 0x10000000, 0x0);
-        # rmp.wr32(0x00000008+idx*0x10000000, 0x1);
-        rmp.wr32(0x0001F000 + idx * 0x10000000, 0x1);
+        # Setting default buffer configuration
+        for n in range(self._nof_inputs):
+            self.board['%s.jesd_buffer.read_first_%d' % (self._node, n)] = n
+            self.board['%s.jesd_buffer.read_last_%d' % (self._node, n)] = n
+            self.board['%s.jesd_buffer.write_mux_config_%d' % (self._node, n)] = n
+        self.board['%s.jesd_buffer.write_mux_we' % self._node] = 0xFFFF # Write mux we
+        self.board['%s.jesd_buffer.write_mux_we_shift' % self._node] = 0x0 # Write mux we shift
 
-        # time.sleep(2)
-
-        # setting default buffer configuration
-        for n in range(16):
-            rmp.wr32(0x00030000 + 4 * n, n)  # first lane
-            rmp.wr32(0x00030100 + 4 * n, n)  # last lane
-            rmp.wr32(0x00030200 + 4 * n, n)  # write mux
-        rmp.wr32(0x00030300, 0xFFFF);  # write mux we
-        rmp.wr32(0x00030304, 0);  # write mux we shift
-
-        # setting buffer configuration
+        # Setting buffer configuration
         nof_input = len(filter_list)
-        if self.board == "XTPM":
-            slot_per_input = 16 / nof_input
+        if self._board_type == "XTPM":
+            slot_per_input = self._nof_inputs / nof_input
         else:
             slot_per_input = 8 / nof_input
 
         k = 0
         for n in sorted(filter_list):
-            rmp.wr32(0x00030000 + 4 * n, k);  # first lane
-            rmp.wr32(0x00030100 + 4 * n, k + (slot_per_input - 1));  # last lane
+            self.board['%s.jesd_buffer.read_first_%d' % (self._node, n)] = k
+            self.board['%s.jesd_buffer.read_last_%d' % (self._node, n)] = k + (slot_per_input - 1)
             k += slot_per_input
+
         for n in range(16):
             if n / slot_per_input < len(filter_list):
-                rmp.wr32(0x00030200 + 4 * n, sorted(filter_list)[n / slot_per_input]);  # write mux
+                self.board['%s.jesd_buffer.write_mux_config_%d' % (self._node, n)] = sorted(filter_list)[n / slot_per_input]  # write mux
+
         mask = 0
         for n in range(nof_input):
-            mask = mask << slot_per_input
+            mask <<= slot_per_input
             mask |= 0x1
-        rmp.wr32(0x00030300, mask);
-        rmp.wr32(0x00030304, 0);
+        self.board['%s.jesd_buffer.write_mux_we' % self._node] = mask
+        self.board['%s.jesd_buffer.write_mux_we_shift' % self._node] = 0x0
 
-        # time.sleep(1)
-        # self.wr_adc("all",0x572,0x80);
-        # self.wr_adc("all",0x572,0xC0); #Force ILA and user data phase
-#
-#
-# def fpga_stop(self):
-#     """!@brief This function stops the FPGA acquisition and data downloading through 1Gbit Ethernet
-#     """
-#     # rmp.wr32(0x00000004, 0x0);
-#     rmp.wr32(0x00030404, 0x0);
-#     # rmp.wr32(0x10000004, 0x0);
-#     # rmp.wr32(0x00000008, 0x0);
-#     rmp.wr32(0x0001F000, 0x0);
-#     # rmp.wr32(0x10000008, 0x0);
-#     time.sleep(1)
-#
+
+    def fpga_stop(self):
+        """!@brief This function stops the FPGA acquisition and data downloading through 1Gbit Ethernet
+        """
+        self.board['%s.jesd_buffer.test_pattern_enable' % self._node] = 0x0
+        self.board['%s.jesd204_if.regfile_ctrl'] = 0x0
+        time.sleep(1)
 
     ##################### Superclass method implementations #################################
 

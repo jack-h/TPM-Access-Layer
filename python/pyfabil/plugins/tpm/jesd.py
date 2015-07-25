@@ -10,7 +10,7 @@ class TpmJesd(FirmwareBlock):
     """ FirmwareBlock tests class """
 
     @compatibleboards(BoardMake.TpmBoard)
-    @friendlyname('tpm_pll')
+    @friendlyname('tpm_jesd')
     @maxinstances(1)
     def __init__(self, board, **kwargs):
         """ TpmJesd initialiser
@@ -34,26 +34,22 @@ class TpmJesd(FirmwareBlock):
         """!@brief This function performs the FPGA internal JESD core configuration and initialization procedure as implemented in ADI demo.
         @param bit -- int -- Sample bit width, supported value are 8,14
         """
-        #
-        # # TODO: Take FPGA base address (3rd operand) from XML file (or whatever)
-        # rmp.wr32(0x00010008 + self._fpga_id * 0x10000000 + self._core_id * 0x1000, 0x1)
-        # rmp.wr32(0x00010010 + self._fpga_id * 0x10000000 + self._core_id * 0x1000, 0x0)  # sysref
-        # rmp.wr32(0x0001000C + self._fpga_id * 0x10000000 + self._core_id * 0x1000, 0x1)  # scrambling
-        # rmp.wr32(0x00010020 + self._fpga_id * 0x10000000 + self._core_id * 0x1000, 0x0)
-        # rmp.wr32(0x00010024 + self._fpga_id * 0x10000000 + self._core_id * 0x1000, 0x1f)
-        # if self.board == "XTPM":
-        #     rmp.wr32(0x00010028 + self._fpga_id * 0x10000000 + self._core_id * 0x1000, 0x7);  # xTPM
-        # else:
-        #     rmp.wr32(0x00010028, 0x3);
-        #
-        # rmp.wr32(0x0001002C + self._fpga_id * 0x10000000 + self._core_id * 0x1000, 0x1);
-        # rmp.wr32(0x00010004 + self._fpga_id * 0x10000000 + self._core_id * 0x1000, 0x1);
-        #
 
-        pass
+        # TODO: Update the call below to use registers from memory map
+        self.board[0x00010008 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1
+        self.board[0x00010010 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x0  # sysref
+        self.board[0x0001000C + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1  # scrambling
+        self.board[0x00010020 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x0
+        self.board[0x00010024 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1f
+        if self.board == "XTPM":
+            self.board[0x00010028 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x7  # xTPM
+        else:
+            self.board[0x00010028] = 0x3
+
+        self.board[0x0001002C + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1
+        self.board[0x00010004 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1
 
     ##################### Superclass method implementations #################################
-
 
     def initialise(self):
         """ Initialise TpmPll """

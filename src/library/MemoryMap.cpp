@@ -7,18 +7,27 @@
 using namespace rapidxml;
 using namespace std;
 
+// MemoryMap constructor which does not load from file but
+// lets the board load from firmware
+MemoryMap::MemoryMap()
+{
+    // Clear memory map
+    memory_map.clear();
+}
+
+
 // MemoryMap constructor which loads from file
-MemoryMap::MemoryMap(char *path)
+RETURN MemoryMap::updateMemoryMap(char *xmlFile)
 {
     // TODO: Check if filepath exists
 
     // If so, store locally
-    size_t len = strlen(path);
+    size_t len = strlen(xmlFile);
     this -> filepath = (char *) malloc((len + 1) * sizeof(char));
-    strcpy(this -> filepath, path);
+    strcpy(this -> filepath, xmlFile);
 
     // Load file contents
-    FILE *f = fopen(path, "r"); 
+    FILE *f = fopen(xmlFile, "r");
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
@@ -28,9 +37,6 @@ MemoryMap::MemoryMap(char *path)
     fclose(f);
 
     content[fsize] = 0;
-
-    // Clear map
-    memory_map.clear();
 
     // Parse memory map
     xml_document<> doc;
@@ -329,14 +335,6 @@ MemoryMap::MemoryMap(char *path)
         }
     }
     DEBUG_PRINT("MemoryMap::Constructor. Finished loading memory map from " << path);
-}
-
-// MemoryMap constructor which does not load from file but
-// lets the board load from firmware
-MemoryMap::MemoryMap()
-{
-    // Clear memory map
-    memory_map.clear();
 }
 
 // Add a new register entry to the memory map

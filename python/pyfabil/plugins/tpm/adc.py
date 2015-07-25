@@ -35,7 +35,6 @@ class TpmAdc(FirmwareBlock):
 
         do_until_eq(lambda : self.board[(self._adc_id, 0x0)] & 0x1, 0, ms_retry=100, s_timeout=10)
 
-
         self.board[(self._adc_id, 0x18)] =  0x44  # input buffer current 3.0X
         self.board[(self._adc_id, 0x120)] = 0x0  # sysref
         self.board[(self._adc_id, 0x550)] = 0x00
@@ -75,7 +74,6 @@ class TpmAdc(FirmwareBlock):
         print "ADC " + str(self._adc_id) + " configured!"
 
     ##################### Superclass method implementations #################################
-
 
     def initialise(self):
         """ Initialise TpmPll """

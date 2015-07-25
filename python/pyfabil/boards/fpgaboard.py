@@ -25,7 +25,7 @@ class FPGABoard(object):
         # Set defaults
         self.register_list = None
         self._firmwareList = None
-        self._fpga_board    = 0
+        self._fpga_board   = 0
         self._deviceList   = None
         self.id            = None
         self.status        = Status.NotConnected
@@ -37,14 +37,15 @@ class FPGABoard(object):
         self._available_plugins = {}
         self._loaded_plugins = { }
 
-        # Get list of available plugins
+        # Get list of available plugins which are compatible with board instance
         # noinspection PyUnresolvedReferences
         for plugin in [cls.__name__ for cls in sys.modules['pyfabil.plugins'].FirmwareBlock.__subclasses__()]:
             constr = eval(plugin).__init__.__dict__
             friendly_name = plugin
             if "_friendly_name" in constr:
                 friendly_name = constr['_friendly_name']
-            self._available_plugins[plugin] = friendly_name
+            if "_compatible_boards" in constr and self._fpga_board in constr['_compatible_boards']:
+                self._available_plugins[plugin] = friendly_name
 
         # Override to make this compatible with IPython
         self.__methods__        = None
@@ -177,11 +178,12 @@ class FPGABoard(object):
             if friendly_name in self.__dict__.keys() and len(self.__dict__[friendly_name]) > max_instances:
                 raise LibraryError("Cannot load more instances on plugin %s" % plugin)
 
-        # Get list of class methods and remove those availale in superclass
+        # Get list of class methods and remove those available in superclass
         methods = [name for name, mtype in
                    inspect.getmembers(eval(plugin), predicate=inspect.ismethod)
                    if name not in
-                   [a for a, b in inspect.getmembers(FirmwareBlock, predicate=inspect.ismethod)] ]
+                   [a for a, b in inspect.getmembers(FirmwareBlock, predicate=inspect.ismethod)]
+                   and not name.startswith('_')]
 
         # Create plugin instances, passing arguments if provided
         if len(kwargs) == 0:
@@ -315,6 +317,10 @@ class FPGABoard(object):
          :param filepath: Path to firmware
          :param load_values: Load register values
          """
+
+        # Check if connected
+        if self.id is None:
+            raise LibraryError("Not connected to board, cannot load firmware")
 
         # Superclass method required filepath to be not null
         if filepath is None:

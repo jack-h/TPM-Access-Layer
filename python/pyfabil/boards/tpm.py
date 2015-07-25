@@ -19,6 +19,13 @@ class TPM(FPGABoard):
         self._another_magic_number    = 0xC
         self._info_string_offset      = 0x10
 
+        # Initialisation routine:
+        # PLL start
+        # ADC start
+        # JESD core start
+        # FPGA start
+
+        # Status Register: Which downloaded firmware has been loaded
 
     def load_firmware(self, device, filepath = None, load_values = False):
         """ Override superclass load_firmware to extract memory map from the bitfile
@@ -31,6 +38,10 @@ class TPM(FPGABoard):
 
         # If a filename is not provided, then this means that we're loading from the board itself
         if not filepath:
+            # Check if connected
+            if self.id is None:
+                raise LibraryError("Not connected to board, cannot load firmware")
+
             # Read the offset where the zipped XML is stored
             xml_off = self.read_address(self._xml_offset, device = device)
 
@@ -48,7 +59,7 @@ class TPM(FPGABoard):
             filepath = "/tmp/xml_file.xml"
             with open(filepath, "w") as f:
                 # Add necessary XML
-                zipped_xml = "%s%s%s" % ('<node>\n', zipped_xml.replace('', 'fpga1'), "</node>")
+                zipped_xml = "%s%s%s" % ('<node>\n', zipped_xml.replace('id="tpm_test"', 'id="fpga1"'), "</node>")
 
                 # Write to temporary file
                 f.write(zipped_xml)

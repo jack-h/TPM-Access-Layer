@@ -53,7 +53,7 @@ class TPM: public Board
         // Get list of firmware from board
         FIRMWARE getFirmware(DEVICE device, UINT *num_firmware);
 
-    // Synchronously load firmware to FPGA
+        // Synchronously load firmware to FPGA
         RETURN loadFirmware(DEVICE device, const char *bitstream);
 
         // Functions dealing with on-board devices (such as SPI devices)
@@ -61,6 +61,10 @@ class TPM: public Board
         VALUES          readDevice(REGISTER device, UINT address);
         RETURN          writeDevice(REGISTER device, UINT address, UINT value);
 
+    protected:
+
+        // Process SPI XML file
+        RETURN loadSPI(char *filepath);
 };
 
 #endif // TPM_CLASS

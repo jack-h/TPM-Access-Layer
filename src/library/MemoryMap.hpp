@@ -62,6 +62,9 @@ class MemoryMap
         // Get register list
         REGISTER_INFO* getRegisterList(UINT *num_registers);
 
+        // Update memory map with new XML file
+        RETURN updateMemoryMap(char * xmlFile);
+
     private:
         // Get register information
         RegisterInfo *getRegisterInfo(DEVICE device, REGISTER reg);

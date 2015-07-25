@@ -26,12 +26,15 @@ TPM::TPM(const char *ip, unsigned short port) : Board(ip, port)
 	}
 	else   
 		status = OK;
+
+    // Create memory map
+    memory_map = new MemoryMap();
 }
 
 // Disconnect from board
 void TPM::disconnect()
 {
-    protocol -> closeConnection();  
+    protocol -> closeConnection();
     protocol = NULL;
 }
 
@@ -270,36 +273,49 @@ FIRMWARE TPM::getFirmware(DEVICE device, UINT *num_firmware)
 // Synchronously load firmware to FPGA
 RETURN TPM::loadFirmware(DEVICE device, const char *bitstream)
 {
-    // A new firmware needs to be loaded onto one of the FPGAs
-    // NOTE: It is assumed that the new XML mapping contains all the
-    // mappings (for CPLD, FPGA 1 and FPGA 2), so we just need to reload
-    // the memory map
+    // The TPM is composed of the CPLD and two FPGAs. Each one has an
+    // associated XML file which can be loaded separately. Firmware on FPGA 1
+    // can be changed whilst the the firmware on FPGA 2 is still running. Therefore
+    // the memory map must be dynamically
 
     // Get XML file and re-create the memory map
     char *xml_file = extractXMLFile(bitstream);
 
-    // Create new memory map
-    memory_map = new MemoryMap(xml_file); 
+    // Update memory map with XML file. Memory map will automatically remove existing map
+    // if FPGA had already been loaded
+    memory_map -> updateMemoryMap(xml_file);
 
-    // We have memory map, check if it contains an SPI entry
-    MemoryMap::RegisterInfo *info = memory_map -> getRegisterInfo(BOARD, "spi");
-    if (info == NULL)
-        return SUCCESS;
-
-    // SPI detected, check if XML file path exists
-    if (info -> module == "")
+    // If loading the XML file for the board, we could have an SPI devices entry
+    if (device == BOARD)
     {
-        DEBUG_PRINT("Error loading SPI devices, XML file not specified");
-        return SUCCESS;
+        // We have memory map, check if it contains an SPI entry
+        MemoryMap::RegisterInfo *info = memory_map->getRegisterInfo(BOARD, "spi");
+        if (info == NULL)
+            return SUCCESS;
+
+        // SPI detected, check if XML file path exists
+        if (info->module == "") {
+            DEBUG_PRINT("Error loading SPI devices, XML file not specified");
+            return SUCCESS;
+        }
+
+        return loadSPI(const_cast<char *>((info->module).c_str()));
     }
-    
+
+    return SUCCESS;
+}
+
+RETURN TPM::loadSPI(char *filepath)
+{
     // Load SPI XML file
-    spi_devices = new SPI(const_cast<char *>((info -> module).c_str()));       
-       
+    spi_devices = new SPI(filepath);
+
+    MemoryMap::RegisterInfo *info;
+
     // Populate general SPI properties
     info = memory_map -> getRegisterInfo(BOARD, "spi");
     spi_devices -> spi_address = info -> address;
-    
+
     info = memory_map -> getRegisterInfo(BOARD, "spi.address");
     spi_devices -> spi_address = info -> address;
     spi_devices -> spi_address_mask = info -> bitmask;
@@ -325,11 +341,9 @@ RETURN TPM::loadFirmware(DEVICE device, const char *bitstream)
 
     info = memory_map -> getRegisterInfo(BOARD, "spi.cmd.start");
     spi_devices -> cmd_start_mask = info -> bitmask;
-    
+
     info = memory_map -> getRegisterInfo(BOARD, "spi.cmd.rnw");
     spi_devices -> cmd_rnw_mask = info -> bitmask;
-
-    return SUCCESS;
 }
 
 // Reset board
