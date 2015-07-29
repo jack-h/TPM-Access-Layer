@@ -606,11 +606,11 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION END -----#	//	FPGA_DS.get_register_info
         return argout
         
-    def get_register_list(self):
+    def get_register_list(self, argin):
         """ Returns a list of registers and values, as a serialized python dictionary, stored as a string.
         
-        :param : 
-        :type: PyTango.DevVoid
+        :param argin: Dictionary with arguments.
+        :type: PyTango.DevString
         :return: List of register names.
         :rtype: PyTango.DevVarStringArray """
         self.debug_stream("In get_register_list()")
@@ -619,7 +619,17 @@ class FPGA_DS (PyTango.Device_4Impl):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
-                register_dict = self.fpga_instance.get_register_list()
+                arguments = pickle.loads(argin)
+                reset = arguments['reset']
+                load_values = arguments['load_values']
+
+                if reset is None:
+                    reset = False
+
+                if load_values is None:
+                    load_values = False
+
+                register_dict = self.fpga_instance.get_register_list(reset, load_values)
                 argout = register_dict.keys()
             except DevFailed as df:
                 self.debug_stream("Failed to get register list: %s" % df)
@@ -644,9 +654,14 @@ class FPGA_DS (PyTango.Device_4Impl):
             arguments = pickle.loads(argin)
             device = arguments['device']
             filepath = arguments['path']
+            load_values = arguments['load_values']
+
+            if load_values is None:
+                load_values = False
+
             self.flush_attributes()
             try:
-                self.fpga_instance.load_firmware(Device(device), filepath)
+                self.fpga_instance.load_firmware(Device(device), filepath, load_values)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")
@@ -741,6 +756,10 @@ class FPGA_DS (PyTango.Device_4Impl):
             arguments = pickle.loads(argin)
             address = arguments['address']
             words = arguments['words']
+
+            if words is None:
+                words = 1
+
             try:
                 argout = self.fpga_instance.read_address(address, words)
             except DevFailed as df:
@@ -796,6 +815,12 @@ class FPGA_DS (PyTango.Device_4Impl):
             register = arguments['register']
             words = arguments['words']
             offset = arguments['offset']
+
+            if words is None:
+                words = 1
+
+            if offset is None:
+                offset = 0
 
             reg_info = pickle.loads(self.get_register_info(register))
             self.info_stream("Reg info: %s" % reg_info)
@@ -1033,6 +1058,9 @@ class FPGA_DS (PyTango.Device_4Impl):
             values = arguments['values']
             offset = arguments['offset']
 
+            if offset is None:
+                offset = 0
+
             reg_info = pickle.loads(self.get_register_info(register))
             length_register = reg_info['size']
             length_values = len(values)
@@ -1139,7 +1167,7 @@ class FPGA_DSClass(PyTango.DeviceClass):
             [[PyTango.DevString, "The register name for which information will be retrieved."],
             [PyTango.DevString, "Returns a string-encoded dictionary of information."]],
         'get_register_list':
-            [[PyTango.DevVoid, "none"],
+            [[PyTango.DevString, "Dictionary with arguments."],
             [PyTango.DevVarStringArray, "List of register names."]],
         'load_firmware':
             [[PyTango.DevString, "File path."],
