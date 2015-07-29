@@ -20,16 +20,16 @@ class TpmFpga(FirmwareBlock):
 
         self._board_type = kwargs.get('board_type', 'XTPM')
 
-        if 'node' not in kwargs.keys():
+        if 'device' not in kwargs.keys():
             raise PluginError("TpmFpga: Require a node instance")
-        self._node = kwargs['node']
+        self._device = kwargs['device']
 
-        if self._node == Device.FPGA_1:
-            self._node = 'fpga1'
-        elif self._node == Device.FPGA_2:
-            self._node = 'fpga2'
+        if self._device == Device.FPGA_1:
+            self._device = 'fpga1'
+        elif self._device == Device.FPGA_2:
+            self._device = 'fpga2'
         else:
-            raise PluginError("TpmFpga: Invalid device %d" % self._node)
+            raise PluginError("TpmFpga: Invalid device %d" % self._device)
 
         self._nof_inputs = 16
 
@@ -59,19 +59,19 @@ class TpmFpga(FirmwareBlock):
         self.board[0x30000010] = 0x0000 # 0x1 Turns on ADS
         self.board[0x3000000C] = 0xA000
 
-        self.board['%s.jesd_buffer.bit_per_sample' % self._node] = 0x8  # bit per sample
-        self.board['%s.jesd204_if.regfile_channel_disable' % self._node] = disabled_input
-        self.board['%s.jesd_buffer.test_pattern_enable' % self._node] = 0x1  # xTPM
-        self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._node] = 0x0
-        self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._node] = 0x1
+        self.board['%s.jesd_buffer.bit_per_sample' % self._device] = 0x8  # bit per sample
+        self.board['%s.jesd204_if.regfile_channel_disable' % self._device] = disabled_input
+        self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x1  # xTPM
+        self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._device] = 0x0
+        self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._device] = 0x1
 
         # Setting default buffer configuration
         for n in range(self._nof_inputs):
-            self.board['%s.jesd_buffer.read_first_%d' % (self._node, n)] = n
-            self.board['%s.jesd_buffer.read_last_%d' % (self._node, n)] = n
-            self.board['%s.jesd_buffer.write_mux_config_%d' % (self._node, n)] = n
-        self.board['%s.jesd_buffer.write_mux_we' % self._node] = 0xFFFF # Write mux we
-        self.board['%s.jesd_buffer.write_mux_we_shift' % self._node] = 0x0 # Write mux we shift
+            self.board['%s.jesd_buffer.read_first_%d' % (self._device, n)] = n
+            self.board['%s.jesd_buffer.read_last_%d' % (self._device, n)] = n
+            self.board['%s.jesd_buffer.write_mux_config_%d' % (self._device, n)] = n
+        self.board['%s.jesd_buffer.write_mux_we' % self._device] = 0xFFFF # Write mux we
+        self.board['%s.jesd_buffer.write_mux_we_shift' % self._device] = 0x0 # Write mux we shift
 
         # Setting buffer configuration
         nof_input = len(filter_list)
@@ -82,26 +82,26 @@ class TpmFpga(FirmwareBlock):
 
         k = 0
         for n in sorted(filter_list):
-            self.board['%s.jesd_buffer.read_first_%d' % (self._node, n)] = k
-            self.board['%s.jesd_buffer.read_last_%d' % (self._node, n)] = k + (slot_per_input - 1)
+            self.board['%s.jesd_buffer.read_first_%d' % (self._device, n)] = k
+            self.board['%s.jesd_buffer.read_last_%d' % (self._device, n)] = k + (slot_per_input - 1)
             k += slot_per_input
 
         for n in range(16):
             if n / slot_per_input < len(filter_list):
-                self.board['%s.jesd_buffer.write_mux_config_%d' % (self._node, n)] = sorted(filter_list)[n / slot_per_input]  # write mux
+                self.board['%s.jesd_buffer.write_mux_config_%d' % (self._device, n)] = sorted(filter_list)[n / slot_per_input]  # write mux
 
         mask = 0
         for n in range(nof_input):
             mask <<= slot_per_input
             mask |= 0x1
-        self.board['%s.jesd_buffer.write_mux_we' % self._node] = mask
-        self.board['%s.jesd_buffer.write_mux_we_shift' % self._node] = 0x0
+        self.board['%s.jesd_buffer.write_mux_we' % self._device] = mask
+        self.board['%s.jesd_buffer.write_mux_we_shift' % self._device] = 0x0
 
 
     def fpga_stop(self):
         """!@brief This function stops the FPGA acquisition and data downloading through 1Gbit Ethernet
         """
-        self.board['%s.jesd_buffer.test_pattern_enable' % self._node] = 0x0
+        self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x0
         self.board['%s.jesd204_if.regfile_ctrl'] = 0x0
         time.sleep(1)
 

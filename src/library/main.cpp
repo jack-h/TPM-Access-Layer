@@ -8,10 +8,7 @@
 
 int main()
 {
-    ID id = connectBoard(TPM_BOARD, "10.0.10.2", 10000);
-
-    loadFirmware(id, FPGA_1, "/home/lessju/map.xml");
-    VALUES val = readDevice(id, "pll", 0x3);
-    printf("%d %d\n", val.error,  val.values[0]);
+    ID id = connectBoard(TPM_BOARD, "127.0.0.1", 10000);
+    loadSPIDevices(id, BOARD, "/home/lessju/xilinx_map.xml");
 }
 

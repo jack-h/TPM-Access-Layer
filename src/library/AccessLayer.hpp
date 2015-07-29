@@ -166,6 +166,9 @@ extern "C" RETURN writeAddress(ID id, DEVICE device, UINT address, UINT *values,
 
 // ====================== SPI DEVICES RELATED FUNCTIONS =======================
 
+// Load device SPI XML file
+extern "C" RETURN loadSPIDevices(ID id, DEVICE device, const char *filepath);
+
 // Get list of SPI devices
 // Arguments:
 //   id    Board ID

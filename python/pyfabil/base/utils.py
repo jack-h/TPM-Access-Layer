@@ -23,7 +23,6 @@ def high_bits(datum, bits):
             result.append(i)
     return result
 
-
 ###############################################################################
 #
 # Copyright (C) 2012

@@ -1,9 +1,9 @@
-from pyfabil.base.utils import convert_uint_to_string
 from pyfabil.boards.fpgaboard import FPGABoard, DeviceNames
 from pyfabil.base.definitions import *
 from math import ceil
 import binascii
 import zlib
+
 
 class TPM(FPGABoard):
     """ FPGABoard subclass for communicating with a TPM board """
@@ -13,63 +13,154 @@ class TPM(FPGABoard):
         kwargs['fpgaBoard'] = BoardMake.TpmBoard
         super(TPM, self).__init__(**kwargs)
 
-        self._firmware_revison_number = 0x0
+        # Set hardcoded register addresses
         self._magic_number            = 0x4
-        self._xml_offset              = 0x8
-        self._another_magic_number    = 0xC
-        self._info_string_offset      = 0x10
+        self._cpld_xml_offset         = 0x80000004
 
-        # Initialisation routine:
-        # PLL start
-        # ADC start
-        # JESD core start
-        # FPGA start
+        # Check if we are simulating or not
+        self._simulator = kwargs.get('simulator', False)
 
-        # Status Register: Which downloaded firmware has been loaded
+        # Placeholder for initialised check
+        self._devices_initialised = False
+        self._board_initialised    = False
+
+        # Pre-load all required plugins
+        tpm.load_plugin("TpmFirmwareInformation", device=Device.FPGA_1)
+        tpm.load_plugin("TpmFirmwareInformation", device=Device.FPGA_2)
+        tpm.load_plugin("TpmPll", board_type="NOTXTPM")
+        [tpm.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
+        tpm.load_plugin("TpmJesd", fpga_id = 0, core_id = 0)
+        tpm.load_plugin('TpmFpga', board_type = 'NOTXTPM', node = Device.FPGA_1)
+
+        # Load CPLD XML file from the board if not simulating
+        if not self._simulator:
+            self._initialise_board()
+
+    def _initialise_board(self):
+        """ Initialise the TPM board """
+
+        # Get XML file
+        cpld_xml =  self._get_xml_file(self.read_address(self._cpld_xml_offset))
+
+        # Process XML file
+        filepath = "/tmp/xml_file.xml"
+        with open(filepath, "w") as f:
+            # Add necessary XML and write to temporary file
+            cpld_xml = "%s%s%s" % ('<node>\n', cpld_xml, "</node>")
+            f.write(cpld_xml)
+            f.flush()
+
+            # Initialise memory map
+            try:
+                super(TPM, self).load_firmware(device = Device.Board, filepath = filepath)
+            except:
+                raise LibraryError("Failed to load CPLD XML file from TPM")
+
+        # Load SPI file, if exists
+        if self.register_list.has_key('board.info.spi_xml_offset'):
+            # Get SPI XML file
+            spi_xml = self._get_xml_file(self.read_register("board.info.spi_xml_offset"))
+
+            # Write to file
+            spi_filepath = '/tmp/spi.xml'
+            with open(spi_filepath, 'w') as sf:
+                sf.write(spi_xml)
+                sf.flush()
+
+                # Load XML devices on board
+                if self.load_spi_devices(Device.Board, spi_filepath) == Error.Failure:
+                    raise LibraryError("Failed to process SPI XML file")
+
+        # CPLD and SPI XML files have been loaded, check whether FPGA have been programmed
+        # If FPGA is programmed, load the firmware's XML file
+        if tpm.tpm_firmware_information[0].get_design != "":
+            self.load_firmware(device = Device.FPGA_1)
+
+        if tpm.tpm_firmware_information[1].get_design != "":
+            self.load_firmware(device = Device.FPGA_2)
+
+        # Otherwise, (load factory firmware, get XML file and initialise devices)???
+
+        # Set board as initialised
+        self._board_initialised = True
+
+    def _initialise_devices(self):
+        """ Initialise the SPI and other devices on the board """
+
+        # Initialise PLL
+        tpm.tpm_pll.pll_start(700)
+
+        # Initialise ADCs
+        [self.tpm_adc[i].adc_single_start() for i range(2)]
+
+        # Initialise FPGAs
+        tpm.tpm_fpga.fpga_start(range(4), range(4))
+
+        # Set devices as initialised
+        self._devices_initialised = True
 
     def load_firmware(self, device, filepath = None, load_values = False):
         """ Override superclass load_firmware to extract memory map from the bitfile
             This is saved in a tmp directory and forwarded to the superclass for
             processing
-        :param device: The device on which the firmware will be loaded
-        :param filepath: Filepath of the firmware, None if already loaded
-        :param load_values:
-        """
+            :param device: The device on which the firmware will be loaded
+            :param filepath: Filepath of the firmware, None if already loaded
+            :param load_values:
+            """
 
-        # If a filename is not provided, then this means that we're loading from the board itself
+        # Check if device is valid
+        if device not in [Device.FPGA_1, Device.FPGA_2]:
+            raise LibraryError("TPM devices can only be FPGA_1 and FPGA_2")
+
+        # If a filepath is not provided, then this means that we're loading from the board itself
         if not filepath:
+
             # Check if connected
             if self.id is None:
                 raise LibraryError("Not connected to board, cannot load firmware")
 
-            # Read the offset where the zipped XML is stored
-            xml_off = self.read_address(self._xml_offset, device = device)
+            # Check if register exists in map
+            register = 'board.info.%s_xml_offset' % ("fpga1" if device == Device.FPGA_1 else "fpga2")
+            if not self.register_list.has_key("register"):
+                raise LibraryError("CPLD XML file must be loaded prior to loading firmware")
 
-            # First 4 bytes are the zipped XML file length in byte
-            xml_len = self.read_address(xml_off, device = device)
-
-            # Read the zipped XML, this should be optimized using larger accesses
-            zipped_xml = self.read_address(xml_off + 4, int(ceil(xml_len / 4.0)), device = device)
-            zipped_xml = ''.join([format(n, '08x') for n in zipped_xml])
-
-            # Convert to string
-            zipped_xml = zlib.decompress(binascii.unhexlify(zipped_xml[: 2 * xml_len]))
+            # Get XML file offset and read XML file from board
+            zipped_xml = self._get_xml_file(self[self[register]])
 
             # Process
             filepath = "/tmp/xml_file.xml"
             with open(filepath, "w") as f:
-                # Add necessary XML
-                zipped_xml = "%s%s%s" % ('<node>\n', zipped_xml.replace('id="tpm_test"', 'id="fpga1"'), "</node>")
-
-                # Write to temporary file
-                f.write(zipped_xml)
+                # Add necessary XML and write to file
+                f.write("%s%s%s" % ('<node>\n', zipped_xml.replace('id="tpm_test"', 'id="fpga1"'), "</node>"))
                 f.flush()
 
                 # Call superclass with this file
-                super(TPM, self).load_firmware(device=device, filepath = filepath)
+                super(TPM, self).load_firmware(device = device, filepath = filepath)
         else:
-            super(TPM, self).load_firmware(device=device, filepath = filepath)
+            super(TPM, self).load_firmware(device = device, filepath = filepath)
 
+        # If devices were not initialised, initialise them now
+        self._initialise_devices()
+
+        # Update firmware information
+        tpm.tpm_firmware_information[0 if device == Device.FPGA_1 else 1].update_information()
+
+    def _get_xml_file(self, xml_offset):
+        """ Get XML file from board
+        :param xml_offset: Memory offset where XML file is stored
+        :return: XML file as string
+        """
+        # Read length of XML file (first 4 bytes from offset)
+        xml_len = self.read_address(xml_offset)
+
+        # Read XML file from board
+        zipped_xml = self.read_address(xml_offset + 4, int(ceil(xml_len / 4.0)))
+
+        # Convert to string, decompress and return
+        zipped_xml = ''.join([format(n, '08x') for n in zipped_xml])
+        return  zlib.decompress(binascii.unhexlify(zipped_xml[: 2 * xml_len]))
+
+    ####################### Methods for syntax candy ###########################
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
@@ -167,4 +258,4 @@ class TPM(FPGABoard):
         return string
 
 if __name__ == "__main__":
-    tpm = TPM()
+    tpm = TPM(simulator=True)

@@ -57,14 +57,10 @@ class TPM: public Board
         RETURN loadFirmware(DEVICE device, const char *bitstream);
 
         // Functions dealing with on-board devices (such as SPI devices)
+        RETURN          loadSPIDevices(DEVICE device, const char *filepath);
         SPI_DEVICE_INFO *getDeviceList(UINT *num_devices);
         VALUES          readDevice(REGISTER device, UINT address);
         RETURN          writeDevice(REGISTER device, UINT address, UINT value);
-
-    protected:
-
-        // Process SPI XML file
-        RETURN loadSPI(char *filepath);
 };
 
 #endif // TPM_CLASS

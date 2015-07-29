@@ -25,5 +25,3 @@ void Board::initialiseRegisterValues(REGISTER_INFO *regInfo, int num_registers)
 	
 	// All done
 }
-
-

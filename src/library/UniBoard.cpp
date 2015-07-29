@@ -373,3 +373,7 @@ VALUES UniBoard::readDevice(REGISTER device, UINT address)
 
 RETURN UniBoard::writeDevice(REGISTER device, UINT address, UINT value)
 { return NOT_IMPLEMENTED; }
+
+RETURN UniBoard::loadSPIDevices(DEVICE device, const char *filepath) {
+    return NOT_IMPLEMENTED;
+}

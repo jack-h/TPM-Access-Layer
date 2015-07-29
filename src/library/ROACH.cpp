@@ -157,3 +157,7 @@ VALUES ROACH::readFifoRegister(DEVICE device, REGISTER reg, UINT n)
 
 RETURN ROACH::writeFifoRegister(DEVICE device, REGISTER reg, UINT *values, UINT n)
 { return NOT_IMPLEMENTED; }
+
+RETURN ROACH::loadSPIDevices(DEVICE device, const char *filepath) {
+    return NOT_IMPLEMENTED;
+}

@@ -23,29 +23,15 @@ class FPGABoard(object):
         """ Class constructor for FPGABoard"""
 
         # Set defaults
+        self.status        = {Device.Board : Status.NotConnected}
+        self._programmed   = {Device.Board : False}
         self.register_list = None
         self._firmwareList = None
         self._fpga_board   = 0
         self._deviceList   = None
         self.id            = None
-        self.status        = Status.NotConnected
-        self._programmed   = False
         self._logger       = None
         self._string_id    = "Board"
-
-        # Initialise list of available and loaded plugins
-        self._available_plugins = {}
-        self._loaded_plugins = { }
-
-        # Get list of available plugins which are compatible with board instance
-        # noinspection PyUnresolvedReferences
-        for plugin in [cls.__name__ for cls in sys.modules['pyfabil.plugins'].FirmwareBlock.__subclasses__()]:
-            constr = eval(plugin).__init__.__dict__
-            friendly_name = plugin
-            if "_friendly_name" in constr:
-                friendly_name = constr['_friendly_name']
-            if "_compatible_boards" in constr and self._fpga_board in constr['_compatible_boards']:
-                self._available_plugins[plugin] = friendly_name
 
         # Override to make this compatible with IPython
         self.__methods__        = None
@@ -60,6 +46,22 @@ class FPGABoard(object):
         self._fpga_board = kwargs.get('fpgaBoard', None)
         if self._fpga_board is None:
             raise LibraryError("No BoarMake specified in FPGABoard initialiser")
+
+        # Initialise list of available and loaded plugins
+        self._available_plugins = {}
+        self._loaded_plugins = { }
+
+        # Get list of available plugins which are compatible with board instance
+        # noinspection PyUnresolvedReferences
+        for plugin in [cls.__name__ for cls in sys.modules['pyfabil.plugins'].FirmwareBlock.__subclasses__()]:
+            constr = eval(plugin).__init__.__dict__
+            friendly_name = plugin
+            if "_friendly_name" in constr:
+                friendly_name = constr['_friendly_name']
+            if "_compatible_boards" in constr and self._fpga_board in constr['_compatible_boards']:
+                self._available_plugins[plugin] = friendly_name
+            elif "_comaptible_boards" in constr:
+                self._available_plugins[plugin] = friendly_name
 
         # Check if filepath is included in arguments
         filepath = kwargs.get('library', None)
@@ -263,12 +265,12 @@ class FPGABoard(object):
         # Connect to board
         board_id = call_connect_board(self._fpga_board.value, ip, port)
         if board_id == 0:
-            self.status = Status.NetworkError
+            self.status[Device.Board] = Status.NetworkError
             raise BoardError("Could not connect to board with ip %s" % ip)
         else:
             self._logger.info(self.log("Connected to board %s, received ID %d" % (ip, board_id)))
             self.id = board_id
-            self.status = Status.OK
+            self.status[Device.Board] = Status.OK
 
     def disconnect(self):
         """ Disconnect from board """
@@ -331,20 +333,20 @@ class FPGABoard(object):
             raise LibraryError("Device argument for load_firmware should be of type Device")
 
         # All OK, call function
-        self.status = Status.LoadingFirmware
+        self.status[device] = Status.LoadingFirmware
         err = call_load_firmware(self.id, device, filepath)
         self._logger.debug(self.log("Called load_firmware"))
 
         # If call succeeded, get register and device list
         if err == Error.Success:
-            self._programmed = True
-            self.status = Status.OK
+            self._programmed[device] = True
+            self.status[device] = Status.OK
             self.get_register_list(load_values)
             self.get_device_list()
             self._logger.info(self.log("Successfully loaded firmware %s on board" % filepath))
         else:
-            self._programmed = False
-            self.status = Status.LoadingFirmwareError
+            self._programmed[device] = False
+            self.status[device]      = Status.LoadingFirmwareError
             raise BoardError("load_firmware failed on board")
 
     def get_register_list(self, reset = False, load_values = False):
@@ -357,7 +359,7 @@ class FPGABoard(object):
             return self.register_list
 
         # Check if device is programmed
-        if not self._programmed:
+        if not self._programmed[Device.Board]:
             raise LibraryError("Cannot get_register_list from board which has not been programmed")
 
         # Call function
@@ -391,7 +393,7 @@ class FPGABoard(object):
          """
 
         # Perform basic checks
-        if not self._checks():    
+        if not self._checks(device):
             return
 
         # Extract device from register name
@@ -436,7 +438,7 @@ class FPGABoard(object):
          """
 
         # Perform basic checks
-        if not self._checks():    
+        if not self._checks(device):
             return
 
         # Extract device from register name
@@ -456,7 +458,7 @@ class FPGABoard(object):
         if err == Error.Failure:
             raise BoardError("Failed to write_register %s on board" % register)
 
-    def read_address(self, address, n = 1, device = None):
+    def read_address(self, address, n = 1):
         """" Get register value
          :param address: Memory address to read from
          :param n: Number of words to read
@@ -471,7 +473,7 @@ class FPGABoard(object):
         else:
             return ret
 
-    def write_address(self, address, values, device = None):
+    def write_address(self, address, values):
         """ Set register value
          :param address: Memory address to write to
          :param values: Values to write
@@ -519,10 +521,18 @@ class FPGABoard(object):
         if ret == Error.Failure:
             raise BoardError("Failed to write_device %s, %s on board" % (device, hex(address)))
 
+    def load_spi_devices(self, device, filepath):
+        """ Load SPI devices
+        :param device: Device
+        :param filepath: Path to SPI XML file
+        :return:
+        """
+        return call_load_spi_devices(self.id, device, filepath)
+
     def list_register_names(self):
         """ Print list of register names """
 
-        if not self._programmed:
+        if not self._programmed[Device.Board]:
             return
 
         # Run checks
@@ -625,7 +635,7 @@ class FPGABoard(object):
         if self.register_list is not None:
             return len(self.register_list.keys())
 
-    def _checks(self):
+    def _checks(self, device = Device.Board):
         """ Check prior to function calls """
 
         # Check if board is connected
@@ -633,7 +643,7 @@ class FPGABoard(object):
             raise LibraryError("Cannot perform operation on unconnected board")
 
         # Check if device is programmed
-        if not self._programmed:
+        if device is not None and not self._programmed[device]:
             raise LibraryError("Cannot getRegisterList from board which has not been programmed")
 
         # Check if register list has been populated

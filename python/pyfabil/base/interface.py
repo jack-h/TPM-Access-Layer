@@ -73,6 +73,10 @@ def initialise_library(filepath = None):
     library.writeAddress.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
     library.writeAddress.restype = ctypes.c_int
 
+    # Define loadSPIDevices functionn
+    library.loadSPIDevices.argtypes = [ctypes.c_uint32, ctypes.c_uint32, ctypes.c_char_p]
+    library.loadSPIDevices.restype = ctypes.c_int
+
     # Define getDeviceList function
     library.getDeviceList.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
     library.getDeviceList.restype = ctypes.POINTER(SPIDeviceInfoStruct)
@@ -208,6 +212,16 @@ def call_get_register_list(board_id, load_values = False):
     library.freeMemory(registers)
 
     return registerList
+
+def call_load_spi_devices(board_id, device, filepath):
+    """ LOad the SPI devices list
+    :param board_id: ID of board to communicate with
+    :param device: Device on board
+    :param filepath: Path of SPI devices XML file
+    :return: Success or Failure
+    """
+    global library
+    return Error(library.loadSPIDevices(board_id, device.value, filepath))
 
 def call_get_device_list(board_id):
     """

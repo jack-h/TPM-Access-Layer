@@ -172,6 +172,24 @@ REGISTER_INFO* getRegisterList(ID id, UINT *num_registers, bool load_values)
     return board->getRegisterList(num_registers, false);
 }
 
+// Load SPI device file
+RETURN loadSPIDevices(ID id, DEVICE device, const char *filepath)
+{
+    // Check if board exists
+    map<unsigned int, Board*>::iterator it;
+    it = boards.find(id);
+    if (it == boards.end())
+    {
+        DEBUG_PRINT("AccessLayer:: loadSPIDevices. " << id << "not connected");
+        return FAILURE;
+    }
+
+    // Get pointer to board
+    Board *board = it -> second;
+
+    return board -> loadSPIDevices(device, filepath);
+}
+
 // Get list of SPI devices
 SPI_DEVICE_INFO*  getDeviceList(ID id, UINT *num_devices)
 {
@@ -371,14 +389,6 @@ FIRMWARE  getFirmware(ID id, DEVICE device, UINT *num_firmware)
 // an error occurs
 RETURN  loadFirmware(ID id, DEVICE device, const char* bitstream)
 {
-    // Check if device is valid
-    if (!(device == FPGA_1 || device == FPGA_2 || device == FPGA_3 || device == FPGA_4 ||
-          device == FPGA_5 || device == FPGA_6 || device == FPGA_7 || device == FPGA_8))
-    {
-        DEBUG_PRINT("AccessLayer::loadFirmware. Invalid device");
-        return FAILURE;
-    }
-
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
     it = boards.find(id);

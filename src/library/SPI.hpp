@@ -10,7 +10,7 @@ class SPI
 {
     public:
         // SPI constructor accepting filepath
-        SPI(char *filepath);
+        SPI(const char *filepath);
 
         // Get SPI device list
         SPI_DEVICE_INFO* getSPIList(UINT *num_devices);

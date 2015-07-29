@@ -42,7 +42,8 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
     xml_document<> doc;
     doc.parse<0>(content);
 
-    DEBUG_PRINT("MemoryMap::Constructor. Loading memory map from " << path);
+
+    DEBUG_PRINT("MemoryMap::updateMemoryMap. Updating memory map from " << xmlFile);
 
     // We are at the root of the XML file, we now need to iterate through
     // the child nodes to access all FPGA and board memory maps
@@ -50,7 +51,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
     for(xml_node<> *deviceNode = root -> first_node(); 
         deviceNode; 
         deviceNode = deviceNode -> next_sibling())
-    {           
+    {
         // New device detected, get device id        
         xml_attribute<> *deviceAttr = deviceNode -> first_attribute("id");  
         string device_id = deviceAttr -> value();  
@@ -93,7 +94,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
         if (deviceAttr == 0)
             device_address = 0x0;
         else
-            device_address = stoi(deviceAttr -> value(), 0, 16);       
+            device_address = stol(deviceAttr -> value(), 0, 16);
 
         // Loop over device node attributes
         for(deviceAttr = deviceNode -> first_attribute();
@@ -123,7 +124,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
 
             // Check if a base address is specified
             compAttr = compNode -> first_attribute("address");
-            UINT comp_address = (compAttr == 0) ? 0 : stoi(compAttr -> value(), 0, 16);
+            UINT comp_address = (compAttr == 0) ? 0 : stol(compAttr -> value(), 0, 16);
 
             // Check if description is specified
             compAttr = compNode -> first_attribute("description");
@@ -220,7 +221,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
                     }
                     else if (name.compare("size") == 0)
                         // Set register size
-                        reg_info -> size = stoi(registerAttr -> value(), 0, 10);
+                        reg_info -> size = stol(registerAttr -> value(), 0, 10);
                     else if (name.compare("description") == 0)
                     {
                         // Set register description
@@ -311,7 +312,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
                             }
                             else if (name.compare("size") == 0)
                                 // Set register size
-                                reg_info -> size = stoi(bitAttr -> value(), 0, 10);
+                                reg_info -> size = stol(bitAttr -> value(), 0, 10);
                             else if (name.compare("description") == 0)
                             {
                                 // Set register description
@@ -334,7 +335,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
             }
         }
     }
-    DEBUG_PRINT("MemoryMap::Constructor. Finished loading memory map from " << path);
+    DEBUG_PRINT("MemoryMap::updateMemoryMap. Finished updating memory map from " << xmlFile);
 }
 
 // Add a new register entry to the memory map

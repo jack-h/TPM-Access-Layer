@@ -9,7 +9,7 @@ using namespace rapidxml;
 using namespace std;
 
 // SPI constructor
-SPI::SPI(char *path)
+SPI::SPI(const char *path)
 {
     // TODO: Check if filepath exists
 

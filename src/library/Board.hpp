@@ -20,8 +20,7 @@ class Board
         // Board constructor
         Board(const char *ip, unsigned short port);
 
-    // ---------- Public class functions --------
-    public:
+public:
 
         // Clear everything and remove connection
         virtual void disconnect() = 0;
@@ -56,10 +55,11 @@ class Board
         // Get list of firmware from board
         virtual FIRMWARE getFirmware(DEVICE device, UINT *num_firmware) = 0;
 
-    // Synchronously load firmware to FPGA
+        // Synchronously load firmware to FPGA
         virtual RETURN loadFirmware(DEVICE device, const char *bitstream) = 0;
 
         // Functions dealing with on-board devices (such as SPI devices)
+        virtual RETURN          loadSPIDevices(DEVICE param, const char *string) = 0;
         virtual SPI_DEVICE_INFO *getDeviceList(UINT *num_devices) = 0;
         virtual VALUES          readDevice(REGISTER device, UINT address) = 0;
         virtual RETURN          writeDevice(REGISTER device, UINT address, UINT value) = 0;
