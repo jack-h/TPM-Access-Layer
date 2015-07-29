@@ -41,6 +41,7 @@
 ##############################################################################
 
 """A Tango device server for the ROACH board."""
+from sardana.macroserver.macros.env import load_env
 
 __all__ = ["ROACH_DS", "ROACH_DSClass", "main"]
 
@@ -287,10 +288,11 @@ class ROACH_DS (FPGA_DS):
             try:
                 arguments = pickle.loads(argin)
                 device = arguments['device']
+
                 if device is None:
-                    firmware_list = self.fpga_instance.get_firmware_list()
-                else:
-                    firmware_list = self.fpga_instance.get_firmware_list(Device(device))
+                    device = Device.FPGA_1.value
+
+                firmware_list = self.fpga_instance.get_firmware_list(Device(device))
 
                 argout = pickle.dumps(firmware_list)
             except DevFailed as df:
@@ -315,11 +317,11 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION END -----#	//	ROACH_DS.get_register_info
         return argout
         
-    def get_register_list(self):
+    def get_register_list(self, argin):
         """ Returns a list of registers and values, as a serialized python dictionary, stored as a string.
         
-        :param : 
-        :type: PyTango.DevVoid
+        :param argin: Dictionary with arguments.
+        :type: PyTango.DevString
         :return: List of register names.
         :rtype: PyTango.DevVarStringArray """
         self.debug_stream("In get_register_list()")
@@ -328,7 +330,13 @@ class ROACH_DS (FPGA_DS):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
-                register_dict = self.fpga_instance.get_register_list()
+                arguments = pickle.loads(argin)
+                load_values = arguments['load_values']
+
+                if load_values is None:
+                    load_values = False
+
+                register_dict = self.fpga_instance.get_register_list(load_values)
                 argout = register_dict.keys()
             except DevFailed as df:
                 self.debug_stream("Failed to get register list: %s" % df)
@@ -352,9 +360,14 @@ class ROACH_DS (FPGA_DS):
         if state_ok:
             arguments = pickle.loads(argin)
             filepath = arguments['path']
+            load_values = arguments['load_values']
+
+            if load_values is None:
+                load_values = False
+
             self.flush_attributes()
             try:
-                self.fpga_instance.load_firmware(filepath)
+                self.fpga_instance.load_firmware(filepath, load_values)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")
@@ -395,8 +408,13 @@ class ROACH_DS (FPGA_DS):
             arguments = pickle.loads(argin)
             address = arguments['address']
             words = arguments['words']
+            device = Device.FPGA_1.value
+
+            if words is None:
+                words = 1
+
             try:
-                argout = self.fpga_instance.read_address(address, words)
+                argout = self.fpga_instance.read_address(address, words, device)
             except DevFailed as df:
                 self.debug_stream("Failed to read address: %s" % df)
                 argout = ''
@@ -450,6 +468,14 @@ class ROACH_DS (FPGA_DS):
             words = arguments['words']
             offset = arguments['offset']
 
+            if words is None:
+                words = 1
+
+            if offset is None:
+                offset = 0
+
+            device = Device.FPGA_1.value
+
             reg_info = pickle.loads(self.get_register_info(register))
             self.info_stream("Reg info: %s" % reg_info)
             length_register = reg_info['size']
@@ -458,10 +484,7 @@ class ROACH_DS (FPGA_DS):
                     self.debug_stream("Register: %s" % register)
                     self.debug_stream("Words: %s" % words)
                     self.debug_stream("Offset: %s" % offset)
-                    if words or offset is None:
-                        argout = self.fpga_instance.read_register(register)
-                    else:
-                        argout = self.fpga_instance.read_register(register, words, offset)
+                    argout = self.fpga_instance.read_register(register, words, offset, device)
                 except DevFailed as df:
                     self.debug_stream("Failed to read register: %s" % df)
                     argout = [0]
@@ -539,6 +562,18 @@ class ROACH_DS (FPGA_DS):
         super(ROACH_DS, self).set_board_state(argin)
         #----- PROTECTED REGION END -----#	//	ROACH_DS.set_board_state
         
+    def sink_alarm_state(self):
+        """ This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: 
+        :rtype: PyTango.DevVoid """
+        self.debug_stream("In sink_alarm_state()")
+        #----- PROTECTED REGION ID(ROACH_DS.sink_alarm_state) ENABLED START -----#
+        super(ROACH_DS, self).sink_alarm_state()
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.sink_alarm_state
+        
     def write_address(self, argin):
         """ Writes values to a register location. The actual physical address has to be provided.
         
@@ -554,8 +589,9 @@ class ROACH_DS (FPGA_DS):
             arguments = pickle.loads(argin)
             address = arguments['address']
             values = arguments['values']
+            device = Device.FPGA_1.value
             try:
-                argout = self.fpga_instance.write_address(address, values)
+                argout = self.fpga_instance.write_address(address, values, device)
             except DevFailed as df:
                 self.debug_stream("Failed to write address: %s" % df)
                 argout = False
@@ -610,16 +646,17 @@ class ROACH_DS (FPGA_DS):
             register = arguments['register']
             values = arguments['values']
             offset = arguments['offset']
+            device = Device.FPGA_1.value
+
+            if offset is None:
+                offset = 0
 
             reg_info = pickle.loads(self.get_register_info(register))
             length_register = reg_info['size']
             length_values = len(values)
             if length_values+offset <= length_register:
                 try:
-                    if values or offset is None:
-                        argout = self.fpga_instance.write_register(register)
-                    else:
-                        argout = self.fpga_instance.write_register(register, values, offset)
+                    argout = self.fpga_instance.write_register(register, values, offset, device)
                     argout = True
                 except DevFailed as df:
                     self.debug_stream("Failed to write register: %s" % df)
@@ -630,18 +667,6 @@ class ROACH_DS (FPGA_DS):
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	ROACH_DS.write_register
         return argout
-        
-    def sink_alarm_state(self):
-        """ This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on.
-        
-        :param : 
-        :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
-        self.debug_stream("In sink_alarm_state()")
-        #----- PROTECTED REGION ID(ROACH_DS.sink_alarm_state) ENABLED START -----#
-        super(ROACH_DS, self).sink_alarm_state()
-        #----- PROTECTED REGION END -----#	//	ROACH_DS.sink_alarm_state
         
 
     #----- PROTECTED REGION ID(ROACH_DS.programmer_methods) ENABLED START -----#
@@ -718,7 +743,7 @@ class ROACH_DSClass(FPGA_DSClass):
             [[PyTango.DevString, "The register name for which information will be retrieved."],
             [PyTango.DevString, "Returns a string-encoded dictionary of information."]],
         'get_register_list':
-            [[PyTango.DevVoid, "none"],
+            [[PyTango.DevString, "Dictionary with arguments."],
             [PyTango.DevVarStringArray, "List of register names."]],
         'load_firmware':
             [[PyTango.DevString, "File path."],
@@ -747,6 +772,9 @@ class ROACH_DSClass(FPGA_DSClass):
         'set_board_state':
             [[PyTango.DevLong, "Board status value."],
             [PyTango.DevVoid, "none"]],
+        'sink_alarm_state':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevVoid, "none"]],
         'write_address':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevBoolean, "True if successful, false if not."]],
@@ -756,9 +784,6 @@ class ROACH_DSClass(FPGA_DSClass):
         'write_register':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevBoolean, "True if successful, false if not."]],
-        'sink_alarm_state':
-            [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
         }
     cmd_list.update(FPGA_DSClass.cmd_list)
 

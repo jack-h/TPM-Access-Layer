@@ -502,9 +502,14 @@ class TPM_DS (FPGA_DS):
             arguments = pickle.loads(argin)
             device = arguments['device']
             filepath = arguments['path']
+            load_values = arguments['load_values']
+
+            if load_values is None:
+                load_values = False
+
             self.flush_attributes()
             try:
-                self.fpga_instance.load_firmware(Device(device), filepath)
+                self.fpga_instance.load_firmware(Device(device), filepath, load_values)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")

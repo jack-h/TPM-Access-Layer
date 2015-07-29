@@ -6,24 +6,6 @@
       <inheritances classname="FPGA_DS" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices"/>
       <identification contact="at um.edu.mt - andrea.demarco" author="andrea.demarco" emailDomain="um.edu.mt" classFamily="Acquisition" siteSpecific="" platform="All Platforms" bus="Not Applicable" manufacturer="ISSA" reference="ISSA-AAVS1-ROACH"/>
     </description>
-    <commands name="State" description="This command gets the device state (stored in its device_state data member) and returns it to the caller." execMethod="dev_state" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="none">
-        <type xsi:type="pogoDsl:VoidType"/>
-      </argin>
-      <argout description="Device state">
-        <type xsi:type="pogoDsl:StateType"/>
-      </argout>
-      <status abstract="true" inherited="true" concrete="true"/>
-    </commands>
-    <commands name="Status" description="This command gets the device status (stored in its device_status data member) and returns it to the caller." execMethod="dev_status" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="none">
-        <type xsi:type="pogoDsl:VoidType"/>
-      </argin>
-      <argout description="Device status">
-        <type xsi:type="pogoDsl:ConstStringType"/>
-      </argout>
-      <status abstract="true" inherited="true" concrete="true"/>
-    </commands>
     <commands name="add_command" description="A generic command that adds a new command entry to the Tango device driver." execMethod="add_command" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="A string containing a dictionary for fields required for command creation.">
         <type xsi:type="pogoDsl:StringType"/>
@@ -115,8 +97,8 @@
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="get_register_list" description="Returns a list of registers and values, as a serialized python dictionary, stored as a string." execMethod="get_register_list" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argin description="Dictionary with arguments.">
+        <type xsi:type="pogoDsl:StringType"/>
       </argin>
       <argout description="List of register names.">
         <type xsi:type="pogoDsl:StringArrayType"/>
@@ -204,6 +186,15 @@
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
+    <commands name="sink_alarm_state" description="This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on." execMethod="sink_alarm_state" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
+    </commands>
     <commands name="write_address" description="Writes values to a register location. The actual physical address has to be provided." execMethod="write_address" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
         <type xsi:type="pogoDsl:StringType"/>
@@ -231,14 +222,23 @@
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
-    <commands name="sink_alarm_state" description="This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on." execMethod="sink_alarm_state" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="">
+    <commands name="Status" description="This command gets the device status (stored in its device_status data member) and returns it to the caller." execMethod="dev_status" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="none">
         <type xsi:type="pogoDsl:VoidType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Device status">
+        <type xsi:type="pogoDsl:ConstStringType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="true" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="State" description="This command gets the device state (stored in its device_state data member) and returns it to the caller." execMethod="dev_state" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="none">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="Device state">
+        <type xsi:type="pogoDsl:StateType"/>
+      </argout>
+      <status abstract="true" inherited="true" concrete="true"/>
     </commands>
     <attributes name="board_state" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
       <dataType xsi:type="pogoDsl:IntType"/>
