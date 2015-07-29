@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="ASCII"?>
 <pogoDsl:PogoSystem xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pogoDsl="http://www.esrf.fr/tango/pogo/PogoDsl">
-  <classes name="FPGA_DS" pogoRevision="8.4">
-    <description description="A Tango device server for the FPGA board." title="AAVS Tango FPGA Driver" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices" language="Python" filestogenerate="XMI   file,Code files" license="GPL" hasMandatoryProperty="false" hasConcreteProperty="false" hasAbstractCommand="false" hasAbstractAttribute="false">
+  <classes name="ROACH_DS" pogoRevision="8.4">
+    <description description="A Tango device server for the ROACH board." title="AAVS Tango ROACH Driver" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices" language="Python" filestogenerate="XMI   file,Code files" license="GPL" hasMandatoryProperty="false" hasConcreteProperty="false" hasAbstractCommand="false" hasAbstractAttribute="false">
       <inheritances classname="Device_Impl" sourcePath=""/>
-      <identification contact="at um.edu.mt - andrea.demarco" author="andrea.demarco" emailDomain="um.edu.mt" classFamily="Acquisition" siteSpecific="" platform="Unix Like" bus="Not Applicable" manufacturer="ISSA" reference="ISSA-AAVS1-FPGA"/>
+      <inheritances classname="FPGA_DS" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices"/>
+      <identification contact="at um.edu.mt - andrea.demarco" author="andrea.demarco" emailDomain="um.edu.mt" classFamily="Acquisition" siteSpecific="" platform="All Platforms" bus="Not Applicable" manufacturer="ISSA" reference="ISSA-AAVS1-ROACH"/>
     </description>
     <commands name="State" description="This command gets the device state (stored in its device_state data member) and returns it to the caller." execMethod="dev_state" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="none">
@@ -12,7 +13,7 @@
       <argout description="Device state">
         <type xsi:type="pogoDsl:StateType"/>
       </argout>
-      <status abstract="true" inherited="true" concrete="true" concreteHere="false"/>
+      <status abstract="true" inherited="true" concrete="true"/>
     </commands>
     <commands name="Status" description="This command gets the device status (stored in its device_status data member) and returns it to the caller." execMethod="dev_status" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="none">
@@ -30,7 +31,7 @@
       <argout description="True if command creation was successful, false if not.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="connect" description="Opens the connection to the device." execMethod="connect" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -39,7 +40,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="create_scalar_attribute" description="A method that creates a new scalar attribute." execMethod="create_scalar_attribute" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="New attribute name.">
@@ -48,7 +49,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="create_vector_attribute" description="A method that creates a new vector attribute." execMethod="create_vector_attribute" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="New attribute name.">
@@ -57,7 +58,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="disconnect" description="Disconnect this device." execMethod="disconnect" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -66,7 +67,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="flush_attributes" description="A method that removes all attributes for the current firmware." execMethod="flush_attributes" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -75,7 +76,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="generate_attributes" description="A method that generates dynamic attributes based on the current firmware." execMethod="generate_attributes" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -84,7 +85,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="get_device_list" description="Returns a list of devices, as a serialized python dictionary, stored as a string." execMethod="get_device_list" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -93,7 +94,7 @@
       <argout description="Dictionary of devices.">
         <type xsi:type="pogoDsl:StringType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="get_firmware_list" description="Returns a list of firmwares, as a serialized python dictionary, stored as a string." execMethod="get_firmware_list" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Device on board to get list of firmware, as a string.">
@@ -102,7 +103,7 @@
       <argout description="Dictionary of firmwares on the board.">
         <type xsi:type="pogoDsl:StringType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="get_register_info" description="Gets a dictionary of information associated with a specified register." execMethod="get_register_info" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="The register name for which information will be retrieved.">
@@ -111,7 +112,7 @@
       <argout description="Returns a string-encoded dictionary of information.">
         <type xsi:type="pogoDsl:StringType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="get_register_list" description="Returns a list of registers and values, as a serialized python dictionary, stored as a string." execMethod="get_register_list" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -120,7 +121,7 @@
       <argout description="List of register names.">
         <type xsi:type="pogoDsl:StringArrayType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="load_firmware" description="Call to load firmware." execMethod="load_firmware" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="File path.">
@@ -129,7 +130,7 @@
       <argout description="Return true if successful.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="load_plugin" description="Loads a plugin in device server." execMethod="load_plugin" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Name of plugin. Case sensitive.">
@@ -138,7 +139,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="read_address" description="Reads values from a register location. Instead of a register name, the actual physical address has to be provided." execMethod="read_address" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
@@ -147,7 +148,7 @@
       <argout description="Register values.">
         <type xsi:type="pogoDsl:UIntArrayType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="read_device" description="Get device value." execMethod="read_device" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="String containing:&#xA;1) SPI Device to read from&#xA;2) Address on device to read from">
@@ -156,7 +157,7 @@
       <argout description="Value of device.">
         <type xsi:type="pogoDsl:UIntType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="read_register" description="Reads values from a register location." execMethod="read_register" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
@@ -165,7 +166,7 @@
       <argout description="Register values.">
         <type xsi:type="pogoDsl:UIntArrayType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="remove_command" description="A generic command that removes a command entry from the Tango device driver." execMethod="remove_command" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Command name.">
@@ -174,7 +175,7 @@
       <argout description="True if command removal was successful, false otherwise.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="run_plugin_command" description="Proxy to run a particular plugin command." execMethod="run_plugin_command" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Dictionary with name of command to run, and arguments.">
@@ -183,7 +184,7 @@
       <argout description="Any output from the command.">
         <type xsi:type="pogoDsl:StringType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="set_attribute_levels" description="Set alarm levels for a particular attribute.&#xA;1) min_value : (str) minimum allowed value&#xA;2 )max_value : (str) maximum allowed value&#xA;3) min_alarm : (str) low alarm level&#xA;4) max_alarm : (str) high alarm level" execMethod="set_attribute_levels" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="A pickled string storing a dictionary with the required alarm levels, and name of attribute.">
@@ -192,7 +193,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="set_board_state" description="Sets the board status by passing in a value.&#xA;        UNKNOWN&#x9;=  0&#xA;        INIT&#x9;&#x9;=  1&#xA;        ON&#x9;&#x9;=  2&#xA;        RUNNING&#x9;=  3&#xA;        FAULT&#x9;&#x9;=  4&#xA;        OFF&#x9;&#x9;=  5&#xA;        STANDBY&#x9;=  6&#xA;        SHUTTING_DOWN&#x9;=  7&#xA;        MAINTENANCE&#x9;=  8&#xA;        LOW_POWER&#x9;=  9&#xA;        SAFE_STATE&#x9;=  10" execMethod="set_board_state" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Board status value.">
@@ -201,7 +202,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="write_address" description="Writes values to a register location. The actual physical address has to be provided." execMethod="write_address" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
@@ -210,7 +211,7 @@
       <argout description="True if successful, false if not.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="write_device" description="Set device value." execMethod="write_device" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="A string containing the following:&#xA;1) SPI device to write to&#xA;2) Address on device to write to&#xA;3) Value to write">
@@ -219,7 +220,7 @@
       <argout description="True if successful, false if not.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="write_register" description="Writes values from a register location." execMethod="write_register" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
@@ -228,7 +229,7 @@
       <argout description="True if successful, false if not.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="sink_alarm_state" description="This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on." execMethod="sink_alarm_state" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -237,37 +238,33 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
-    <attributes name="board_state" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
+    <attributes name="board_state" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
       <dataType xsi:type="pogoDsl:IntType"/>
-      <dataReadyEvent fire="false" libCheckCriteria="true"/>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
       <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
-    <attributes name="is_programmed" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
+    <attributes name="is_programmed" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
       <dataType xsi:type="pogoDsl:BooleanType"/>
-      <dataReadyEvent fire="false" libCheckCriteria="true"/>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
       <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
-    <attributes name="ip_address" attType="Scalar" rwType="READ_WRITE" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
+    <attributes name="ip_address" attType="Scalar" rwType="READ_WRITE" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
       <dataType xsi:type="pogoDsl:StringType"/>
-      <dataReadyEvent fire="false" libCheckCriteria="true"/>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
       <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
-    <attributes name="port" attType="Scalar" rwType="READ_WRITE" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
+    <attributes name="port" attType="Scalar" rwType="READ_WRITE" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
       <dataType xsi:type="pogoDsl:UIntType"/>
-      <dataReadyEvent fire="false" libCheckCriteria="true"/>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
       <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
     <states name="ON" description="Device is ON for alarm/event handling.">
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </states>
     <states name="ALARM" description="Device is ALARM for alarm/event handling.">
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <status abstract="false" inherited="true" concrete="true"/>
     </states>
     <preferences docHome="./doc_html" makefileHome="/usr/share/pogo/preferences"/>
   </classes>

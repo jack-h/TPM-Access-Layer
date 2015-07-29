@@ -58,7 +58,7 @@
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="disconnect" description="Disconnect this device." execMethod="disconnect" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -120,15 +120,6 @@
       </argin>
       <argout description="List of register names.">
         <type xsi:type="pogoDsl:StringArrayType"/>
-      </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
-    </commands>
-    <commands name="load_firmware_blocking" description="Blocking call to load firmware." execMethod="load_firmware_blocking" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="File path.">
-        <type xsi:type="pogoDsl:StringType"/>
-      </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
@@ -237,6 +228,15 @@
       </argin>
       <argout description="">
         <type xsi:type="pogoDsl:VoidType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="load_firmware" description="Call to load firmware." execMethod="load_firmware" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="File path.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="Return true if successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>

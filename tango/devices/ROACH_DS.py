@@ -6,9 +6,9 @@
 ## license :
 ##============================================================================
 ##
-## File :        TPM_DS.py
+## File :        ROACH_DS.py
 ## 
-## Project :     AAVS Tango TPM Driver
+## Project :     AAVS Tango ROACH Driver
 ##
 ## This file is part of Tango device class.
 ## 
@@ -40,9 +40,9 @@
 ##        (c) - Software Engineering Group - ESRF
 ##############################################################################
 
-"""A Tango device server for the TPM board."""
+"""A Tango device server for the ROACH board."""
 
-__all__ = ["TPM_DS", "TPM_DSClass", "main"]
+__all__ = ["ROACH_DS", "ROACH_DSClass", "main"]
 
 __docformat__ = 'restructuredtext'
 
@@ -50,38 +50,38 @@ import PyTango
 import sys
 from FPGA_DS import FPGA_DS, FPGA_DSClass
 # Add additional import
-#----- PROTECTED REGION ID(TPM_DS.additionnal_import) ENABLED START -----#
-from pyfabil import TPM
+#----- PROTECTED REGION ID(ROACH_DS.additionnal_import) ENABLED START -----#
+from pyfabil import Roach
 from pyfabil import Device
 from PyTango._PyTango import DevFailed
 import pickle
 import inspect
-#----- PROTECTED REGION END -----#	//	TPM_DS.additionnal_import
+#----- PROTECTED REGION END -----#	//	ROACH_DS.additionnal_import
 
 ## Device States Description
 ## ON : Device is ON for alarm/event handling.
 ## ALARM : Device is ALARM for alarm/event handling.
 
-class TPM_DS (FPGA_DS):
+class ROACH_DS (FPGA_DS):
 
     #--------- Add you global variables here --------------------------
-    #----- PROTECTED REGION ID(TPM_DS.global_variables) ENABLED START -----#
+    #----- PROTECTED REGION ID(ROACH_DS.global_variables) ENABLED START -----#
     
-    #----- PROTECTED REGION END -----#	//	TPM_DS.global_variables
+    #----- PROTECTED REGION END -----#	//	ROACH_DS.global_variables
 
     def __init__(self,cl, name):
-        super(TPM_DS,self).__init__(cl,name)
+        super(ROACH_DS,self).__init__(cl,name)
         self.debug_stream("In __init__()")
-        TPM_DS.init_device(self)
-        #----- PROTECTED REGION ID(TPM_DS.__init__) ENABLED START -----#
+        ROACH_DS.init_device(self)
+        #----- PROTECTED REGION ID(ROACH_DS.__init__) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.__init__
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.__init__
         
     def delete_device(self):
         self.debug_stream("In delete_device()")
-        #----- PROTECTED REGION ID(TPM_DS.delete_device) ENABLED START -----#
-        super(TPM_DS, self).delete_device()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.delete_device
+        #----- PROTECTED REGION ID(ROACH_DS.delete_device) ENABLED START -----#
+        super(ROACH_DS, self).delete_device()
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.delete_device
 
     def init_device(self):
         self.debug_stream("In init_device()")
@@ -90,77 +90,77 @@ class TPM_DS (FPGA_DS):
         self.attr_is_programmed_read = False
         self.attr_ip_address_read = ''
         self.attr_port_read = 0
-        #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
-        self.fpga_instance = TPM()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
+        #----- PROTECTED REGION ID(ROACH_DS.init_device) ENABLED START -----#
+        self.fpga_instance = Roach()
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.init_device
 
     def always_executed_hook(self):
         self.debug_stream("In always_excuted_hook()")
-        #----- PROTECTED REGION ID(TPM_DS.always_executed_hook) ENABLED START -----#
-        super(TPM_DS, self).always_executed_hook()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.always_executed_hook
+        #----- PROTECTED REGION ID(ROACH_DS.always_executed_hook) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.always_executed_hook
 
     #-----------------------------------------------------------------------------
-    #    TPM_DS read/write attribute methods
+    #    ROACH_DS read/write attribute methods
     #-----------------------------------------------------------------------------
     
     def read_board_state(self, attr):
         self.debug_stream("In read_board_state()")
-        #----- PROTECTED REGION ID(TPM_DS.board_state_read) ENABLED START -----#
+        #----- PROTECTED REGION ID(ROACH_DS.board_state_read) ENABLED START -----#
         #attr.set_value(self.attr_board_state_read)
-        super(TPM_DS, self).read_board_state(attr)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.board_state_read
+        super(ROACH_DS, self).read_board_state(attr)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.board_state_read
         
     def read_is_programmed(self, attr):
         self.debug_stream("In read_is_programmed()")
-        #----- PROTECTED REGION ID(TPM_DS.is_programmed_read) ENABLED START -----#
+        #----- PROTECTED REGION ID(ROACH_DS.is_programmed_read) ENABLED START -----#
         #attr.set_value(self.attr_is_programmed_read)
-        super(TPM_DS, self).read_is_programmed(attr)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.is_programmed_read
+        super(ROACH_DS, self).read_is_programmed(attr)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.is_programmed_read
         
     def read_ip_address(self, attr):
         self.debug_stream("In read_ip_address()")
-        #----- PROTECTED REGION ID(TPM_DS.ip_address_read) ENABLED START -----#
+        #----- PROTECTED REGION ID(ROACH_DS.ip_address_read) ENABLED START -----#
         #attr.set_value(self.attr_ip_address_read)
-        super(TPM_DS, self).read_ip_address(attr)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.ip_address_read
+        super(ROACH_DS, self).read_ip_address(attr)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.ip_address_read
         
     def write_ip_address(self, attr):
         self.debug_stream("In write_ip_address()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(TPM_DS.ip_address_write) ENABLED START -----#
-        super(TPM_DS, self).write_ip_address(attr)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.ip_address_write
+        #----- PROTECTED REGION ID(ROACH_DS.ip_address_write) ENABLED START -----#
+        super(ROACH_DS, self).write_ip_address(attr)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.ip_address_write
         
     def read_port(self, attr):
         self.debug_stream("In read_port()")
-        #----- PROTECTED REGION ID(TPM_DS.port_read) ENABLED START -----#
+        #----- PROTECTED REGION ID(ROACH_DS.port_read) ENABLED START -----#
         #attr.set_value(self.attr_port_read)
-        super(TPM_DS, self).read_port(attr)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.port_read
+        super(ROACH_DS, self).read_port(attr)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.port_read
         
     def write_port(self, attr):
         self.debug_stream("In write_port()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(TPM_DS.port_write) ENABLED START -----#
-        super(TPM_DS, self).write_port(attr)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.port_write
+        #----- PROTECTED REGION ID(ROACH_DS.port_write) ENABLED START -----#
+        super(ROACH_DS, self).write_port(attr)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.port_write
         
     
     
-        #----- PROTECTED REGION ID(TPM_DS.initialize_dynamic_attributes) ENABLED START -----#
+        #----- PROTECTED REGION ID(ROACH_DS.initialize_dynamic_attributes) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.initialize_dynamic_attributes
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.initialize_dynamic_attributes
             
     def read_attr_hardware(self, data):
         self.debug_stream("In read_attr_hardware()")
-        #----- PROTECTED REGION ID(TPM_DS.read_attr_hardware) ENABLED START -----#
-        super(TPM_DS, self).read_attr_hardware(data)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.read_attr_hardware
+        #----- PROTECTED REGION ID(ROACH_DS.read_attr_hardware) ENABLED START -----#
+        super(ROACH_DS, self).read_attr_hardware(data)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.read_attr_hardware
 
 
     #-----------------------------------------------------------------------------
-    #    TPM_DS command methods
+    #    ROACH_DS command methods
     #-----------------------------------------------------------------------------
     
     def add_command(self, argin):
@@ -172,9 +172,9 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In add_command()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.add_command) ENABLED START -----#
-        argout = super(TPM_DS, self).add_command(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.add_command
+        #----- PROTECTED REGION ID(ROACH_DS.add_command) ENABLED START -----#
+        argout = super(ROACH_DS, self).add_command(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.add_command
         return argout
         
     def connect(self):
@@ -185,9 +185,18 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In connect()")
-        #----- PROTECTED REGION ID(TPM_DS.connect) ENABLED START -----#
-        super(TPM_DS, self).connect()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.connect
+        #----- PROTECTED REGION ID(ROACH_DS.connect) ENABLED START -----#
+        #super(ROACH_DS, self).connect()
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        #state_ok = self.check_state_flow(self.connect.__name__)
+        if state_ok:
+            try:
+                self.fpga_instance.connect(self.attr_ip_address_read, self.attr_port_read)
+            except DevFailed as df:
+                self.debug_stream("Failed to connect: %s" % df)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.connect
         
     def create_scalar_attribute(self, argin):
         """ A method that creates a new scalar attribute.
@@ -197,9 +206,9 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In create_scalar_attribute()")
-        #----- PROTECTED REGION ID(TPM_DS.create_scalar_attribute) ENABLED START -----#
-        super(TPM_DS, self).create_scalar_attribute(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.create_scalar_attribute
+        #----- PROTECTED REGION ID(ROACH_DS.create_scalar_attribute) ENABLED START -----#
+        super(ROACH_DS, self).create_scalar_attribute(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.create_scalar_attribute
         
     def create_vector_attribute(self, argin):
         """ A method that creates a new vector attribute.
@@ -209,9 +218,9 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In create_vector_attribute()")
-        #----- PROTECTED REGION ID(TPM_DS.create_vector_attribute) ENABLED START -----#
-        super(TPM_DS, self).create_vector_attribute(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.create_vector_attribute
+        #----- PROTECTED REGION ID(ROACH_DS.create_vector_attribute) ENABLED START -----#
+        super(ROACH_DS, self).create_vector_attribute(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.create_vector_attribute
         
     def disconnect(self):
         """ Disconnect this device.
@@ -221,9 +230,9 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In disconnect()")
-        #----- PROTECTED REGION ID(TPM_DS.disconnect) ENABLED START -----#
-        super(TPM_DS, self).disconnect()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.disconnect
+        #----- PROTECTED REGION ID(ROACH_DS.disconnect) ENABLED START -----#
+        super(ROACH_DS, self).disconnect()
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.disconnect
         
     def flush_attributes(self):
         """ A method that removes all attributes for the current firmware.
@@ -233,9 +242,9 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In flush_attributes()")
-        #----- PROTECTED REGION ID(TPM_DS.flush_attributes) ENABLED START -----#
-        super(TPM_DS, self).flush_attributes()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.flush_attributes
+        #----- PROTECTED REGION ID(ROACH_DS.flush_attributes) ENABLED START -----#
+        super(ROACH_DS, self).flush_attributes()
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.flush_attributes
         
     def generate_attributes(self):
         """ A method that generates dynamic attributes based on the current firmware.
@@ -245,9 +254,9 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In generate_attributes()")
-        #----- PROTECTED REGION ID(TPM_DS.generate_attributes) ENABLED START -----#
-        super(TPM_DS, self).generate_attributes()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.generate_attributes
+        #----- PROTECTED REGION ID(ROACH_DS.generate_attributes) ENABLED START -----#
+        super(ROACH_DS, self).generate_attributes()
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.generate_attributes
         
     def get_device_list(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
@@ -258,9 +267,9 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_device_list()")
         argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.get_device_list) ENABLED START -----#
-        argout = super(TPM_DS, self).get_device_list()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_device_list
+        #----- PROTECTED REGION ID(ROACH_DS.get_device_list) ENABLED START -----#
+        argout = super(ROACH_DS, self).get_device_list()
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.get_device_list
         return argout
         
     def get_firmware_list(self, argin):
@@ -272,9 +281,24 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_firmware_list()")
         argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.get_firmware_list) ENABLED START -----#
-        argout = super(TPM_DS, self).get_firmware_list(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_firmware_list
+        #----- PROTECTED REGION ID(ROACH_DS.get_firmware_list) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            try:
+                arguments = pickle.loads(argin)
+                device = arguments['device']
+                if device is None:
+                    firmware_list = self.fpga_instance.get_firmware_list()
+                else:
+                    firmware_list = self.fpga_instance.get_firmware_list(Device(device))
+
+                argout = pickle.dumps(firmware_list)
+            except DevFailed as df:
+                self.debug_stream("Failed to get firmware list: %s" % df)
+                argout = ''
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.get_firmware_list
         return argout
         
     def get_register_info(self, argin):
@@ -286,9 +310,9 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_register_info()")
         argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.get_register_info) ENABLED START -----#
-        argout = super(TPM_DS, self).get_register_info(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_info
+        #----- PROTECTED REGION ID(ROACH_DS.get_register_info) ENABLED START -----#
+        argout = super(ROACH_DS, self).get_register_info(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.get_register_info
         return argout
         
     def get_register_list(self):
@@ -300,9 +324,48 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevVarStringArray """
         self.debug_stream("In get_register_list()")
         argout = ['']
-        #----- PROTECTED REGION ID(TPM_DS.get_register_list) ENABLED START -----#
-        argout = super(TPM_DS, self).get_register_list()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_list
+        #----- PROTECTED REGION ID(ROACH_DS.get_register_list) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            try:
+                register_dict = self.fpga_instance.get_register_list()
+                argout = register_dict.keys()
+            except DevFailed as df:
+                self.debug_stream("Failed to get register list: %s" % df)
+                argout = ''
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.get_register_list
+        return argout
+        
+    def load_firmware(self, argin):
+        """ Call to load firmware.
+        
+        :param argin: File path.
+        :type: PyTango.DevString
+        :return: Return true if successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In load_firmware()")
+        argout = False
+        #----- PROTECTED REGION ID(ROACH_DS.load_firmware) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            filepath = arguments['path']
+            self.flush_attributes()
+            try:
+                self.fpga_instance.load_firmware(filepath)
+                self.generate_attributes()
+                self.attr_is_programmed_read = True
+                self.info_stream("Firmware loaded.")
+                argout = True
+            except DevFailed as df:
+                self.debug_stream("Failed to load firmware: %s" % df)
+                self.attr_is_programmed_read = False
+                self.flush_attributes()
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.load_firmware
         return argout
         
     def load_plugin(self, argin):
@@ -313,9 +376,9 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In load_plugin()")
-        #----- PROTECTED REGION ID(TPM_DS.load_plugin) ENABLED START -----#
-        super(TPM_DS, self).load_plugin(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.load_plugin
+        #----- PROTECTED REGION ID(ROACH_DS.load_plugin) ENABLED START -----#
+        super(ROACH_DS, self).load_plugin(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.load_plugin
         
     def read_address(self, argin):
         """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
@@ -326,9 +389,20 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevVarULongArray """
         self.debug_stream("In read_address()")
         argout = [0]
-        #----- PROTECTED REGION ID(TPM_DS.read_address) ENABLED START -----#
-        argout = super(TPM_DS, self).read_address(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.read_address
+        #----- PROTECTED REGION ID(ROACH_DS.read_address) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            address = arguments['address']
+            words = arguments['words']
+            try:
+                argout = self.fpga_instance.read_address(address, words)
+            except DevFailed as df:
+                self.debug_stream("Failed to read address: %s" % df)
+                argout = ''
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.read_address
         return argout
         
     def read_device(self, argin):
@@ -343,9 +417,20 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevULong """
         self.debug_stream("In read_device()")
         argout = 0
-        #----- PROTECTED REGION ID(TPM_DS.read_device) ENABLED START -----#
-        argout = super(TPM_DS, self).read_device(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.read_device
+        #----- PROTECTED REGION ID(ROACH_DS.read_device) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            device = arguments['device']
+            address = arguments['address']
+            try:
+                argout = self.fpga_instance.read_device(device, address)
+            except DevFailed as df:
+                self.debug_stream("Failed to read device: %s" % df)
+                argout = 0
+        else:
+           self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.read_device
         return argout
         
     def read_register(self, argin):
@@ -357,9 +442,34 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevVarULongArray """
         self.debug_stream("In read_register()")
         argout = [0]
-        #----- PROTECTED REGION ID(TPM_DS.read_register) ENABLED START -----#
-        argout = super(TPM_DS, self).read_register(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.read_register
+        #----- PROTECTED REGION ID(ROACH_DS.read_register) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            register = arguments['register']
+            words = arguments['words']
+            offset = arguments['offset']
+
+            reg_info = pickle.loads(self.get_register_info(register))
+            self.info_stream("Reg info: %s" % reg_info)
+            length_register = reg_info['size']
+            if words+offset <= length_register:
+                try:
+                    self.debug_stream("Register: %s" % register)
+                    self.debug_stream("Words: %s" % words)
+                    self.debug_stream("Offset: %s" % offset)
+                    if words or offset is None:
+                        argout = self.fpga_instance.read_register(register)
+                    else:
+                        argout = self.fpga_instance.read_register(register, words, offset)
+                except DevFailed as df:
+                    self.debug_stream("Failed to read register: %s" % df)
+                    argout = [0]
+            else:
+                self.info_stream("Register size limit exceeded, no values read.")
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.read_register
         return argout
         
     def remove_command(self, argin):
@@ -371,9 +481,9 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In remove_command()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.remove_command) ENABLED START -----#
-        argout = super(TPM_DS, self).remove_command(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.remove_command
+        #----- PROTECTED REGION ID(ROACH_DS.remove_command) ENABLED START -----#
+        argout = super(ROACH_DS, self).remove_command(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.remove_command
         return argout
         
     def run_plugin_command(self, argin):
@@ -385,9 +495,9 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevString """
         self.debug_stream("In run_plugin_command()")
         argout = ''
-        #----- PROTECTED REGION ID(TPM_DS.run_plugin_command) ENABLED START -----#
-        argout = super(TPM_DS, self).run_plugin_command(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.run_plugin_command
+        #----- PROTECTED REGION ID(ROACH_DS.run_plugin_command) ENABLED START -----#
+        argout = super(ROACH_DS, self).run_plugin_command(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.run_plugin_command
         return argout
         
     def set_attribute_levels(self, argin):
@@ -402,9 +512,9 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In set_attribute_levels()")
-        #----- PROTECTED REGION ID(TPM_DS.set_attribute_levels) ENABLED START -----#
-        super(TPM_DS, self).set_attribute_levels(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.set_attribute_levels
+        #----- PROTECTED REGION ID(ROACH_DS.set_attribute_levels) ENABLED START -----#
+        super(ROACH_DS, self).set_attribute_levels(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.set_attribute_levels
         
     def set_board_state(self, argin):
         """ Sets the board status by passing in a value.
@@ -425,9 +535,9 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In set_board_state()")
-        #----- PROTECTED REGION ID(TPM_DS.set_board_state) ENABLED START -----#
-        super(TPM_DS, self).set_board_state(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.set_board_state
+        #----- PROTECTED REGION ID(ROACH_DS.set_board_state) ENABLED START -----#
+        super(ROACH_DS, self).set_board_state(argin)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.set_board_state
         
     def write_address(self, argin):
         """ Writes values to a register location. The actual physical address has to be provided.
@@ -438,9 +548,20 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_address()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.write_address) ENABLED START -----#
-        argout = super(TPM_DS, self).write_address(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.write_address
+        #----- PROTECTED REGION ID(ROACH_DS.write_address) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            address = arguments['address']
+            values = arguments['values']
+            try:
+                argout = self.fpga_instance.write_address(address, values)
+            except DevFailed as df:
+                self.debug_stream("Failed to write address: %s" % df)
+                argout = False
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.write_address
         return argout
         
     def write_device(self, argin):
@@ -456,9 +577,21 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_device()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.write_device) ENABLED START -----#
-        argout = super(TPM_DS, self).write_device(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.write_device
+        #----- PROTECTED REGION ID(ROACH_DS.write_device) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            device = arguments['device']
+            address = arguments['address']
+            value = arguments['value']
+            try:
+                argout = self.fpga_instance.write_device(device, address, value)
+            except DevFailed as df:
+                self.debug_stream("Failed to write device: %s" % df)
+                argout = False
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.write_device
         return argout
         
     def write_register(self, argin):
@@ -470,9 +603,32 @@ class TPM_DS (FPGA_DS):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_register()")
         argout = False
-        #----- PROTECTED REGION ID(TPM_DS.write_register) ENABLED START -----#
-        argout = super(TPM_DS, self).write_register(argin)
-        #----- PROTECTED REGION END -----#	//	TPM_DS.write_register
+        #----- PROTECTED REGION ID(ROACH_DS.write_register) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            arguments = pickle.loads(argin)
+            register = arguments['register']
+            values = arguments['values']
+            offset = arguments['offset']
+
+            reg_info = pickle.loads(self.get_register_info(register))
+            length_register = reg_info['size']
+            length_values = len(values)
+            if length_values+offset <= length_register:
+                try:
+                    if values or offset is None:
+                        argout = self.fpga_instance.write_register(register)
+                    else:
+                        argout = self.fpga_instance.write_register(register, values, offset)
+                    argout = True
+                except DevFailed as df:
+                    self.debug_stream("Failed to write register: %s" % df)
+                    argout = False
+            else:
+                self.info_stream("Register size limit exceeded, no changes committed.")
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.write_register
         return argout
         
     def sink_alarm_state(self):
@@ -483,56 +639,25 @@ class TPM_DS (FPGA_DS):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In sink_alarm_state()")
-        #----- PROTECTED REGION ID(TPM_DS.sink_alarm_state) ENABLED START -----#
-        super(TPM_DS, self).sink_alarm_state()
-        #----- PROTECTED REGION END -----#	//	TPM_DS.sink_alarm_state
-        
-    def load_firmware(self, argin):
-        """ Call to load firmware.
-        
-        :param argin: File path.
-        :type: PyTango.DevString
-        :return: Return true if successful.
-        :rtype: PyTango.DevBoolean """
-        self.debug_stream("In load_firmware()")
-        argout = False
-        #----- PROTECTED REGION ID(TPM_DS.load_firmware) ENABLED START -----#
-        state_ok = self.check_state_flow(inspect.stack()[0][3])
-        if state_ok:
-            arguments = pickle.loads(argin)
-            device = arguments['device']
-            filepath = arguments['path']
-            self.flush_attributes()
-            try:
-                self.fpga_instance.load_firmware(Device(device), filepath)
-                self.generate_attributes()
-                self.attr_is_programmed_read = True
-                self.info_stream("Firmware loaded.")
-                argout = True
-            except DevFailed as df:
-                self.debug_stream("Failed to load firmware: %s" % df)
-                self.attr_is_programmed_read = False
-                self.flush_attributes()
-        else:
-            self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	TPM_DS.load_firmware
-        return argout
+        #----- PROTECTED REGION ID(ROACH_DS.sink_alarm_state) ENABLED START -----#
+        super(ROACH_DS, self).sink_alarm_state()
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.sink_alarm_state
         
 
-    #----- PROTECTED REGION ID(TPM_DS.programmer_methods) ENABLED START -----#
+    #----- PROTECTED REGION ID(ROACH_DS.programmer_methods) ENABLED START -----#
     
-    #----- PROTECTED REGION END -----#	//	TPM_DS.programmer_methods
+    #----- PROTECTED REGION END -----#	//	ROACH_DS.programmer_methods
 
-class TPM_DSClass(FPGA_DSClass):
+class ROACH_DSClass(FPGA_DSClass):
     #--------- Add you global class variables here --------------------------
-    #----- PROTECTED REGION ID(TPM_DS.global_class_variables) ENABLED START -----#
+    #----- PROTECTED REGION ID(ROACH_DS.global_class_variables) ENABLED START -----#
     
-    #----- PROTECTED REGION END -----#	//	TPM_DS.global_class_variables
+    #----- PROTECTED REGION END -----#	//	ROACH_DS.global_class_variables
 
     def dyn_attr(self, dev_list):
         """Invoked to create dynamic attributes for the given devices.
         Default implementation calls
-        :meth:`TPM_DS.initialize_dynamic_attributes` for each device
+        :meth:`ROACH_DS.initialize_dynamic_attributes` for each device
     
         :param dev_list: list of devices
         :type dev_list: :class:`PyTango.DeviceImpl`"""
@@ -544,9 +669,9 @@ class TPM_DSClass(FPGA_DSClass):
                 import traceback
                 dev.warn_stream("Failed to initialize dynamic attributes")
                 dev.debug_stream("Details: " + traceback.format_exc())
-        #----- PROTECTED REGION ID(TPM_DS.dyn_attr) ENABLED START -----#
+        #----- PROTECTED REGION ID(ROACH_DS.dyn_attr) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.dyn_attr
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.dyn_attr
 
     #    Class Properties
     class_property_list = {
@@ -595,6 +720,9 @@ class TPM_DSClass(FPGA_DSClass):
         'get_register_list':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevVarStringArray, "List of register names."]],
+        'load_firmware':
+            [[PyTango.DevString, "File path."],
+            [PyTango.DevBoolean, "Return true if successful."]],
         'load_plugin':
             [[PyTango.DevString, "Name of plugin. Case sensitive."],
             [PyTango.DevVoid, "none"]],
@@ -631,9 +759,6 @@ class TPM_DSClass(FPGA_DSClass):
         'sink_alarm_state':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevVoid, "none"]],
-        'load_firmware':
-            [[PyTango.DevString, "File path."],
-            [PyTango.DevBoolean, "Return true if successful."]],
         }
     cmd_list.update(FPGA_DSClass.cmd_list)
 
@@ -663,10 +788,10 @@ class TPM_DSClass(FPGA_DSClass):
 def main():
     try:
         py = PyTango.Util(sys.argv)
-        py.add_class(TPM_DSClass,TPM_DS,'TPM_DS')
-        #----- PROTECTED REGION ID(TPM_DS.add_classes) ENABLED START -----#
+        py.add_class(ROACH_DSClass,ROACH_DS,'ROACH_DS')
+        #----- PROTECTED REGION ID(ROACH_DS.add_classes) ENABLED START -----#
         
-        #----- PROTECTED REGION END -----#	//	TPM_DS.add_classes
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.add_classes
 
         U = PyTango.Util.instance()
         U.server_init()

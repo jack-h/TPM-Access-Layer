@@ -83,7 +83,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         'get_firmware_list': all_states_list,
         'get_register_info': all_states_list,
         'get_register_list': all_states_list,
-        'load_firmware_blocking': all_states_list,
+        'load_firmware': all_states_list,
         'load_plugin': all_states_list,
         'read_address': all_states_list,
         'read_device': all_states_list,
@@ -123,15 +123,21 @@ class FPGA_DS (PyTango.Device_4Impl):
                     argin_dict = pickle.loads(arginput)
                     #self.info_stream("Input to command: %s" % argin_dict)
                     if argin_dict:
-                        #self.info_stream("Call with parameters")
-                        command_trace = command_name.split('.')
-                        argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])(arginput)
-                        #argout = getattr(self.fpga_instance, command_name)(arginput)
+                        self.info_stream("Call with parameters")
+                        argout = eval('self.fpga_instance.%s' % command_name(arginput))
+
+                        #command_trace = command_name.split('.')
+                        #argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])(arginput)
                     else:
-                        #self.info_stream("Call without parameters")
-                        #argout = getattr(self.fpga_instance, command_name) ()
-                        command_trace = command_name.split('.')
-                        argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])()
+                        self.info_stream("Call without parameters")
+                        argout = eval('self.fpga_instance.%s' % command_name())
+
+                        #command_trace = command_name.split('.')
+                        #a = 'tpm_adc[0].initliase(asdflkasjdk)'
+                        #res = eval('self.fpga_instance.%s' % a)
+                        #getattr(self.fpga_instance, command_name[0])
+
+                        #argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])()
                 except DevFailed as df:
                     self.info_stream("Failed to run plugin command: %s" % df)
                     argout = ''
@@ -147,7 +153,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :type: String
         :return: True if allowed, false if not.
         :rtype: PyTango.DevBoolean """
-        self.debug_stream("In check_state_flow()")
+        self.debug_stream("In check_state_flow() for %s" % fnName)
         argout = False
         # get allowed states for this command
         try:
@@ -507,8 +513,8 @@ class FPGA_DS (PyTango.Device_4Impl):
                         self.create_scalar_attribute(reg_name)
             except DevFailed as df:
                 self.debug_stream("Firmware attribute generation failed for: %s - Error: %s" % (reg_name, df))
-            else:
-                self.debug_stream("Invalid state")
+        else:
+            self.debug_stream("Invalid state")
 
     # def get_device_list(self):
     #     """ Returns a list of devices, as a serialized python dictionary, stored as a string.
@@ -623,15 +629,16 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION END -----#	//	FPGA_DS.get_register_list
         return argout
         
-    def load_firmware_blocking(self, argin):
-        """ Blocking call to load firmware.
+    def load_firmware(self, argin):
+        """ Call to load firmware.
         
         :param argin: File path.
         :type: PyTango.DevString
-        :return: 
-        :rtype: PyTango.DevVoid """
-        self.debug_stream("In load_firmware_blocking()")
-        #----- PROTECTED REGION ID(FPGA_DS.load_firmware_blocking) ENABLED START -----#
+        :return: Return true if successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In load_firmware()")
+        argout = False
+        #----- PROTECTED REGION ID(FPGA_DS.load_firmware) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             arguments = pickle.loads(argin)
@@ -639,17 +646,19 @@ class FPGA_DS (PyTango.Device_4Impl):
             filepath = arguments['path']
             self.flush_attributes()
             try:
-                self.fpga_instance.load_firmware_blocking(Device(device), filepath)
+                self.fpga_instance.load_firmware(Device(device), filepath)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")
+                argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to load firmware: %s" % df)
                 self.attr_is_programmed_read = False
                 self.flush_attributes()
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.load_firmware_blocking
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.load_firmware
+        return argout
         
     def load_plugin(self, argin):
         """ Loads a plugin in device server.
@@ -668,17 +677,30 @@ class FPGA_DS (PyTango.Device_4Impl):
             self.info_stream("List of plugins class names: %s" % class_names)
             friendly_names = plugin_list.values()
             #self.info_stream("Plugins: %s" % class_names)
-            if argin in class_names:
+
+            #unpack plugin name and kwargs
+            arguments = pickle.loads(argin)
+            plugin_name_load = arguments['plugin_name_load']
+            kw_args = arguments['kw_args']
+
+            if plugin_name_load in class_names:
                 try:
-                    plugin_index = class_names.index(argin)
+                    plugin_index = class_names.index(plugin_name_load)
                     plugin_friendly_name = friendly_names[plugin_index]
                     plugin_class_name = class_names[plugin_index]
-                    self.fpga_instance.load_plugin(plugin_class_name)
+                    self.fpga_instance.load_plugin(plugin_class_name, **kw_args)
+
+                    plugin_instances = 0
+                    if self.fpga_instance.__dict__:
+                        plugin_instances = len(getattr(self.fpga_instance, plugin_friendly_name))
+                        self.info_stream("Instances already present: %s" % plugin_instances)
+
+
                     plugins_dict = self.fpga_instance.get_loaded_plugins()
                     #self.info_stream("Plugin dictionary: %s" % plugins_dict)
                     self.info_stream("Plugin pre-loaded: %s at index: %s" % (plugin_friendly_name, plugin_index))
                     for command in plugins_dict[plugin_friendly_name]:
-                        full_command_name = plugin_friendly_name+'.'+command
+                        full_command_name = plugin_friendly_name+'['+str(plugin_instances-1)+']'+'.'+command
                         self.info_stream("Adding commands: %s" % full_command_name)
                         arguments = {}
                         arguments['commandName'] = full_command_name
@@ -688,7 +710,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                         args = pickle.dumps(arguments)
                         result = self.add_command(args)
                         if result == True:
-                            self.info_stream("Command [%s].[%s] created successfully in device server." % (argin, full_command_name))
+                            self.info_stream("Command [%s].[%s] created successfully in device server." % (plugin_name_load, full_command_name))
                             try:
                                 self.__dict__[full_command_name] = lambda input: self.call_plugin_command(input)
                             except DevFailed as df:
@@ -1119,9 +1141,9 @@ class FPGA_DSClass(PyTango.DeviceClass):
         'get_register_list':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevVarStringArray, "List of register names."]],
-        'load_firmware_blocking':
+        'load_firmware':
             [[PyTango.DevString, "File path."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Return true if successful."]],
         'load_plugin':
             [[PyTango.DevString, "Name of plugin. Case sensitive."],
             [PyTango.DevVoid, "none"]],

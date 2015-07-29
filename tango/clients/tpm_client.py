@@ -33,20 +33,31 @@ arguments = {}
 arguments['device'] = Device.FPGA_1.value
 arguments['path'] = '/home/andrea/Documents/AAVS/xml/map.xml'
 args = pickle.dumps(arguments)
-tpm_instance.command_inout("load_firmware_blocking", args)
+tpm_instance.command_inout("load_firmware", args)
 
 # Load plugin
-tpm_instance.command_inout("load_plugin", 'FirmwareTest')
+arguments = {}
+arguments['plugin_name_load'] = 'TpmAdc'
+keywords = {}
+#keywords = {'keyword1': 'foo', 'keyword2': 'bar'}
+arguments['kw_args'] = keywords
+args = pickle.dumps(arguments)
+
+tpm_instance.command_inout("load_plugin", args)
+tpm_instance.command_inout("load_plugin", args)
+tpm_instance.command_inout("load_plugin", args)
+tpm_instance.command_inout("load_plugin", args)
 
 # Get device list
 tpm_instance.command_inout("get_device_list")
 
 # Run plugin command
 arguments = {}
-arguments['fnName'] = 'firmware_test.read_date_code'
+arguments['fnName'] = 'tpm_adc[0].adc_single_start'
 arguments['fnInput'] = pickle.dumps({})
 args = pickle.dumps(arguments)
-tpm_instance.command_inout("run_plugin_command", args)
+argout = tpm_instance.command_inout("run_plugin_command", args)
+argout
 
 # Try change attribute alarms
 arguments = {}
