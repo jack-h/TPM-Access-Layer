@@ -341,7 +341,7 @@ class FPGABoard(object):
         if err == Error.Success:
             self._programmed[device] = True
             self.status[device] = Status.OK
-            self.get_register_list(load_values)
+            self.get_register_list(load_values = load_values, reset = True)
             self.get_device_list()
             self._logger.info(self.log("Successfully loaded firmware %s on board" % filepath))
         else:
@@ -369,11 +369,11 @@ class FPGABoard(object):
         # All done, return
         return self.register_list
 
-    def get_device_list(self):
+    def get_device_list(self, reset = False):
         """ Get list of SPI devices """
 
         # Check if register list has already been acquired, and if so return it
-        if self._deviceList is not None:
+        if self._deviceList is not None and not reset:
             return self._deviceList
 
         # Call function

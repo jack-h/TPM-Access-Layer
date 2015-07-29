@@ -2,13 +2,17 @@
 // Created by lessju on 15/06/2015.
 //
 
-#include <stdio.h>
+#include <iostream>
 #include "AccessLayer.hpp"
-#include "Definitions.hpp"
+
+using namespace std;
 
 int main()
 {
-    ID id = connectBoard(TPM_BOARD, "127.0.0.1", 10000);
-    loadSPIDevices(id, BOARD, "/home/lessju/xilinx_map.xml");
+    ID id = connectBoard(TPM_BOARD, "10.0.10.2", 10000);
+    RETURN err = loadFirmware(id, BOARD, "/tmp/xml_file.xml");
+    std::cout << id << ", " << err << std::endl;
+    err = loadSPIDevices(id, BOARD, "/tmp/spi.xml");
+    std::cout << id << ", " << err << std::endl;
 }
 

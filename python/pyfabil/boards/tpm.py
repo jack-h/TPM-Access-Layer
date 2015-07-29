@@ -13,8 +13,7 @@ class TPM(FPGABoard):
         kwargs['fpgaBoard'] = BoardMake.TpmBoard
         super(TPM, self).__init__(**kwargs)
 
-        # Set hardcoded register addresses
-        self._magic_number            = 0x4
+        # Set hardcoded cpld xml offset address
         self._cpld_xml_offset         = 0x80000004
 
         # Check if we are simulating or not
@@ -25,12 +24,12 @@ class TPM(FPGABoard):
         self._board_initialised    = False
 
         # Pre-load all required plugins
-        tpm.load_plugin("TpmFirmwareInformation", device=Device.FPGA_1)
-        tpm.load_plugin("TpmFirmwareInformation", device=Device.FPGA_2)
-        tpm.load_plugin("TpmPll", board_type="NOTXTPM")
-        [tpm.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
-        tpm.load_plugin("TpmJesd", fpga_id = 0, core_id = 0)
-        tpm.load_plugin('TpmFpga', board_type = 'NOTXTPM', node = Device.FPGA_1)
+        self.load_plugin("TpmFirmwareInformation", device=Device.FPGA_1)
+        self.load_plugin("TpmFirmwareInformation", device=Device.FPGA_2)
+        self.load_plugin("TpmPll", board_type="NOTXTPM")
+        [self.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
+        self.load_plugin("TpmJesd", fpga_id = 0, core_id = 0)
+        self.load_plugin('TpmFpga', board_type = 'NOTXTPM', device = Device.FPGA_1)
 
         # Load CPLD XML file from the board if not simulating
         if not self._simulator:
@@ -71,30 +70,36 @@ class TPM(FPGABoard):
                 if self.load_spi_devices(Device.Board, spi_filepath) == Error.Failure:
                     raise LibraryError("Failed to process SPI XML file")
 
+                # Update device list
+                self.get_device_list(reset = True)
+
         # CPLD and SPI XML files have been loaded, check whether FPGA have been programmed
         # If FPGA is programmed, load the firmware's XML file
-        if tpm.tpm_firmware_information[0].get_design != "":
+        self.tpm_firmware_information[0].update_information()
+        if self.tpm_firmware_information[0].get_design != "":
             self.load_firmware(device = Device.FPGA_1)
 
-        if tpm.tpm_firmware_information[1].get_design != "":
-            self.load_firmware(device = Device.FPGA_2)
-
-        # Otherwise, (load factory firmware, get XML file and initialise devices)???
+        # self.tpm_firmware_information[1].update_information()
+        # if self.tpm_firmware_information[1].get_design != "":
+        #     self.load_firmware(device = Device.FPGA_2)
 
         # Set board as initialised
         self._board_initialised = True
 
-    def _initialise_devices(self):
+    def _initialise_devices(self, frequency = 700):
         """ Initialise the SPI and other devices on the board """
 
         # Initialise PLL
-        tpm.tpm_pll.pll_start(700)
+        self.tpm_pll.pll_start(frequency)
 
         # Initialise ADCs
-        [self.tpm_adc[i].adc_single_start() for i range(2)]
+        [self.tpm_adc[i].adc_single_start() for i in range(2)]
+
+        # Initialise JESD core
+        self.tpm_jesd.jesd_core_start()
 
         # Initialise FPGAs
-        tpm.tpm_fpga.fpga_start(range(4), range(4))
+        self.tpm_fpga.fpga_start(range(4), range(4))
 
         # Set devices as initialised
         self._devices_initialised = True
@@ -121,11 +126,11 @@ class TPM(FPGABoard):
 
             # Check if register exists in map
             register = 'board.info.%s_xml_offset' % ("fpga1" if device == Device.FPGA_1 else "fpga2")
-            if not self.register_list.has_key("register"):
+            if not self.register_list.has_key(register):
                 raise LibraryError("CPLD XML file must be loaded prior to loading firmware")
 
             # Get XML file offset and read XML file from board
-            zipped_xml = self._get_xml_file(self[self[register]])
+            zipped_xml = self._get_xml_file(self[register])
 
             # Process
             filepath = "/tmp/xml_file.xml"
@@ -143,7 +148,7 @@ class TPM(FPGABoard):
         self._initialise_devices()
 
         # Update firmware information
-        tpm.tpm_firmware_information[0 if device == Device.FPGA_1 else 1].update_information()
+        self.tpm_firmware_information[0 if device == Device.FPGA_1 else 1].update_information()
 
     def _get_xml_file(self, xml_offset):
         """ Get XML file from board
@@ -170,7 +175,7 @@ class TPM(FPGABoard):
             return
 
         # Check if the specified key is a memory address or register name
-        if type(key) is int:
+        if type(key) in [int, long]:
             return self.read_address(key)
 
         # Check if the specified key is a tuple, in which case we are reading from a device
@@ -199,7 +204,7 @@ class TPM(FPGABoard):
             return
 
         # Check is the specified key is a memory address or register name
-        if type(key) is int:
+        if type(key) in [int, long]:
             return self.write_address(key, value)
 
         # Check if the specified key is a tuple, in which case we are writing to a device

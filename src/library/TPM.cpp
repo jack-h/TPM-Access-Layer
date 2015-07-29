@@ -333,6 +333,8 @@ RETURN TPM::loadSPIDevices(DEVICE device, const char *filepath)
 
     info = memory_map -> getRegisterInfo(BOARD, "spi.cmd.rnw");
     spi_devices -> cmd_rnw_mask = info -> bitmask;
+
+    return SUCCESS;
 }
 
 // Reset board

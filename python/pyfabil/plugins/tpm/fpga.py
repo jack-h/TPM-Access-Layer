@@ -61,7 +61,7 @@ class TpmFpga(FirmwareBlock):
 
         self.board['%s.jesd_buffer.bit_per_sample' % self._device] = 0x8  # bit per sample
         self.board['%s.jesd204_if.regfile_channel_disable' % self._device] = disabled_input
-        self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x1  # xTPM
+        self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x0  # xTPM
         self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._device] = 0x0
         self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._device] = 0x1
 
@@ -96,7 +96,6 @@ class TpmFpga(FirmwareBlock):
             mask |= 0x1
         self.board['%s.jesd_buffer.write_mux_we' % self._device] = mask
         self.board['%s.jesd_buffer.write_mux_we_shift' % self._device] = 0x0
-
 
     def fpga_stop(self):
         """!@brief This function stops the FPGA acquisition and data downloading through 1Gbit Ethernet

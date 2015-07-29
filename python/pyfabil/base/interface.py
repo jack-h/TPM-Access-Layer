@@ -264,8 +264,6 @@ def call_read_register(board_id, device, register, n = 1, offset = 0):
     :return: Memory-mapped values
     """
     global library
-
-    # Call function and return
     return library.readRegister(board_id, device.value, register, n, offset)
 
 
@@ -309,8 +307,6 @@ def call_read_fifo_register(board_id, device, register, n = 1):
     :return: Memory-mapped values
     """
     global library
-
-    # Call function and return
     return library.readFifoRegister(board_id, device.value, register, n)
 
 
