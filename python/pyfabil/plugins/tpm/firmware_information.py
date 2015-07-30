@@ -26,9 +26,9 @@ class TpmFirmwareInformation(FirmwareBlock):
         device = kwargs['device']
 
         if device == Device.FPGA_1:
-            self._register = 'board.info.fpga1_extended_info'
+            self._register = 'board.info.fpga1_extended_info_offset'
         elif device == Device.FPGA_2:
-            self._register = 'board.info.fpga2_extended_info'
+            self._register = 'board.info.fpga2_extended_info_offset'
         else:
             raise PluginError("TpmFirmwareInformation: Invalid device %d" % device)
 
@@ -56,6 +56,12 @@ class TpmFirmwareInformation(FirmwareBlock):
         # Read information data from board
         offset = self.board[self._register]
         size = self.board[offset]
+
+        # Make sure that the size is not huge (random memory value)
+        if size > 1e6:
+            self._reset_information()
+            return
+
         data = self.board.read_address(offset + 4, n = int(ceil(size / 4.0)))
         data = convert_uint_to_string(data)
         res = re.match(self._search_string, data)

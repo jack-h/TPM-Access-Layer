@@ -212,24 +212,27 @@ class FPGABoard(object):
 
         return self.__dict__[friendly_name][-1]
 
-    def unload_plugin(self, plugin):
+    def unload_plugin(self, plugin, instance = None):
         """ Unload plugin from instance
         :param plugin: Plugin name
         """
-
         # Check if plugin has been loaded
         if plugin in self._loaded_plugins.keys():
-            # Go over plugin methods and remove from instance
-            for method in self._loaded_plugins[plugin]:
-                del self.__dict__[method]
-                self._logger.debug(self.log("Removed method %s of plugin %s from class instance" % (method, plugin)))
-
-            # Remove from list of loaded plugins
-            del self._loaded_plugins[plugin]
-            self._logger.info(self.log("Removed plugin %s from class instance" % plugin))
-
+            # If no instance is specified, remove all plugin instances
+            if instance is None:
+                del self.__dict__[plugin]
+            elif type(instance) is int and len(getattr(self, plugin)) >= instance:
+                getattr(self, plugin).remove(getattr(self, plugin)[instance])
+            else:
+                self._logger.info(self.log("Plugin %s instance %d does not exist" % (plugin, instance)))
         else:
             self._logger.info(self.log("Plugin %s was not loaded." % plugin))
+
+    def unload_all_plugins(self):
+        """ Unload all plugins from instance """
+        for plugin in self._loaded_plugins.keys():
+            del self.__dict__[plugin]
+        self._loaded_plugins = { }
 
     def get_available_plugins(self):
         """ Get list of availabe plugins
@@ -282,6 +285,7 @@ class FPGABoard(object):
         ret = call_disconnect_board(self.id)
         if ret == Error.Success:
             self.register_list = None
+            self.unload_all_plugins()
             self._logger.info(self.log("Disconnected from board with ID %s" % self.id))
             self.id = None
 
@@ -420,14 +424,14 @@ class FPGABoard(object):
             raise BoardError("Failed to read_register %s from board" % register)
 
         # Read succeeded, wrap data and return
-        valPtr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
+        valptr = ctypes.cast(values.values, ctypes.POINTER(ctypes.c_uint32))
 
         self._logger.debug(self.log("Called read_register on board"))
 
         if n == 1:
-            return valPtr[0]
+            return valptr[0]
         else:
-            return [valPtr[i] for i in range(n)]
+            return [valptr[i] for i in range(n)]
 
     def write_register(self, register, values, offset = 0, device = None):
         """ Set register value

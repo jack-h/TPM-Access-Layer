@@ -35,7 +35,7 @@ class TpmAdc(FirmwareBlock):
 
         do_until_eq(lambda : self.board[(self._adc_id, 0x0)] & 0x1, 0, ms_retry=100, s_timeout=10)
 
-        self.board[(self._adc_id, 0x18)] =  0x44  # input buffer current 3.0X
+        self.board[(self._adc_id, 0x18)] =  0x44 # input buffer current 3.0X
         self.board[(self._adc_id, 0x120)] = 0x0  # sysref
         self.board[(self._adc_id, 0x550)] = 0x00
         self.board[(self._adc_id, 0x573)] = 0x00
@@ -67,7 +67,7 @@ class TpmAdc(FirmwareBlock):
         if self.board[(self._adc_id, 0x58c)] != 0:  # octets per frame
             raise PluginError("TpmAdc: Number of octets per frame is not correct")
         if self.board[(self._adc_id, 0x58d)] != 0x1f:  # frames per multiframe
-            raise PluginError("TpmAdc: Number of frame per multifram is not correct")
+            raise PluginError("TpmAdc: Number of frame per multiframe is not correct")
         if self.board[(self._adc_id, 0x58e)] != 1:  # virtual converters
             raise PluginError("TpmAdc: Number of virtual converters is not correct")
 
@@ -85,6 +85,9 @@ class TpmAdc(FirmwareBlock):
         """ Perform status check
         :return: Status
         """
+
+
+
         logging.info("TpmPll : Checking status")
         return Status.OK
 
