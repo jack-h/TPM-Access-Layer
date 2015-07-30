@@ -8,7 +8,7 @@
 ##
 ## File :        TPM_DS.py
 ## 
-## Project :     AAVS Tango TPM Driver
+## Project :     AAVS Tango TPM Driver.
 ##
 ## This file is part of Tango device class.
 ## 
@@ -291,17 +291,17 @@ class TPM_DS (FPGA_DS):
         #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_info
         return argout
         
-    def get_register_list(self):
+    def get_register_list(self, argin):
         """ Returns a list of registers and values, as a serialized python dictionary, stored as a string.
         
-        :param : 
-        :type: PyTango.DevVoid
+        :param argin: Dictionary with arguments.
+        :type: PyTango.DevString
         :return: List of register names.
         :rtype: PyTango.DevVarStringArray """
         self.debug_stream("In get_register_list()")
         argout = ['']
         #----- PROTECTED REGION ID(TPM_DS.get_register_list) ENABLED START -----#
-        argout = super(TPM_DS, self).get_register_list()
+        argout = super(TPM_DS, self).get_register_list(argin)
         #----- PROTECTED REGION END -----#	//	TPM_DS.get_register_list
         return argout
         
@@ -499,17 +499,19 @@ class TPM_DS (FPGA_DS):
         #----- PROTECTED REGION ID(TPM_DS.load_firmware) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
             arguments = pickle.loads(argin)
             device = arguments['device']
             filepath = arguments['path']
             load_values = arguments['load_values']
 
+            self.debug_stream("Checking argument values...")
             if load_values is None:
                 load_values = False
 
             self.flush_attributes()
             try:
-                self.fpga_instance.load_firmware(Device(device), filepath, load_values)
+                self.fpga_instance.load_firmware(Device(device), filepath = filepath, load_values = load_values)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")
@@ -521,6 +523,34 @@ class TPM_DS (FPGA_DS):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	TPM_DS.load_firmware
+        return argout
+        
+    def unload_plugin(self, argin):
+        """ This command removes a plugin if it is loaded.
+        
+        :param argin: Plugin name to unload.
+        :type: PyTango.DevString
+        :return: True if successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In unload_plugin()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.unload_plugin) ENABLED START -----#
+        super(TPM_DS, self).unload_plugin(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.unload_plugin
+        return argout
+        
+    def reset_board(self, argin):
+        """ A command to reset the board.
+        
+        :param argin: Input arguments as dictionary pickled in a string.
+        :type: PyTango.DevString
+        :return: Returns true if successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In reset_board()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.reset_board) ENABLED START -----#
+        super(TPM_DS, self).reset_board(argin)
+        #----- PROTECTED REGION END -----#	//	TPM_DS.reset_board
         return argout
         
 
@@ -598,7 +628,7 @@ class TPM_DSClass(FPGA_DSClass):
             [[PyTango.DevString, "The register name for which information will be retrieved."],
             [PyTango.DevString, "Returns a string-encoded dictionary of information."]],
         'get_register_list':
-            [[PyTango.DevVoid, "none"],
+            [[PyTango.DevString, "Dictionary with arguments."],
             [PyTango.DevVarStringArray, "List of register names."]],
         'load_plugin':
             [[PyTango.DevString, "Name of plugin. Case sensitive."],
@@ -639,6 +669,12 @@ class TPM_DSClass(FPGA_DSClass):
         'load_firmware':
             [[PyTango.DevString, "File path."],
             [PyTango.DevBoolean, "Return true if successful."]],
+        'unload_plugin':
+            [[PyTango.DevString, "Plugin name to unload."],
+            [PyTango.DevBoolean, "True if successful."]],
+        'reset_board':
+            [[PyTango.DevString, "Input arguments as dictionary pickled in a string."],
+            [PyTango.DevBoolean, "Returns true if successful."]],
         }
     cmd_list.update(FPGA_DSClass.cmd_list)
 
