@@ -86,6 +86,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         'load_firmware': all_states_list,
         'load_plugin': all_states_list,
         'unload_plugin': all_states_list,
+        'unload_all_plugins': all_states_list,
         'read_address': all_states_list,
         'read_device': all_states_list,
         'read_register': all_states_list,
@@ -96,6 +97,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         'write_address': all_states_list,
         'write_device': all_states_list,
         'write_register': all_states_list,
+        'reset_board': all_states_list,
         'sink_alarm_state': all_states_list
     }
 
@@ -1229,6 +1231,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                             plugin_command_prefix = plugin_friendly_name+'['+str(instance-1)+']'
                         else:
                             self.info_stream("Incorrect instance pointer.")
+                            argout = False
                     elif instance == -1:
                         valid = True
                         self.info_stream("Unloading plugin (all) from board...")
@@ -1248,12 +1251,17 @@ class FPGA_DS (PyTango.Device_4Impl):
                         self.debug_stream("Plugin state controls found @ %s" % indices)
                         for i in indices:
                             del self.state_list[i]
+
+                        argout = True
                     else:
                         self.info_stream("No TANGO plugin entries removed.")
+                        argout = False
                 except DevFailed as df:
-                    self.debug_stream("Failed to load plugin: %s" % df)
+                    self.debug_stream("Failed to unload plugin: %s" % df)
+                    argout = False
             else:
                  self.info_stream("Plugin not found.")
+                 argout = False
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.unload_plugin
@@ -1281,6 +1289,36 @@ class FPGA_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.reset_board
+        return argout
+        
+    def unload_all_plugins(self):
+        """ A command to unload all plugins and instances.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: True if operation successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In unload_all_plugins()")
+        argout = False
+        #----- PROTECTED REGION ID(FPGA_DS.unload_all_plugins) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            try:
+                plugins_dict = self.fpga_instance.get_loaded_plugins()
+                for plugin_friendly_name in plugins_dict:
+                    arguments = {'plugin': plugin_friendly_name, 'instance': None}
+                    args = pickle.dumps(arguments)
+                    self.unload_plugin(args)
+
+                self.info_stream("Cleaning up...")
+                self.fpga_instance.unload_all_plugins()
+                self.info_stream("All plugins removed.")
+                argout = True
+            except DevFailed as df:
+                self.debug_stream("Failed to unload all plugins: %s" % df)
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.unload_all_plugins
         return argout
         
 
@@ -1403,6 +1441,9 @@ class FPGA_DSClass(PyTango.DeviceClass):
         'reset_board':
             [[PyTango.DevString, "Input arguments as dictionary pickled in a string."],
             [PyTango.DevBoolean, "Returns true if successful."]],
+        'unload_all_plugins':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevBoolean, "True if operation successful."]],
         }
 
 

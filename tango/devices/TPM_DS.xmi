@@ -256,6 +256,15 @@
       <argout description="Returns true if successful.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
+    </commands>
+    <commands name="unload_all_plugins" description="A command to unload all plugins and instances." execMethod="unload_all_plugins" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="True if operation successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <attributes name="board_state" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">

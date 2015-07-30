@@ -535,7 +535,7 @@ class TPM_DS (FPGA_DS):
         self.debug_stream("In unload_plugin()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.unload_plugin) ENABLED START -----#
-        super(TPM_DS, self).unload_plugin(argin)
+        argout = super(TPM_DS, self).unload_plugin(argin)
         #----- PROTECTED REGION END -----#	//	TPM_DS.unload_plugin
         return argout
         
@@ -549,8 +549,22 @@ class TPM_DS (FPGA_DS):
         self.debug_stream("In reset_board()")
         argout = False
         #----- PROTECTED REGION ID(TPM_DS.reset_board) ENABLED START -----#
-        super(TPM_DS, self).reset_board(argin)
+        argout = super(TPM_DS, self).reset_board(argin)
         #----- PROTECTED REGION END -----#	//	TPM_DS.reset_board
+        return argout
+        
+    def unload_all_plugins(self):
+        """ A command to unload all plugins and instances.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: True if operation successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In unload_all_plugins()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.unload_all_plugins) ENABLED START -----#
+        argout = super(TPM_DS, self).unload_all_plugins()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.unload_all_plugins
         return argout
         
 
@@ -675,6 +689,9 @@ class TPM_DSClass(FPGA_DSClass):
         'reset_board':
             [[PyTango.DevString, "Input arguments as dictionary pickled in a string."],
             [PyTango.DevBoolean, "Returns true if successful."]],
+        'unload_all_plugins':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevBoolean, "True if operation successful."]],
         }
     cmd_list.update(FPGA_DSClass.cmd_list)
 
