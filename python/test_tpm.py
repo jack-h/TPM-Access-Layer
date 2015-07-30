@@ -10,4 +10,4 @@ tpm = TPM(ip = "10.0.10.2", port= 10000)
 # Start streaming
 tpm["board.regfile.c2c_stream_enable"] = 0x1
 
-# tpm.tpm_fpga.fpga_stop()
+tpm.tpm_fpga.fpga_stop()

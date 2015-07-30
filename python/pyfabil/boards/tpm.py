@@ -87,6 +87,7 @@ class TPM(FPGABoard):
 
         # CPLD and SPI XML files have been loaded, check whether FPGA have been programmed
         # If FPGA is programmed, load the firmware's XML file
+        # TODO: This need to be changed for the real TPM
         self.tpm_firmware_information[0].update_information()
         if self.tpm_firmware_information[0].get_design != "":
             self.load_firmware(device = Device.FPGA_1)
