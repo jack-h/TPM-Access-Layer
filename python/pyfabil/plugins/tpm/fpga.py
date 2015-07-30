@@ -61,7 +61,7 @@ class TpmFpga(FirmwareBlock):
 
         self.board['%s.jesd_buffer.bit_per_sample' % self._device] = 0x8  # bit per sample
         self.board['%s.jesd204_if.regfile_channel_disable' % self._device] = disabled_input
-        self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x0  # xTPM
+        self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x0
         self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._device] = 0x0
         self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._device] = 0x1
 
@@ -117,6 +117,9 @@ class TpmFpga(FirmwareBlock):
         :return: Status
         """
         logging.info("TpmPll : Checking status")
+
+        # Check FPGA PLL is locked and receiving data from the FPGA
+
         return Status.OK
 
 

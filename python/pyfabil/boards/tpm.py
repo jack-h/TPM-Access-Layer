@@ -37,7 +37,7 @@ class TPM(FPGABoard):
         self.load_plugin("TpmFirmwareInformation", device=Device.FPGA_2)
         self.load_plugin("TpmPll", board_type="NOTXTPM")
         [self.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
-        self.load_plugin("TpmJesd", fpga_id = 0, core_id = 0)
+        self.load_plugin("TpmJesd", device = Device.FPGA_1, core = 0)
         self.load_plugin('TpmFpga', board_type = 'NOTXTPM', device = Device.FPGA_1)
 
         super(TPM, self).connect(ip, port)

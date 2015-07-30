@@ -89,7 +89,7 @@ class TpmPll(FirmwareBlock):
         @param freq -- int -- PLL output frequency in MHz. Supported frequency are 700,800,1000 MHz
         """
         print "Setting PLL. Frequency is " + str(freq)
-        if freq != 1000 and freq != 800 and freq != 700:
+        if freq not in [1000, 800, 700]:
             print "Frequency " + str(freq) + " MHz is not currently supported."
             print "Switching to default frequency 700 MHz"
             freq = 700
@@ -260,96 +260,24 @@ class TpmPll(FirmwareBlock):
         self.board[('pll', 0x32A)] = 0x0
         self.board[('pll', 0xF)] = 0x1
 
-        while True:
-            rd = self.board[('pll', 0x508)]
-            print "register 0x508 " + hex(rd)
-            print "register 0x509 " + hex(self.board[('pll', 0x509)])
-            print hex(rd)
-            if rd == 0xF2 or rd == 0xe7:
-                print "PLL Locked!"
-                break
-            else:
-                print "PLL not Locked!"
+        if do_until_eq(lambda : self.board[('pll', 0x508)] in [0xF2, 0xE7], 0x0, ms_retry = 100, s_timeout = 10) is None:
+            raise PluginError("PLL not locked")
 
-        return Error.Success
+        #
+        # while True:
+        #     rd = self.board[('pll', 0x508)]
+        #     print "register 0x508 " + hex(rd)
+        #     print "register 0x509 " + hex(self.board[('pll', 0x509)])
+        #     print hex(rd)
+        #     if rd == 0xF2 or rd == 0xe7:
+        #         print "PLL Locked!"
+        #         break
+        #     else:
+        #         print "PLL not Locked!"
+        #
+        # return Error.Success
 
-# def fpga_start(self, idx, input_list, enabled_list):
-#     """!@brief This function starts the FPGA acquisition and data downloading through 1Gbit Ethernet
-#     """
-#     filter_list = []
-#     for n in input_list:
-#         if n in enabled_list:
-#             filter_list.append(n)
-#
-#     disabled_input = 0xFFFF
-#     for input in filter_list:
-#         mask = 1 << input
-#         disabled_input = disabled_input ^ mask
-#
-#     rmp.wr32(0x30000008, 0x0081);  # pwdn ADCs
-#     rmp.wr32(0x30000010, 0x0000);  # 0x1 accende ADA
-#     rmp.wr32(0x3000000C, 0x0);
-#
-#     rmp.wr32(0x00030400 + idx * 0x10000000, 0x8);  # bit per sample
-#
-#     # rmp.wr32(0x0000000C+idx*0x10000000, disabled_input);
-#     rmp.wr32(0x0001F004 + idx * 0x10000000, disabled_input);
-#     # rmp.wr32(0x00000004+idx*0x10000000, 0x1);#xTPM
-#     rmp.wr32(0x00030404 + idx * 0x10000000, 0x1);  # xTPM
-#     # rmp.wr32(0x00000008+idx*0x10000000, 0x0);
-#     rmp.wr32(0x0001F000 + idx * 0x10000000, 0x0);
-#     # rmp.wr32(0x00000008+idx*0x10000000, 0x1);
-#     rmp.wr32(0x0001F000 + idx * 0x10000000, 0x1);
-#
-#     # time.sleep(2)
-#
-#     # setting default buffer configuration
-#     for n in range(16):
-#         rmp.wr32(0x00030000 + 4 * n, n);  # first lane
-#         rmp.wr32(0x00030100 + 4 * n, n);  # last lane
-#         rmp.wr32(0x00030200 + 4 * n, n);  # write mux
-#     rmp.wr32(0x00030300, 0xFFFF);  # write mux we
-#     rmp.wr32(0x00030304, 0);  # write mux we shift
-#
-#     # setting buffer configuration
-#     nof_input = len(filter_list)
-#     if self.board == "XTPM":
-#         slot_per_input = 16 / nof_input
-#     else:
-#         slot_per_input = 8 / nof_input
-#
-#     k = 0
-#     for n in sorted(filter_list):
-#         rmp.wr32(0x00030000 + 4 * n, k);  # first lane
-#         rmp.wr32(0x00030100 + 4 * n, k + (slot_per_input - 1));  # last lane
-#         k += slot_per_input
-#     for n in range(16):
-#         if n / slot_per_input < len(filter_list):
-#             rmp.wr32(0x00030200 + 4 * n, sorted(filter_list)[n / slot_per_input]);  # write mux
-#     mask = 0
-#     for n in range(nof_input):
-#         mask = mask << slot_per_input
-#         mask |= 0x1
-#     rmp.wr32(0x00030300, mask);
-#     rmp.wr32(0x00030304, 0);
-#
-#     # time.sleep(1)
-#     # self.wr_adc("all",0x572,0x80);
-#     # self.wr_adc("all",0x572,0xC0); #Force ILA and user data phase
-#
-#
-# def fpga_stop(self):
-#     """!@brief This function stops the FPGA acquisition and data downloading through 1Gbit Ethernet
-#     """
-#     # rmp.wr32(0x00000004, 0x0);
-#     rmp.wr32(0x00030404, 0x0);
-#     # rmp.wr32(0x10000004, 0x0);
-#     # rmp.wr32(0x00000008, 0x0);
-#     rmp.wr32(0x0001F000, 0x0);
-#     # rmp.wr32(0x10000008, 0x0);
-#     time.sleep(1)
-#
-#
+
 # def write_tag_ram(self, tag):
 #     print "Writing TAG ram..."
 #     word = 0
@@ -425,6 +353,9 @@ class TpmPll(FirmwareBlock):
         :return: Status
         """
         logging.info("TpmPll : Checking status")
+
+        if self.board[('pll', 508)] not in [0xF2, 0xE7]:
+            return Status.BoardError
         return Status.OK
 
 

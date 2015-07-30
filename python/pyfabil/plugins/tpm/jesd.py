@@ -18,15 +18,15 @@ class TpmJesd(FirmwareBlock):
         """
         super(TpmJesd, self).__init__(board)
 
-        if 'fpga_id' not in kwargs.keys():
-            raise PluginError("TpmJesd: fpga_id required")
+        if 'device' not in kwargs.keys():
+            raise PluginError("TpmJesd: device required")
 
-        if 'core_id' not in kwargs.keys():
+        if 'core' not in kwargs.keys():
             raise PluginError("TpmJesd: core_id required")
 
         self._board_type = kwargs.get('board_type', 'XTPM')
-        self._fpga_id = kwargs['fpga_id']
-        self._core_id = kwargs['core_id']
+        self._fpga = 'fpga1' if kwargs['device'] == Device.FPGA_1 else 'fpga2'
+        self._core = kwargs['core']
 
     #######################################################################################
 
@@ -35,19 +35,18 @@ class TpmJesd(FirmwareBlock):
         @param bit -- int -- Sample bit width, supported value are 8,14
         """
 
-        # TODO: Update the call below to use registers from memory map
-        self.board[0x00010008 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1
-        self.board[0x00010010 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x0  # sysref
-        self.board[0x0001000C + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1  # scrambling
-        self.board[0x00010020 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x0
-        self.board[0x00010024 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1f
+        # Get FPGA base addresses
+        self.board['%s.jesd204_if.core_id_%d_ila_support' % (self._fpga, self._core)] = 0x1
+        self.board['%s.jesd204_if.core_id_%d_sysref_handling' % (self._fpga, self._core)] = 0x0
+        self.board['%s.jesd204_if.core_id_%d_scrambling' % (self._fpga, self._core)] = 0x1
+        self.board['%s.jesd204_if.core_id_%d_octets_per_frame' % (self._fpga, self._core)] = 0x0
+        self.board['%s.jesd204_if.core_id_%d_frames_per_multiframe' % (self._fpga, self._core)] = 0x1F
         if self.board == "XTPM":
-            self.board[0x00010028 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x7  # xTPM
+            self.board['%s.jesd204_if.core_id_%d_lanes_in_use' % (self._fpga, self._core)] = 0x7  # xTPM
         else:
-            self.board[0x00010028] = 0x3
-
-        self.board[0x0001002C + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1
-        self.board[0x00010004 + self._fpga_id * 0x10000000 + self._core_id * 0x1000] = 0x1
+            self.board['%s.jesd204_if.core_id_%d_lanes_in_use' % (self._fpga, self._core)] = 0x3
+        self.board['%s.jesd204_if.core_id_%d_subclass_mode' % (self._fpga, self._core)] = 0x1
+        self.board['%s.jesd204_if.core_id_%d_reset' % (self._fpga, self._core)] = 0x1
 
     ##################### Superclass method implementations #################################
 
