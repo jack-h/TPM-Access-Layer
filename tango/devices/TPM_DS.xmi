@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <pogoDsl:PogoSystem xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pogoDsl="http://www.esrf.fr/tango/pogo/PogoDsl">
   <classes name="TPM_DS" pogoRevision="8.4">
-    <description description="A Tango device server for the TPM board." title="AAVS Tango TPM Driver" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices" language="Python" filestogenerate="XMI   file,Code files" license="GPL" hasMandatoryProperty="false" hasConcreteProperty="false" hasAbstractCommand="false" hasAbstractAttribute="false">
+    <description description="A Tango device server for the TPM board." title="AAVS Tango TPM Driver." sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices" language="Python" filestogenerate="XMI   file,Code files" license="GPL" hasMandatoryProperty="false" hasConcreteProperty="false" hasAbstractCommand="false" hasAbstractAttribute="false">
       <inheritances classname="Device_Impl" sourcePath=""/>
       <inheritances classname="FPGA_DS" sourcePath="/home/andrea/Documents/AAVS/TPM-Access-Layer/tango/devices"/>
       <identification contact="at um.edu.mt - andrea.demarco" author="andrea.demarco" emailDomain="um.edu.mt" classFamily="Acquisition" siteSpecific="" platform="All Platforms" bus="Not Applicable" manufacturer="ISSA" reference="ISSA-AAVS1-TPM"/>
@@ -115,13 +115,13 @@
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <commands name="get_register_list" description="Returns a list of registers and values, as a serialized python dictionary, stored as a string." execMethod="get_register_list" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argin description="Dictionary with arguments.">
+        <type xsi:type="pogoDsl:StringType"/>
       </argin>
       <argout description="List of register names.">
         <type xsi:type="pogoDsl:StringArrayType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="load_plugin" description="Loads a plugin in device server." execMethod="load_plugin" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Name of plugin. Case sensitive.">
@@ -236,6 +236,33 @@
         <type xsi:type="pogoDsl:StringType"/>
       </argin>
       <argout description="Return true if successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="unload_plugin" description="This command removes a plugin if it is loaded." execMethod="unload_plugin" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="Plugin name to unload.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="True if successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="reset_board" description="A command to reset the board." execMethod="reset_board" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="Input arguments as dictionary pickled in a string.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="Returns true if successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
+    </commands>
+    <commands name="unload_all_plugins" description="A command to unload all plugins and instances." execMethod="unload_all_plugins" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="True if operation successful.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>

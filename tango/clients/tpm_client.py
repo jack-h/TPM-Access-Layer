@@ -28,6 +28,26 @@ tpm_instance.port = 10000
 # Connect to device
 tpm_instance.command_inout("connect")
 
+# Get register
+arguments = {}
+arguments['reset'] = False
+arguments['load_values'] = False
+args = pickle.dumps(arguments)
+print tpm_instance.command_inout("get_register_list", args)
+
+# Write register
+arguments = {}
+arguments['device'] = Device.Board.value
+#arguments['device'] = None
+arguments['register'] = 'board.regfile.c2c_stream_enable'
+arguments['values'] = [1]
+arguments['offset'] = 0
+print arguments
+args = pickle.dumps(arguments)
+print tpm_instance.command_inout("write_register", args)
+#tpm_instance.write_register(args)
+
+
 # # Load firmware
 # arguments = {}
 # arguments['device'] = Device.FPGA_1.value
@@ -73,8 +93,6 @@ tpm_instance.command_inout("connect")
 # tpm_instance.poll_attribute('port', 3000)
 # #tpm_instance.poll_attribute('port', 0) #to stop polling
 #
-# # Print register list
-# print tpm_instance.command_inout("get_register_list")
 #
 # # Read from register
 # arguments={}
