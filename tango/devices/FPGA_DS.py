@@ -1191,13 +1191,22 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FPGA_DS.unload_plugin) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
+            arguments = pickle.loads(argin)
+            plugin = arguments['plugin']
+            instance = arguments['instance']
+
+            self.debug_stream("Checking argument values...")
+            if instance is None:
+                instance = -1
+
             plugin_list = self.fpga_instance.get_available_plugins()
             self.debug_stream("List of plugins: %s" % plugin_list)
             class_names = plugin_list.keys()
             self.debug_stream("List of plugins class names: %s" % class_names)
             friendly_names = plugin_list.values()
 
-            plugin_name_unload = argin
+            plugin_name_unload = plugin
 
             if plugin_name_unload in class_names:
                 try:
@@ -1205,47 +1214,42 @@ class FPGA_DS (PyTango.Device_4Impl):
                     plugin_friendly_name = friendly_names[plugin_index]
                     plugin_class_name = class_names[plugin_index]
 
-                    self.info_stream("Unloading plugin from board...")
-                    self.fpga_instance.unload_plugin(plugin_class_name)
-                    self.info_stream("Plugin unloaded.")
-
+                    self.info_stream("Checking for active plugin instances...")
                     if self.fpga_instance.__dict__:
                         plugin_instances = len(getattr(self.fpga_instance, plugin_friendly_name))
-                        self.debug_stream("Instances already present: %s" % plugin_instances)
+                        self.info_stream("Instances already present: %s" % plugin_instances)
 
-
-                    self.info_stream("Removing plugin commands...")
-
-                    plugin_command_prefix = plugin_friendly_name+'['
-
-                    self.state_list[commandName] = allowedStates
-                    self.plugin_cmd_list[commandName]
-
-
-
-
-                    plugins_dict = self.fpga_instance.get_loaded_plugins()
-                    #self.info_stream("Plugin dictionary: %s" % plugins_dict)
-                    self.info_stream("Plugin pre-loaded: %s at index: %s" % (plugin_friendly_name, plugin_index))
-                    for command in plugins_dict[plugin_friendly_name]:
-                        full_command_name = plugin_friendly_name+'['+str(plugin_instances-1)+']'+'.'+command
-                        self.info_stream("Adding commands: %s" % full_command_name)
-                        arguments = {}
-                        arguments['commandName'] = full_command_name
-                        arguments['inDesc'] = ''
-                        arguments['outDesc'] = ''
-                        arguments['states'] = self.all_states_list
-                        args = pickle.dumps(arguments)
-                        result = self.add_command(args)
-                        if result == True:
-                            self.info_stream("Command [%s].[%s] created successfully in device server." % (plugin_name_load, full_command_name))
-                            try:
-                                self.__dict__[full_command_name] = lambda input: self.call_plugin_command(input)
-                            except DevFailed as df:
-                                self.debug_stream("Failed to create lambda expression: %s" % df)
-                                self.info_stream("Command [%s].[%s] not created" % full_command_name)
+                    self.info_stream("Checking for appropriate instance pointer...")
+                    if instance > 0:
+                        valid = instance <= plugin_instances
+                        if valid:
+                            self.info_stream("Unloading plugin instance from board...")
+                            self.fpga_instance.unload_plugin(plugin_class_name, instance)
+                            self.info_stream("Plugin instance unloaded.")
+                            plugin_command_prefix = plugin_friendly_name+'['+str(instance-1)+']'
                         else:
-                            self.info_stream("Command [%s].[%s] not created" % full_command_name)
+                            self.info_stream("Incorrect instance pointer.")
+                    elif instance == -1:
+                        valid = True
+                        self.info_stream("Unloading plugin (all) from board...")
+                        self.fpga_instance.unload_plugin(plugin_class_name)
+                        self.info_stream("Plugin (all) unloaded.")
+                        plugin_command_prefix = plugin_friendly_name+'['
+
+                    if valid:
+                        self.info_stream("Removing plugin commands from TANGO...")
+                        indices = [i for i, plugin_name in enumerate(self.plugin_cmd_list) if plugin_command_prefix in plugin_name]
+                        self.debug_stream("Plugin commands found @ %s" % indices)
+                        for i in indices:
+                            del self.plugin_cmd_list[i]
+
+                        self.info_stream("Removing plugin state control from TANGO...")
+                        indices = [i for i, state_name in enumerate(self.state_list) if plugin_command_prefix in state_name]
+                        self.debug_stream("Plugin state controls found @ %s" % indices)
+                        for i in indices:
+                            del self.state_list[i]
+                    else:
+                        self.info_stream("No TANGO plugin entries removed.")
                 except DevFailed as df:
                     self.debug_stream("Failed to load plugin: %s" % df)
             else:
