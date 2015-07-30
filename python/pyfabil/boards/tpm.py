@@ -11,17 +11,26 @@ class TPM(FPGABoard):
     def __init__(self, **kwargs):
         """ Class constructor """
         kwargs['fpgaBoard'] = BoardMake.TpmBoard
-        super(TPM, self).__init__(**kwargs)
-
-        # Set hardcoded cpld xml offset address
-        self._cpld_xml_offset         = 0x80000004
 
         # Check if we are simulating or not
         self._simulator = kwargs.get('simulator', False)
 
+        # Set hardcoded cpld xml offset address
+        self._cpld_xml_offset         = 0x80000004
+
         # Placeholder for initialised check
         self._devices_initialised = False
         self._board_initialised    = False
+
+        # Call superclass initialiser
+        super(TPM, self).__init__(**kwargs)
+
+
+    def connect(self, ip, port):
+        """ Overload connect method
+        :param ip: IP address to connect to
+        :param port: Port to connect to
+        """
 
         # Pre-load all required plugins
         self.load_plugin("TpmFirmwareInformation", device=Device.FPGA_1)
@@ -31,12 +40,6 @@ class TPM(FPGABoard):
         self.load_plugin("TpmJesd", fpga_id = 0, core_id = 0)
         self.load_plugin('TpmFpga', board_type = 'NOTXTPM', device = Device.FPGA_1)
 
-
-    def connect(self, ip, port):
-        """ Overload connect method
-        :param ip: IP address to connect to
-        :param port: Port to connect to
-        """
         super(TPM, self).connect(ip, port)
 
         # Load CPLD XML file from the board if not simulating

@@ -5,12 +5,10 @@ __author__ = 'lessju'
 from pyfabil import TPM
 
 # Connect and initliase
-tpm = TPM()
-tpm.connect(ip = "10.0.10.2", port= 10000)
-
-print tpm
+tpm = TPM(ip = "10.0.10.2", port= 10000)
 
 # Start streaming
-# tpm["board.regfile.c2c_stream_enable"] = 0x1
+tpm["board.regfile.c2c_stream_enable"] = 0x1
 
+print tpm
 tpm.tpm_fpga.fpga_stop()

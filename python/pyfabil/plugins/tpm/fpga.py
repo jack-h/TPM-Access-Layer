@@ -98,10 +98,9 @@ class TpmFpga(FirmwareBlock):
         self.board['%s.jesd_buffer.write_mux_we_shift' % self._device] = 0x0
 
     def fpga_stop(self):
-        """!@brief This function stops the FPGA acquisition and data downloading through 1Gbit Ethernet
-        """
+        """ Stop FPGA acquisition and data downloading through 1Gbit Ethernet """
         self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x0
-        self.board['%s.jesd204_if.regfile_ctrl'] = 0x0
+        self.board['%s.jesd204_if.regfile_ctrl' % self._device] = 0x0
         time.sleep(1)
 
     ##################### Superclass method implementations #################################
