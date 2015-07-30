@@ -99,7 +99,8 @@ class TpmPll(FirmwareBlock):
         self.board['board.regfile.ctrl.ad9528_rst'] = 1
 
         self.board[('pll', 0x0)] = 0x1
-        do_until_eq(lambda : self.board[('pll', 0x0)] & 0x1, 0, ms_retry = 100, s_timeout = 10)
+        if do_until_eq(lambda : self.board[('pll', 0x0)] & 0x1, 0, ms_retry = 100, s_timeout = 10) is None:
+            raise PluginError("PLL timeout error")
         self.board[('pll', 0xf)] = 0x1
 
         if self._board_type == "XTPM":
@@ -218,23 +219,28 @@ class TpmPll(FirmwareBlock):
             time.sleep(1)
 
         self.board[('pll', 0x203)] = 0x10
-        do_until_eq(lambda : self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10)
+        if do_until_eq(lambda : self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10):
+            raise PluginError("PLL timeout error")
         self.board[('pll', 0xF)] = 0x1
 
         self.board[('pll', 0x203)] = 0x11
-        do_until_eq(lambda: self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10)
+        if do_until_eq(lambda: self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10) is None:
+            raise PluginError("PLL timeout error")
         self.board[('pll', 0xF)] = 0x1
 
         self.board[('pll', 0x403)] = 0x97
-        do_until_eq(lambda : self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10)
+        if do_until_eq(lambda : self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10) is None:
+            raise PluginError("PLL timeout error")
         self.board[('pll', 0xF)] = 0x1
 
         self.board[('pll', 0x32A)] = 0x1
-        do_until_eq(lambda : self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10)
+        if do_until_eq(lambda : self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10) is None:
+            raise PluginError("PLL timeout error")
         self.board[('pll', 0xF)] = 0x1
 
         self.board[('pll', 0x32A)] = 0x0
-        do_until_eq(lambda : self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10)
+        if do_until_eq(lambda : self.board[('pll', 0xF)], 0, ms_retry = 100, s_timeout = 10) is None:
+            raise PluginError("PLL timeout error")
         self.board[('pll', 0xF)] = 0x1
 
         self.board[('pll', 0x203)] = 0x10
@@ -242,7 +248,8 @@ class TpmPll(FirmwareBlock):
         self.board[('pll', 0x203)] = 0x11
         self.board[('pll', 0xF)] = 0x1
 
-        do_until_eq(lambda : self.board[('pll', 0x509)] & 0x1, 0x0, ms_retry = 100, s_timeout = 10)
+        if do_until_eq(lambda : self.board[('pll', 0x509)] & 0x1, 0x0, ms_retry = 100, s_timeout = 10) is None:
+            raise PluginError("PLL timeout error")
 
         self.board[('pll', 0x403)] = 0x97
         self.board[('pll', 0xF)] = 0x1

@@ -274,8 +274,7 @@ def do_until(method, val, op=operator.eq, ms_retry=10, s_timeout=4, **kwargs):
     while list_ok == 0:
         if s_timeout>=0:
             if time.time() - start >= s_timeout:
-                print 'do_until: Timeout occured!'
-                return 'Timeout'
+                return None
         data = []
         if len(kwargs) > 0:
             data.append(method(**kwargs))

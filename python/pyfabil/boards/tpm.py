@@ -31,19 +31,18 @@ class TPM(FPGABoard):
         self.load_plugin("TpmJesd", fpga_id = 0, core_id = 0)
         self.load_plugin('TpmFpga', board_type = 'NOTXTPM', device = Device.FPGA_1)
 
+
+    def connect(self, ip, port):
+        """ Overload connect method
+        :param ip: IP address to connect to
+        :param port: Port to connect to
+        """
+        super(TPM, self).connect(ip, port)
+
         # Load CPLD XML file from the board if not simulating
         if not self._simulator and self.id is not None:
             self._initialise_board()
 
-    def connect(self, ip, port):
-        """
-        :param ip:
-        :param port:
-        :return:
-        """
-        super(TPM, self).connect(ip, port)
-        if not self._simulator:
-            self._initialise_board()
 
     def _initialise_board(self):
         """ Initialise the TPM board """
