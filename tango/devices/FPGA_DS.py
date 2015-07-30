@@ -407,6 +407,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         #state_ok = self.check_state_flow(self.connect.__name__)
         if state_ok:
             try:
+                self.debug_stream("Connecting...")
                 self.fpga_instance.connect(self.attr_ip_address_read, self.attr_port_read)
             except DevFailed as df:
                 self.debug_stream("Failed to connect: %s" % df)
