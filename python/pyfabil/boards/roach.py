@@ -24,7 +24,7 @@ class Roach(FPGABoard):
         if len(self.get_register_list()) == 0:
             self._programmed = False
 
-    def get_register_list(self, load_values = False):
+    def get_register_list(self, reset = False, load_values = False):
         """ Add functionality to getRegisterList in order to map register names 
             as python attributes """
 
@@ -59,7 +59,7 @@ class Roach(FPGABoard):
         """ Roach helper for writeRegister"""
         return super(Roach, self).write_register(register, values, offset, device = Device.FPGA_1)
 
-    def load_firmware(self, boffile, load_values = False):
+    def load_firmware(self, device, boffile = None, load_values = False):
         """ Roach helper for loadFirmwareBlocking """
         return super(Roach, self).load_firmware(Device.FPGA_1, boffile)
 

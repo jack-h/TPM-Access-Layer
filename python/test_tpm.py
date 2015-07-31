@@ -2,12 +2,15 @@ import re
 
 __author__ = 'lessju'
 
-from pyfabil import TPM
+from pyfabil import TPM, Device
 
 # Connect and initliase
 tpm = TPM(ip = "10.0.10.2", port= 10000)
 
-# Start streaming
-tpm["board.regfile.c2c_stream_enable"] = 0x1
+# Load plugin
+kcu = tpm.load_plugin("KcuTestFirmware", device = Device.FPGA_1)
 
-tpm.tpm_fpga.fpga_stop()
+# Start streaming
+kcu.start_streaming()
+
+print tpm

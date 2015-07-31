@@ -84,14 +84,17 @@ class TpmPll(FirmwareBlock):
         return reg0, reg1, reg2
 
     def pll_start(self, freq):
-        """!@brief This function performs the PLL initialization procedure as implemented in ADI demo.
-
-        @param freq -- int -- PLL output frequency in MHz. Supported frequency are 700,800,1000 MHz
+        """ Perform the PLL initialization procedure as implemented in ADI demo
+        :param freq: PLL output frequency in MHz. Supported frequency are 700, 800, 1000 MHz
         """
-        print "Setting PLL. Frequency is " + str(freq)
+
+        # Check if PLL has already been programmed
+        if self.status_check() ==  Status.OK:
+            print "PLL already initialised"
+            return
+
         if freq not in [1000, 800, 700]:
             print "Frequency " + str(freq) + " MHz is not currently supported."
-            print "Switching to default frequency 700 MHz"
             freq = 700
 
         self.board['board.regfile.ctrl.ad9528_rst'] = 0
@@ -263,21 +266,6 @@ class TpmPll(FirmwareBlock):
         if do_until_eq(lambda : self.board[('pll', 0x508)] in [0xF2, 0xE7], 0x0, ms_retry = 100, s_timeout = 10) is None:
             raise PluginError("PLL not locked")
 
-        #
-        # while True:
-        #     rd = self.board[('pll', 0x508)]
-        #     print "register 0x508 " + hex(rd)
-        #     print "register 0x509 " + hex(self.board[('pll', 0x509)])
-        #     print hex(rd)
-        #     if rd == 0xF2 or rd == 0xe7:
-        #         print "PLL Locked!"
-        #         break
-        #     else:
-        #         print "PLL not Locked!"
-        #
-        # return Error.Success
-
-
 # def write_tag_ram(self, tag):
 #     print "Writing TAG ram..."
 #     word = 0
@@ -354,7 +342,7 @@ class TpmPll(FirmwareBlock):
         """
         logging.info("TpmPll : Checking status")
 
-        if self.board[('pll', 508)] not in [0xF2, 0xE7]:
+        if self.board[('pll', 0x508)] not in [0xF2, 0xE7]:
             return Status.BoardError
         return Status.OK
 

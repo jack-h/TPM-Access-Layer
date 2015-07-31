@@ -50,7 +50,7 @@ class TpmAdc(FirmwareBlock):
         self.board[(self._adc_id, 0x590)] = 0x27
         self.board[(self._adc_id, 0x570)] = 0x48
         self.board[(self._adc_id, 0x58b)] = 0x81
-        print "0x58b is " + str(self.board[(self._adc_id, 0x58b)])
+     #   print "0x58b is " + str(self.board[(self._adc_id, 0x58b)])
         self.board[(self._adc_id, 0x590)] = 0x27
 
         # Lane remap
@@ -71,7 +71,7 @@ class TpmAdc(FirmwareBlock):
         if self.board[(self._adc_id, 0x58e)] != 1:  # virtual converters
             raise PluginError("TpmAdc: Number of virtual converters is not correct")
 
-        print "ADC " + str(self._adc_id) + " configured!"
+       #  print "ADC " + str(self._adc_id) + " configured!"
 
     ##################### Superclass method implementations #################################
 

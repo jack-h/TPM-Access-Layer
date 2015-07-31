@@ -18,10 +18,6 @@ class TPM(FPGABoard):
         # Set hardcoded cpld xml offset address
         self._cpld_xml_offset         = 0x80000004
 
-        # Placeholder for initialised check
-        self._devices_initialised = False
-        self._board_initialised    = False
-
         # Call superclass initialiser
         super(TPM, self).__init__(**kwargs)
 
@@ -32,20 +28,81 @@ class TPM(FPGABoard):
         :param port: Port to connect to
         """
 
-        # Pre-load all required plugins
-        self.load_plugin("TpmFirmwareInformation", device=Device.FPGA_1)
-        self.load_plugin("TpmFirmwareInformation", device=Device.FPGA_2)
+        # Pre-load all required plugins. Board-level devices are loaded here
+        [self.load_plugin("TpmFirmwareInformation", firmware=x) for x in range(1,4)]
         self.load_plugin("TpmPll", board_type="NOTXTPM")
         [self.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
-        self.load_plugin("TpmJesd", device = Device.FPGA_1, core = 0)
-        self.load_plugin('TpmFpga', board_type = 'NOTXTPM', device = Device.FPGA_1)
 
+        # Call connect on super class
         super(TPM, self).connect(ip, port)
 
         # Load CPLD XML file from the board if not simulating
         if not self._simulator and self.id is not None:
             self._initialise_board()
 
+    def get_firmware_list(self, device = Device.Board):
+        """ Get list of downloaded firmware on TPM FLASH
+        :param device: This should always be the board for the TPM
+        :return: List of design name as well as version
+        """
+
+        # Got through all firmware information plugins and extract information
+        firmware = []
+        for plugin in self.tpm_firmware_information:
+            # Update information
+            plugin.update_information()
+
+            # Check if design is valid:
+            if plugin.get_design() is not None:
+                firmware.append({'design' : plugin.get_design(),
+                                 'major'  : plugin.get_major_version(),
+                                 'minor'  : plugin.get_minor_version() })
+        # All done, return
+        return firmware
+
+    def load_firmware(self, device, filepath = None, load_values = False):
+        """ Override superclass load_firmware to extract memory map from the bitfile
+            This is saved in a tmp directory and forwarded to the superclass for
+            processing
+            :param device: The device on which the firmware will be loaded
+            :param filepath: Filepath of the firmware, None if already loaded
+            :param load_values: Register values are loaded
+            """
+
+        # Check if device is valid
+        if device not in [Device.FPGA_1, Device.FPGA_2]:
+            raise LibraryError("TPM devices can only be FPGA_1 and FPGA_2")
+
+        # If a filepath is not provided, then this means that we're loading from the board itself
+        if not filepath:
+
+            # Check if connected
+            if self.id is None:
+                raise LibraryError("Not connected to board, cannot load firmware")
+
+            # Check if register exists in map
+            if device == Device.FPGA_1:
+                loaded = self['board.regfile.fpga1_programmed_fw']
+            else:
+                loaded = self['board.regfile.fpga2_programmed_fw']
+            register = 'board.info.fw%d_xml_offset' % loaded
+            if not self.register_list.has_key(register):
+                raise LibraryError("CPLD XML file must be loaded prior to loading firmware")
+
+            # Get XML file offset and read XML file from board
+            zipped_xml = self._get_xml_file(self[register])
+
+            # Process
+            filepath = "/tmp/xml_file.xml"
+            with open(filepath, "w") as f:
+                # Add necessary XML and write to file
+                f.write("%s%s%s" % ('<node>\n', zipped_xml.replace('id="tpm_test"', 'id="fpga1"'), "</node>"))
+                f.flush()
+
+                # Call superclass with this file
+                super(TPM, self).load_firmware(device = device, filepath = filepath)
+        else:
+            super(TPM, self).load_firmware(device = device, filepath = filepath)
 
     def _initialise_board(self):
         """ Initialise the TPM board """
@@ -85,19 +142,19 @@ class TPM(FPGABoard):
                 # Update device list
                 self.get_device_list(reset = True)
 
+        # Update firmware information
+        [info.update_information() for info in self.tpm_firmware_information ]
+
+        # Initialise devices
+        self._initialise_devices()
+
         # CPLD and SPI XML files have been loaded, check whether FPGA have been programmed
         # If FPGA is programmed, load the firmware's XML file
-        # TODO: This need to be changed for the real TPM
-        self.tpm_firmware_information[0].update_information()
-        if self.tpm_firmware_information[0].get_design != "":
+        if self['board.regfile.fpga1_programmed_fw'] != 0:
             self.load_firmware(device = Device.FPGA_1)
 
-        # self.tpm_firmware_information[1].update_information()
-        # if self.tpm_firmware_information[1].get_design != "":
-        #     self.load_firmware(device = Device.FPGA_2)
-
-        # Set board as initialised
-        self._board_initialised = True
+        if self['board.regfile.fpga2_programmed_fw'] != 0:
+            self.load_firmware(device = Device.FPGA_2)
 
     def _initialise_devices(self, frequency = 700):
         """ Initialise the SPI and other devices on the board """
@@ -108,60 +165,6 @@ class TPM(FPGABoard):
         # Initialise ADCs
         [self.tpm_adc[i].adc_single_start() for i in range(2)]
 
-        # Initialise JESD core
-        self.tpm_jesd.jesd_core_start()
-
-        # Initialise FPGAs
-        self.tpm_fpga.fpga_start(range(4), range(4))
-
-        # Set devices as initialised
-        self._devices_initialised = True
-
-    def load_firmware(self, device, filepath = None, load_values = False):
-        """ Override superclass load_firmware to extract memory map from the bitfile
-            This is saved in a tmp directory and forwarded to the superclass for
-            processing
-            :param device: The device on which the firmware will be loaded
-            :param filepath: Filepath of the firmware, None if already loaded
-            :param load_values:
-            """
-
-        # Check if device is valid
-        if device not in [Device.FPGA_1, Device.FPGA_2]:
-            raise LibraryError("TPM devices can only be FPGA_1 and FPGA_2")
-
-        # If a filepath is not provided, then this means that we're loading from the board itself
-        if not filepath:
-
-            # Check if connected
-            if self.id is None:
-                raise LibraryError("Not connected to board, cannot load firmware")
-
-            # Check if register exists in map
-            register = 'board.info.%s_xml_offset' % ("fpga1" if device == Device.FPGA_1 else "fpga2")
-            if not self.register_list.has_key(register):
-                raise LibraryError("CPLD XML file must be loaded prior to loading firmware")
-
-            # Get XML file offset and read XML file from board
-            zipped_xml = self._get_xml_file(self[register])
-
-            # Process
-            filepath = "/tmp/xml_file.xml"
-            with open(filepath, "w") as f:
-                # Add necessary XML and write to file
-                f.write("%s%s%s" % ('<node>\n', zipped_xml.replace('id="tpm_test"', 'id="fpga1"'), "</node>"))
-                f.flush()
-
-                # Call superclass with this file
-                super(TPM, self).load_firmware(device = device, filepath = filepath)
-        else:
-            super(TPM, self).load_firmware(device = device, filepath = filepath)
-
-        # If devices were not initialised, initialise them now
-        self._initialise_devices()
-
-        # Update firmware information
-        self.tpm_firmware_information[0 if device == Device.FPGA_1 else 1].update_information()
 
     def _get_xml_file(self, xml_offset):
         """ Get XML file from board
@@ -227,7 +230,7 @@ class TPM(FPGABoard):
             else:
                 raise LibraryError("A device name and address need to be specified for writing to SPI devices")
 
-        elif type(key) is str:      
+        elif type(key) is str:
             # Check if device is specified in the register name
             if self.register_list.has_key(key):
                 return self.write_register(key, value)
@@ -257,7 +260,7 @@ class TPM(FPGABoard):
         # Loop over all devices
         string  = "Device%sRegister%sAddress%sBitmask\n" % (' ' * 2, ' ' * 37, ' ' * 8)
         string += "------%s--------%s-------%s-------\n" % (' ' * 2, ' ' * 37, ' ' * 8)
-    
+
         for k, v in registers.iteritems():
             for reg in sorted(v, key = lambda arg : arg['name']):
                 regspace = ' ' * (45 - len(reg['name']))

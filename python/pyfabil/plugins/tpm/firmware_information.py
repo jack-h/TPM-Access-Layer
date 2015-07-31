@@ -1,5 +1,7 @@
 from math import ceil
 import re
+import zlib
+import binascii
 from pyfabil.base.utils import convert_uint_to_string
 
 __author__ = 'lessju'
@@ -14,32 +16,27 @@ class TpmFirmwareInformation(FirmwareBlock):
 
     @compatibleboards(BoardMake.TpmBoard)
     @friendlyname('tpm_firmware_information')
-    @maxinstances(2)
+    @maxinstances(3)
     def __init__(self, board, **kwargs):
         """ TpmPll initialiser
         :param board: Pointer to board instance
         """
         super(TpmFirmwareInformation, self).__init__(board)
 
-        if 'device' not in kwargs.keys():
-            raise PluginError("TpmFirmwareInformation: Require a device instance")
-        device = kwargs['device']
+        if 'firmware' not in kwargs.keys():
+            raise PluginError("TpmFirmwareInformation: Require a firmware number")
+        self._firmware = kwargs['firmware']
 
-        if device == Device.FPGA_1:
-            self._register = 'board.info.fpga1_extended_info_offset'
-        elif device == Device.FPGA_2:
-            self._register = 'board.info.fpga2_extended_info_offset'
-        else:
-            raise PluginError("TpmFirmwareInformation: Invalid device %d" % device)
+        self._register = 'board.info.fw%d_extended_info_offset' % self._firmware
 
         # Check that register is available in register list
-        #if not self.board.register_list.has_key(self._register):
-        #    raise PluginError("TpmFirmwareInformation: CPLD XML file must be processed before plugin can be loaded")
+#        if not self.board.register_list.has_key(self._register):
+#           raise PluginError("TpmFirmwareInformation: CPLD XML file must be processed before plugin can be loaded")
 
         # Extended information regular expression
         self._search_string = re.compile(r'DESIGN: (?P<design>\S+)\s+BOARD: (?P<board>\S+)\s+MAJOR: (?P<major>\d+)\s+'
                                          r'MINOR: (?P<minor>\d+)\s+BUILD: (?P<build>\d+)\s+'
-                                         r'UTC compile time: (?P<time>\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.[\d,\.]+)\s+'
+                                         r'UTC_compile_time: (?P<time>\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.[\d,\.]+)\s+'
                                          r'User: (?P<user>\S+)\s+Host: (?P<host>[a-zA-Z0-9_ -.]+).*', re.IGNORECASE)
 
         # Initialise information
@@ -58,12 +55,19 @@ class TpmFirmwareInformation(FirmwareBlock):
         size = self.board[offset]
 
         # Make sure that the size is not huge (random memory value)
-        if size > 1e6:
+        if size > 1e6 or size in [0, 1]:
             self._reset_information()
             return
 
         data = self.board.read_address(offset + 4, n = int(ceil(size / 4.0)))
-        data = convert_uint_to_string(data)
+        data = ''.join([format(n, '08x') for n in data])
+        try:
+            data = zlib.decompress(binascii.unhexlify(data[: 2 * size]))
+        except:
+            print 'Error reading extended info for firmware %d' % self._firmware
+            self._reset_information()
+            return
+
         res = re.match(self._search_string, data)
 
         if res is None:
@@ -102,14 +106,15 @@ class TpmFirmwareInformation(FirmwareBlock):
         print "Host: %s" % self._host
 
     # Information getters
-    def get_major_version(self): return self._major
-    def get_minor_version(self): return self._minor
-    def get_host(self):          return self._host
-    def get_design(self):        return self._design
-    def get_user(self):          return self._user
-    def get_time(self):          return self._time
-    def get_build(self):         return self._build
-    def get_board(self):         return self._board
+    def get_firmware_number(self): return self._firmware
+    def get_major_version(self):   return self._major
+    def get_minor_version(self):   return self._minor
+    def get_host(self):            return self._host
+    def get_design(self):          return self._design
+    def get_user(self):            return self._user
+    def get_time(self):            return self._time
+    def get_build(self):           return self._build
+    def get_board(self):           return self._board
 
     ##################### Superclass method implementations #################################
 

@@ -41,6 +41,11 @@ class TpmFpga(FirmwareBlock):
         :param enabled_list:
         :return:
         """
+
+        if self.status_check() == Status.OK:
+            print "FPGA OK"
+            return
+
         filter_list = []
         for n in input_list:
             if n in enabled_list:
@@ -51,13 +56,9 @@ class TpmFpga(FirmwareBlock):
             mask = 1 << item
             disabled_input ^= mask
 
-        # TODO: Switch the two below when XML behaviour is implemented
-        # self.board['board.regfile.ctrl'] = 0x0081  # Power down ADCs
-        # self.board['board.regfile.ada_ctrl'] = 0x0000 # 0x1 Turns on ADS
-        # self.board['board.regfile.ethernet_pause'] = 0x0
-        self.board[0x30000008] = 0x0081  # Power down ADCs
-        self.board[0x30000010] = 0x0000 # 0x1 Turns on ADS
-        self.board[0x3000000C] = 0xA000
+        self.board['board.regfile.ctrl'] = 0x0081  # Power down ADCs
+        self.board['board.regfile.ada_ctrl'] = 0x0000 # 0x1 Turns on ADS
+        self.board['board.regfile.ethernet_pause'] = 0xA000
 
         self.board['%s.jesd_buffer.bit_per_sample' % self._device] = 0x8  # bit per sample
         self.board['%s.jesd204_if.regfile_channel_disable' % self._device] = disabled_input
@@ -119,10 +120,11 @@ class TpmFpga(FirmwareBlock):
         logging.info("TpmPll : Checking status")
 
         # Check FPGA PLL is locked and receiving data from the FPGA
-
-        return Status.OK
-
-
+        if self.board['%s.jesd204_if.regfile_status.qpll_locked' % self._device] == 0x1 and \
+           self.board['%s.jesd204_if.regfile_status.valid' % self._device] == 0x1:
+            return Status.OK
+        else:
+            return Status.BoardError
     def clean_up(self):
         """ Perform cleanup
         :return: Success

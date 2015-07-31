@@ -175,10 +175,71 @@ class FPGABoard(object):
             max_instances = constr['_max_instances']
 
         # Count number of instances already loaded
-        # 0 mean an unlimited number can be loaded
+        # 0 means an unlimited number can be loaded
         if max_instances > 0:
             if friendly_name in self.__dict__.keys() and len(self.__dict__[friendly_name]) > max_instances:
                 raise LibraryError("Cannot load more instances on plugin %s" % plugin)
+
+        # Check if a design name is specified in plugin decorator
+        if "_design" in constr:
+            # A design has been specified, check if it is available on the board
+            available_firmware = self.get_firmware_list()
+            # Check if firmware is available
+            if len(available_firmware) == 0:
+                raise LibraryError("No firmware available on board")
+            if type(available_firmware[0]) is str and constr['_design'] not in available_firmware:
+                raise LibraryError("Cannot load plugin %s because firmware %s is not available"
+                                   % (plugin, constr['_design']))
+            elif type(available_firmware[0]) is dict:
+                if constr['_design'] not in [x['design'] for x in available_firmware]:
+                    raise LibraryError("Cannot load plugin %s because firmware %s is not available"
+                                       % (plugin, constr['_design']))
+
+            # Loop over all designs with compatible designs
+            compatible_design = None
+            for i, design in enumerate([x for x in available_firmware if x['design'] == constr['_design']]):
+                # Loop over major and minor version numbers
+                match = True
+                for ver, dver in [('_major', 'major'), ('_minor', 'minor')]:
+                    # Check if version information is specified
+                    if ver in constr and dver in design.keys():
+                        # If major version type is integer, a direct match is required
+                        if type(constr[ver]) is int and design[dver] != constr[ver]:
+                            match = False
+                        # If major version is a string, then a range of version can be defined
+                        elif type(constr[ver]) is str:
+                            if re.match("[<>=]+\d+", constr[ver]):
+                                if not eval(str(design[dver]) + constr[ver]):
+                                    match = False
+                            elif re.match("\d+", constr[ver]):
+                                if int(constr[ver]) != design[dver]:
+                                    match = False
+                            else:
+                                raise LibraryError("Invalid plugin %s %s specification (%s)" % (plugin, dver, constr[ver]))
+                        else:
+                            raise LibraryError("Invalid plugin %s %s specification (%s)" % (plugin, dver, str(constr[ver])))
+
+                # If match is true, then the current design is compatible with plugin requirements
+                if match:
+                    compatible_design = design
+                    break
+
+            # Check if a compatible design was found
+            if compatible_design is not None:
+                print compatible_design
+                if 'device' not in kwargs.keys():
+                    raise LibraryError("Plugin %s with firmware association required a device argument" % plugin)
+
+                # Load firmware on board, which will check if firmware is already loaded
+                # TODO: How to specify firmware when multiple firmware can have the same design name?
+                # try:
+                #     self.load_firmware(kwargs['device'], compatible_design['design'])
+                # except:
+                #     raise LibraryError("Failed to load firmware for plugin %s" % plugin)
+            else:
+                # If no compatible design is found, raise error
+                raise LibraryError("No compatible firmware design %s for plugin %s available on board" %
+                       (constr['_design'], plugin))
 
         # Get list of class methods and remove those available in superclass
         methods = [name for name, mtype in
@@ -301,7 +362,7 @@ class FPGABoard(object):
         """
         return call_get_status(self.id)
 
-    def get_firmware_list(self, device):
+    def get_firmware_list(self, device = Device.Board):
         """ Get list of firmware on board
         :param device: Device on board to get list of firmware
         :return: List of firmware

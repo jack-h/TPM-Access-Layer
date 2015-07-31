@@ -237,3 +237,40 @@ def maxinstances(*args):
         return func
 
     return decorator
+
+# ------------- Firmware association Decorator ----------------
+def firmware(*args):
+    """ A plugin can be associated with a particular firmware
+    :param args: Design name string or dictionary containing design and verion
+    :return: Decorated class
+    """
+
+    def decorator(func):
+        arg = args
+        if len(arg) > 1:
+            arg = args[0]
+
+        # Extract first item of tuple...
+        if type(arg) is tuple:
+            arg = arg[0]
+
+        # If string, assume it refers to design name
+        if type(arg) is str:
+            func.__dict__['_design'] = arg
+
+        # If dict, it should contain design name and may contain major and minor version numbers
+        elif type(arg) is dict:
+            if arg.get('design', None) is None:
+                raise PluginError("Design name must be specified in plugin firmware decorator")
+            func.__dict__['_design'] = arg['design']
+            if arg.get('major', None) is not None:
+                func.__dict__['_major'] = arg['major']
+            if arg.get('minor', None) is not None:
+                func.__dict__['_minor'] = arg['minor']
+        else:
+            raise PluginError("Invalid firmware association for plugin")
+
+        # All done, return
+        return func
+
+    return decorator
