@@ -80,17 +80,13 @@ class TpmAdc(FirmwareBlock):
         logging.info("TpmPll has been initialised")
         return True
 
-
     def status_check(self):
         """ Perform status check
         :return: Status
         """
 
-
-
         logging.info("TpmPll : Checking status")
         return Status.OK
-
 
     def clean_up(self):
         """ Perform cleanup
