@@ -612,13 +612,17 @@ class FPGA_DS (PyTango.Device_4Impl):
                 arguments = pickle.loads(argin)
                 device = arguments['device']
 
-                self.info_stream("Retrieving firmware list...")
-                firmware_list = self.fpga_instance.get_firmware_list(Device(device))
-                argout = pickle.dumps(firmware_list)
-                self.info_stream("Firmware list retreived.")
+                if device is not None:
+                    self.info_stream("Retrieving firmware list...")
+                    firmware_list = self.fpga_instance.get_firmware_list(Device(device))
+                    argout = pickle.dumps(firmware_list)
+                    self.info_stream("Firmware list retreived.")
+                else:
+                    self.info_stream("No device supplied. Retrieval terminated.")
+                    argout = pickle.dumps('')
             except DevFailed as df:
                 self.debug_stream("Failed to get firmware list: %s" % df)
-                argout = ''
+                argout = pickle.dumps('')
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.get_firmware_list
@@ -817,13 +821,21 @@ class FPGA_DS (PyTango.Device_4Impl):
             if words is None:
                 words = 1
 
+            self.info_stream("Reading address...")
             try:
-                self.info_stream("Reading address...")
-                argout = self.fpga_instance.read_address(address, n = words)
+                pass_address = eval(address)
+                result = self.fpga_instance.read_address(pass_address, n = words)
                 self.info_stream("Address read.")
+                if words > 1:
+                    argout = result
+                else:
+                    argout = [result]
             except DevFailed as df:
                 self.debug_stream("Failed to read address: %s" % df)
-                argout = ''
+                argout = []
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = []
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.read_address
@@ -849,12 +861,16 @@ class FPGA_DS (PyTango.Device_4Impl):
             device = arguments['device']
             address = arguments['address']
 
+            self.info_stream("Reading device...")
             try:
-                self.info_stream("Reading device...")
-                argout = self.fpga_instance.read_device(device, address)
+                pass_address = eval(address)
+                argout = self.fpga_instance.read_device(device, pass_address)
                 self.info_stream("Device read.")
             except DevFailed as df:
                 self.debug_stream("Failed to read device: %s" % df)
+                argout = 0
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
                 argout = 0
         else:
            self.debug_stream("Invalid state")
@@ -887,21 +903,29 @@ class FPGA_DS (PyTango.Device_4Impl):
                 offset = 0
 
             reg_info = pickle.loads(self.get_register_info(register))
-            length_register = reg_info['size']
-            if words+offset <= length_register:
-                try:
-                    self.debug_stream("Register: %s" % register)
-                    self.debug_stream("Words: %s" % words)
-                    self.debug_stream("Offset: %s" % offset)
-                    self.debug_stream("Device: %s" % device)
-                    self.info_stream("Reading register...")
-                    argout = self.fpga_instance.read_register(register, n = words, offset = offset, device = Device(device))
-                    self.info_stream("Register read.")
-                except DevFailed as df:
+            try:
+                length_register = reg_info['size']
+                if words+offset <= length_register:
+                        self.debug_stream("Register: %s" % register)
+                        self.debug_stream("Words: %s" % words)
+                        self.debug_stream("Offset: %s" % offset)
+                        self.debug_stream("Device: %s" % device)
+                        self.info_stream("Reading register...")
+                        result = self.fpga_instance.read_register(register, n = words, offset = offset, device = Device(device))
+
+                        if words > 1:
+                            argout = result
+                        else:
+                            argout = [result]
+                        self.info_stream("Register read.")
+                else:
+                    self.info_stream("Register size limit exceeded, no values read.")
+            except DevFailed as df:
                     self.debug_stream("Failed to read register: %s" % df)
-                    argout = [0]
-            else:
-                self.info_stream("Register size limit exceeded, no values read.")
+                    argout = []
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = []
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.read_register
@@ -1007,6 +1031,10 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.info_stream("Attribute levels set.")
             except DevFailed as df:
                 self.debug_stream("Failed to set attribute levels: %s" % df)
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = []
+
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.set_attribute_levels
@@ -1077,10 +1105,14 @@ class FPGA_DS (PyTango.Device_4Impl):
 
             try:
                 self.info_stream("Writing address...")
-                argout = self.fpga_instance.write_address(address = address, values = values)
+                pass_address = eval(address)
+                argout = self.fpga_instance.write_address(address = pass_address, values = values)
                 self.info_stream("Address written.")
             except DevFailed as df:
                 self.debug_stream("Failed to write address: %s" % df)
+                argout = False
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
                 argout = False
         else:
             self.debug_stream("Invalid state")
@@ -1111,10 +1143,14 @@ class FPGA_DS (PyTango.Device_4Impl):
 
             try:
                 self.info_stream("Writing device...")
-                argout = self.fpga_instance.write_device(device = device, address = address, value = value)
+                pass_address = eval(address)
+                argout = self.fpga_instance.write_device(device = device, address = pass_address, value = value)
                 self.info_stream("Device written.")
             except DevFailed as df:
                 self.debug_stream("Failed to write device: %s" % df)
+                argout = False
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
                 argout = False
         else:
             self.debug_stream("Invalid state")
@@ -1156,6 +1192,10 @@ class FPGA_DS (PyTango.Device_4Impl):
                 except DevFailed as df:
                     self.debug_stream("Failed to write register: %s" % df)
                     argout = False
+                except:
+                    self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                    argout = False
+
             else:
                 self.info_stream("Register size limit exceeded, no changes committed.")
         else:
@@ -1174,9 +1214,14 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FPGA_DS.sink_alarm_state) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            self.info_stream("Resetting alarms...")
-            self.set_state(DevState.ON)
-            self.info_stream("Alarms reset.")
+            try:
+                self.info_stream("Resetting alarms...")
+                self.set_state(DevState.ON)
+                self.info_stream("Alarms reset.")
+            except DevFailed as df:
+                self.debug_stream("Failed to reset board: %s" % df)
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.sink_alarm_state
@@ -1259,6 +1304,9 @@ class FPGA_DS (PyTango.Device_4Impl):
                 except DevFailed as df:
                     self.debug_stream("Failed to unload plugin: %s" % df)
                     argout = False
+                except:
+                    self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                    argout = False
             else:
                  self.info_stream("Plugin not found.")
                  argout = False
@@ -1279,13 +1327,21 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FPGA_DS.reset_board) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            self.debug_stream("Unpacking arguments...")
-            arguments = pickle.loads(argin)
-            device = arguments['device']
+            try:
+                self.debug_stream("Unpacking arguments...")
+                arguments = pickle.loads(argin)
+                device = arguments['device']
 
-            self.info_stream("Resetting board...")
-            self.fpga_instance.reset(device = Device(device))
-            self.info_stream("Board reset.")
+                self.info_stream("Resetting board...")
+                self.fpga_instance.reset(device = Device(device))
+                self.info_stream("Board reset.")
+                argout = True
+            except DevFailed as df:
+                self.debug_stream("Failed to reset board: %s" % df)
+                argout = False
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = False
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.reset_board
@@ -1316,6 +1372,9 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to unload all plugins: %s" % df)
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = False
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.unload_all_plugins
