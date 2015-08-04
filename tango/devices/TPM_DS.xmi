@@ -31,7 +31,7 @@
       <argout description="True if command creation was successful, false if not.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="connect" description="Opens the connection to the device." execMethod="connect" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -263,6 +263,15 @@
         <type xsi:type="pogoDsl:VoidType"/>
       </argin>
       <argout description="True if operation successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="update_plugins" description="This command is used to sync the Tango driver with the internal plugin state of the access layer." execMethod="update_plugins" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="Returns true of update was successful.">
         <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
