@@ -28,16 +28,15 @@ class TPM(FPGABoard):
         :param port: Port to connect to
         """
 
-        # Pre-load all required plugins. Board-level devices are loaded here
-        [self.load_plugin("TpmFirmwareInformation", firmware=x) for x in range(1,4)]
-        self.load_plugin("TpmPll", board_type="NOTXTPM")
-        [self.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
-
         # Call connect on super class
         super(TPM, self).connect(ip, port)
 
         # Load CPLD XML file from the board if not simulating
         if not self._simulator and self.id is not None:
+            # Pre-load all required plugins. Board-level devices are loaded here
+            [self.load_plugin("TpmFirmwareInformation", firmware=x) for x in range(1,4)]
+            self.load_plugin("TpmPll", board_type="NOTXTPM")
+            [self.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
             self._initialise_board()
 
     def get_firmware_list(self, device = Device.Board):
