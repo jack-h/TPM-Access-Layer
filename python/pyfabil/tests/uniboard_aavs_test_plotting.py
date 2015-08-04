@@ -30,23 +30,16 @@
 # System imports
 
 import array
-import operator
-import os
-import time
-import pickle  # needed for binairy file write
-import pylab as pl
 import numpy as np
 import scipy as sp
 import scipy.io as spio
-import math
-import unb_hw as unb
-from tools import *
-import unb_apertif as apr
-import node_io
-import pi_st_sst
-import pi_bsn_source
-import pi_bsn_scheduler
-from eth_udp_diag import *
+
+import pylab as pl
+
+#import unb_hw as unb
+#from tools import *
+#import unb_apertif as apr
+#from eth_udp_diag import *
 from pyfabil.base.utils import *
 
 
@@ -96,8 +89,8 @@ class Stati_functions:
         self.xcor_label=[]
         self.FFT_stati_gain=-18
         f_as = []
-        for k in range(apr.c_fft_size/2):
-            f_as.append(float(k*400)/(apr.c_fft_size/2));
+     #   for k in range(apr.c_fft_size/2):
+     #       f_as.append(float(k*400)/(apr.c_fft_size/2));
         self.sb_fas = f_as
         self.show_figs = 1
         self.pl_sb_data=[]
@@ -610,7 +603,7 @@ class Stati_functions:
             bn = nodeBnIndices[bi]
             for si in range(nofSp):
                 sp = spNrs[si]
-                channel_nr = bn*unb.c_nof_sp+sp
+                channel_nr = bn*16+sp
                 label = 'SI'+ str(channel_nr)
                 si_label.append(label)
                 si_nr.append(channel_nr)
@@ -1033,8 +1026,8 @@ class Stati_functions:
       max_beams = np.max(np.max(nof_beamlets_per_iblet))
       for node_cnt in range(nofFnNodes):
           for BFunit_cnt in range(c_nof_bf_units):
-              for stat_cnt in range(len(bl_data[node_cnt * apr.c_nof_bf_units + BFunit_cnt])):
-                  single_row_beamlet_data.append(bl_data[node_cnt * apr.c_nof_bf_units + BFunit_cnt][stat_cnt])
+              for stat_cnt in range(len(bl_data[node_cnt * 4 + BFunit_cnt])):
+                  single_row_beamlet_data.append(bl_data[node_cnt * 4 + BFunit_cnt][stat_cnt])
       # make data [subband][beam]-oriented
       stati_cnt = 0
       sb_oriented_bl = []

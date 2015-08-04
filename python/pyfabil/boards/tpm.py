@@ -1,3 +1,4 @@
+import os
 from pyfabil.boards.fpgaboard import FPGABoard, DeviceNames
 from pyfabil.base.definitions import *
 from math import ceil
@@ -21,7 +22,6 @@ class TPM(FPGABoard):
         # Call superclass initialiser
         super(TPM, self).__init__(**kwargs)
 
-
     def connect(self, ip, port):
         """ Overload connect method
         :param ip: IP address to connect to
@@ -32,12 +32,14 @@ class TPM(FPGABoard):
         super(TPM, self).connect(ip, port)
 
         # Load CPLD XML file from the board if not simulating
-        if not self._simulator and self.id is not None:
+        if (not self._simulator) and self.id is not None:
             # Pre-load all required plugins. Board-level devices are loaded here
             [self.load_plugin("TpmFirmwareInformation", firmware=x) for x in range(1,4)]
             self.load_plugin("TpmPll", board_type="NOTXTPM")
             [self.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
             self._initialise_board()
+        else:
+            print "Running in simulation mode"
 
     def get_firmware_list(self, device = Device.Board):
         """ Get list of downloaded firmware on TPM FLASH
@@ -69,7 +71,7 @@ class TPM(FPGABoard):
             """
 
         # Check if device is valid
-        if device not in [Device.FPGA_1, Device.FPGA_2]:
+        if device not in [Device.Board, Device.FPGA_1, Device.FPGA_2]:
             raise LibraryError("TPM devices can only be FPGA_1 and FPGA_2")
 
         # If a filepath is not provided, then this means that we're loading from the board itself
@@ -101,6 +103,10 @@ class TPM(FPGABoard):
                 # Call superclass with this file
                 super(TPM, self).load_firmware(device = device, filepath = filepath)
         else:
+            # Check if file exists
+            if not os.path.exists(filepath):
+                raise LibraryError("Cannot load firmware with file %s, does not exist" % filepath)
+            # Call load firmware method on super class
             super(TPM, self).load_firmware(device = device, filepath = filepath)
 
     def _initialise_board(self):

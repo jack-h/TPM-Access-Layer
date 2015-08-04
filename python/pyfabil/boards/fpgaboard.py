@@ -9,7 +9,7 @@ import re
 # --------------- Helpers ------------------------------
 from pyfabil.plugins.firmwareblock import FirmwareBlock
 
-DeviceNames = { Device.Board : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2",
+DeviceNames = { Device.Board  : "Board", Device.FPGA_1 : "FPGA 1", Device.FPGA_2 : "FPGA 2",
                 Device.FPGA_3 : "FPGA 3", Device.FPGA_4 : "FPGA 4", Device.FPGA_5 : "FPGA 5",
                 Device.FPGA_6 : "FPGA 6", Device.FPGA_7 : "FPGA 7", Device.FPGA_8 : "FPGA 8"}
 # ------------------------------------------------------
@@ -24,7 +24,7 @@ class FPGABoard(object):
 
         # Set defaults
         self.status        = {Device.Board : Status.NotConnected}
-        self._programmed   = {Device.Board : False}
+        self._programmed   = {Device.Board : False, Device.FPGA_1 : False, Device.FPGA_2 : False}
         self.register_list = None
         self._firmwareList = None
         self._fpga_board   = 0
@@ -424,8 +424,9 @@ class FPGABoard(object):
             return self.register_list
 
         # Check if device is programmed
+        # TODO: Make this compatible with UniBoard
         if not self._programmed[Device.Board]:
-            raise LibraryError("Cannot get_register_list from board which has not been programmed")
+           raise LibraryError("Cannot get_register_list from board which has not been programmed")
 
         # Call function
         self.register_list = call_get_register_list(self.id, load_values)
@@ -708,8 +709,9 @@ class FPGABoard(object):
             raise LibraryError("Cannot perform operation on unconnected board")
 
         # Check if device is programmed
+        # TODO: Make compatbile with UniBoard
         if device is not None and not self._programmed[device]:
-            raise LibraryError("Cannot getRegisterList from board which has not been programmed")
+           raise LibraryError("Cannot getRegisterList from board which has not been programmed")
 
         # Check if register list has been populated
         if self.register_list is None:

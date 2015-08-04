@@ -142,33 +142,33 @@ fig_cnt  = 0
 # in $UNB\Firmware\dsp\filter\build\data\*.mif.
 # This code shows how to upload different coefficients.
 #######################################################################
-# if c_write_coefs:
-#     # Read all the coefficients from the file into a list.
-#     coefs_list_from_file =[]
-#     f = file(c_coefs_input_file, "r")
-#     for i in range(c_nof_coefs_in_file):
-#         s = int(f.readline())
-#         s &= 2 ** c_coefs_width - 1
-#         coefs_list_from_file.append(s)
-#     f.close()
-#
-#     # Downsample the list to the number of required coefficients, based on the c_nof_taps and the c_fft_size
-#     coefs_list = []
-#     for i in range(c_nof_taps*c_fft_size):
-#         s = coefs_list_from_file[i*c_downsample_factor]
-#         coefs_list.append(s)
-#
-#     # Write the coefficients to the memories
-#     for l in range(c_nof_input_signals_per_bn):
-#         for k in range(c_wb_factor):
-#             for j in range(c_nof_taps):
-#                 write_list=[]
-#                 for i in range(c_fft_size/c_wb_factor):
-#                     write_list.append(coefs_list[j*c_fft_size+i*c_wb_factor + c_wb_factor-1-k])
-#                 write_list_rev = []
-#                 for i in range(c_fft_size/c_wb_factor):                          # Reverse the list
-#                     write_list_rev.append(write_list[c_fft_size/c_wb_factor-i-1])
-#                 fil.write_coefs(write_list_rev,l,j,k)
+if c_write_coefs:
+    # Read all the coefficients from the file into a list.
+    coefs_list_from_file =[]
+    f = file(c_coefs_input_file, "r")
+    for i in range(c_nof_coefs_in_file):
+        s = int(f.readline())
+        s &= 2 ** c_coefs_width - 1
+        coefs_list_from_file.append(s)
+    f.close()
+
+    # Downsample the list to the number of required coefficients, based on the c_nof_taps and the c_fft_size
+    coefs_list = []
+    for i in range(c_nof_taps*c_fft_size):
+        s = coefs_list_from_file[i*c_downsample_factor]
+        coefs_list.append(s)
+
+    # Write the coefficients to the memories
+    for l in range(c_nof_input_signals_per_bn):
+        for k in range(c_wb_factor):
+            for j in range(c_nof_taps):
+                write_list=[]
+                for i in range(c_fft_size/c_wb_factor):
+                    write_list.append(coefs_list[j*c_fft_size+i*c_wb_factor + c_wb_factor-1-k])
+                write_list_rev = []
+                for i in range(c_fft_size/c_wb_factor):                          # Reverse the list
+                    write_list_rev.append(write_list[c_fft_size/c_wb_factor-i-1])
+                fil.write_coefs(write_list_rev,l,j,k)
 
 # Stop the datastream that is currently running
 bsn_source.write_disable()
