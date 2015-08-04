@@ -91,7 +91,7 @@ class TPM_DS (FPGA_DS):
         self.attr_ip_address_read = ''
         self.attr_port_read = 0
         #----- PROTECTED REGION ID(TPM_DS.init_device) ENABLED START -----#
-        self.fpga_instance = TPM()
+        self.fpga_instance = TPM(simulator = True)
         #----- PROTECTED REGION END -----#	//	TPM_DS.init_device
 
     def always_executed_hook(self):
@@ -515,6 +515,7 @@ class TPM_DS (FPGA_DS):
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")
+                self.update_plugins()
                 argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to load firmware: %s" % df)
@@ -565,6 +566,20 @@ class TPM_DS (FPGA_DS):
         #----- PROTECTED REGION ID(TPM_DS.unload_all_plugins) ENABLED START -----#
         argout = super(TPM_DS, self).unload_all_plugins()
         #----- PROTECTED REGION END -----#	//	TPM_DS.unload_all_plugins
+        return argout
+        
+    def update_plugins(self):
+        """ This command is used to sync the Tango driver with the internal plugin state of the access layer.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: Returns true of update was successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In update_plugins()")
+        argout = False
+        #----- PROTECTED REGION ID(TPM_DS.update_plugins) ENABLED START -----#
+        argout = super(TPM_DS, self).update_plugins()
+        #----- PROTECTED REGION END -----#	//	TPM_DS.update_plugins
         return argout
         
 
@@ -692,6 +707,9 @@ class TPM_DSClass(FPGA_DSClass):
         'unload_all_plugins':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevBoolean, "True if operation successful."]],
+        'update_plugins':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevBoolean, "Returns true of update was successful."]],
         }
     cmd_list.update(FPGA_DSClass.cmd_list)
 

@@ -69,6 +69,7 @@ class FPGA_DS (PyTango.Device_4Impl):
     all_states_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     plugin_cmd_list = {}
+    plugin_state_list ={}
 
     # State flow definitions - allowed states for each command
     state_list = {
@@ -98,6 +99,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         'write_device': all_states_list,
         'write_register': all_states_list,
         'reset_board': all_states_list,
+        'update_plugins': all_states_list,
         'sink_alarm_state': all_states_list
     }
 
@@ -120,7 +122,7 @@ class FPGA_DS (PyTango.Device_4Impl):
 
         if command_name in self.plugin_cmd_list:
             self.info_stream("Called existent command: %s" % command_name)
-            state_ok = self.check_state_flow(command_name)
+            state_ok = self.check_state_flow_plugin(command_name)
             if state_ok:
                 try:
                     argin_dict = pickle.loads(arginput)
@@ -161,6 +163,29 @@ class FPGA_DS (PyTango.Device_4Impl):
         # get allowed states for this command
         try:
             fnAllowedStates = self.state_list[fnName]
+            allowed = self.attr_board_state_read in fnAllowedStates
+            argout = allowed
+            if allowed:
+                self.debug_stream("Permission verified.")
+            else:
+                self.debug_stream("Permission denied.")
+        except DevFailed as df:
+            self.info_stream("Failed to check state flow: %s" % df)
+            argout = False
+        finally:
+            return argout
+
+    def check_state_flow_plugin(self, fnName):
+        """ Checks if the current state the device is in one of the states in a given list of allowed states for a paticular function.
+        :param : Name of command to be executed
+        :type: String
+        :return: True if allowed, false if not.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In check_state_flow() for %s" % fnName)
+        argout = False
+        # get allowed states for this command
+        try:
+            fnAllowedStates = self.plugin_state_list[fnName]
             allowed = self.attr_board_state_read in fnAllowedStates
             argout = allowed
             if allowed:
@@ -395,7 +420,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 inDesc = arguments['inDesc']
                 outDesc = arguments['outDesc']
                 allowedStates = arguments['states']
-                self.state_list[commandName] = allowedStates
+                self.plugin_state_list[commandName] = allowedStates
                 self.plugin_cmd_list[commandName] = [[PyTango.DevString, inDesc], [PyTango.DevString, outDesc]]
                 #self.cmd_list[commandName] = [[PyTango.DevString, inDesc], [PyTango.DevString, outDesc]]
                 argout = True
@@ -424,6 +449,9 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.info_stream("Connecting...")
                 self.fpga_instance.connect(self.attr_ip_address_read, self.attr_port_read)
                 self.info_stream("Connected to board.")
+                self.info_stream("Setting up plugins...")
+                self.update_plugins()
+                self.info_stream("Plugins ready.")
             except DevFailed as df:
                 self.debug_stream("Failed to connect: %s" % df)
         else:
@@ -762,12 +790,18 @@ class FPGA_DS (PyTango.Device_4Impl):
                     plugin_index = class_names.index(plugin_name_load)
                     plugin_friendly_name = friendly_names[plugin_index]
                     plugin_class_name = class_names[plugin_index]
+
+                    plugin_instances = 0
+                    if self.fpga_instance.__dict__:
+                        plugin_instances = len(getattr(self.fpga_instance, plugin_friendly_name))
+                        self.info_stream("Instances present before loading: %s" % plugin_instances)
+
                     self.fpga_instance.load_plugin(plugin_class_name, **kw_args)
 
                     plugin_instances = 0
                     if self.fpga_instance.__dict__:
                         plugin_instances = len(getattr(self.fpga_instance, plugin_friendly_name))
-                        self.info_stream("Instances already present: %s" % plugin_instances)
+                        self.info_stream("Instances now present: %s" % plugin_instances)
 
 
                     plugins_dict = self.fpga_instance.get_loaded_plugins()
@@ -945,13 +979,17 @@ class FPGA_DS (PyTango.Device_4Impl):
         if state_ok:
             try:
                 self.info_stream("Removing command from device...")
+                #self.info_stream(self.cmd_list)
                 del self.plugin_cmd_list[argin]
-                del self.state_list[argin]
                 self.info_stream("Updating state flow...")
+                del self.plugin_state_list[argin]
                 argout = True
                 self.info_stream("Command removed.")
             except DevFailed as df:
                 print("Failed to remove command entry in device server: \n%s" % df)
+                argout = False
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
                 argout = False
             finally:
                 return argout
@@ -977,8 +1015,8 @@ class FPGA_DS (PyTango.Device_4Impl):
             fnName = arguments['fnName']
             fnInput = arguments['fnInput']
 
-            self.info_stream("About to run arbitrary command: %s" % fnName)
             if fnName in self.plugin_cmd_list:
+                self.info_stream("About to run arbitrary command: %s" % fnName)
                 methodCalled = getattr(self, fnName)
                 self.info_stream("Calling method: %s" % methodCalled)
                 try:
@@ -990,6 +1028,8 @@ class FPGA_DS (PyTango.Device_4Impl):
                     argout = ''
                 finally:
                     return argout
+            else:
+                self.info_stream("Command does not exist.")
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.run_plugin_command
@@ -1108,6 +1148,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 pass_address = eval(address)
                 argout = self.fpga_instance.write_address(address = pass_address, values = values)
                 self.info_stream("Address written.")
+                argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to write address: %s" % df)
                 argout = False
@@ -1146,6 +1187,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 pass_address = eval(address)
                 argout = self.fpga_instance.write_device(device = device, address = pass_address, value = value)
                 self.info_stream("Device written.")
+                argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to write device: %s" % df)
                 argout = False
@@ -1181,23 +1223,22 @@ class FPGA_DS (PyTango.Device_4Impl):
                 offset = 0
 
             reg_info = pickle.loads(self.get_register_info(register))
-            length_register = reg_info['size']
-            length_values = len(values)
-            if length_values+offset <= length_register:
-                try:
-                    self.info_stream("Writing register...")
-                    argout = self.fpga_instance.write_register(register, values, offset = offset, device = Device(device))
-                    argout = True
-                    self.info_stream("Register written.")
-                except DevFailed as df:
-                    self.debug_stream("Failed to write register: %s" % df)
-                    argout = False
-                except:
-                    self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
-                    argout = False
-
-            else:
-                self.info_stream("Register size limit exceeded, no changes committed.")
+            try:
+                length_register = reg_info['size']
+                length_values = len(values)
+                if length_values+offset <= length_register:
+                        self.info_stream("Writing register...")
+                        argout = self.fpga_instance.write_register(register, values, offset = offset, device = Device(device))
+                        argout = True
+                        self.info_stream("Register written.")
+                else:
+                    self.info_stream("Register size limit exceeded, no changes committed.")
+            except DevFailed as df:
+                self.debug_stream("Failed to write register: %s" % df)
+                argout = False
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = False
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.write_register
@@ -1243,64 +1284,27 @@ class FPGA_DS (PyTango.Device_4Impl):
             plugin = arguments['plugin']
             instance = arguments['instance']
 
-            self.debug_stream("Checking argument values...")
-            if instance is None:
-                instance = -1
-
             plugin_list = self.fpga_instance.get_available_plugins()
-            self.debug_stream("List of plugins: %s" % plugin_list)
             class_names = plugin_list.keys()
-            self.debug_stream("List of plugins class names: %s" % class_names)
             friendly_names = plugin_list.values()
 
             plugin_name_unload = plugin
+            self.info_stream("Plugin to remove: %s" % plugin_name_unload)
 
-            if plugin_name_unload in class_names:
+            if plugin_name_unload in friendly_names:
                 try:
-                    plugin_index = class_names.index(plugin_name_unload)
-                    plugin_friendly_name = friendly_names[plugin_index]
+                    plugin_index = friendly_names.index(plugin_name_unload)
                     plugin_class_name = class_names[plugin_index]
+                    plugin_friendly_name = friendly_names[plugin_index]
 
-                    self.info_stream("Checking for active plugin instances...")
-                    if self.fpga_instance.__dict__:
-                        plugin_instances = len(getattr(self.fpga_instance, plugin_friendly_name))
-                        self.info_stream("Instances already present: %s" % plugin_instances)
-
-                    self.info_stream("Checking for appropriate instance pointer...")
-                    if instance > 0:
-                        valid = instance <= plugin_instances
-                        if valid:
-                            self.info_stream("Unloading plugin instance from board...")
-                            self.fpga_instance.unload_plugin(plugin_class_name, instance)
-                            self.info_stream("Plugin instance unloaded.")
-                            plugin_command_prefix = plugin_friendly_name+'['+str(instance-1)+']'
-                        else:
-                            self.info_stream("Incorrect instance pointer.")
-                            argout = False
-                    elif instance == -1:
-                        valid = True
-                        self.info_stream("Unloading plugin (all) from board...")
-                        self.fpga_instance.unload_plugin(plugin_class_name)
-                        self.info_stream("Plugin (all) unloaded.")
-                        plugin_command_prefix = plugin_friendly_name+'['
-
-                    if valid:
-                        self.info_stream("Removing plugin commands from TANGO...")
-                        indices = [i for i, plugin_name in enumerate(self.plugin_cmd_list) if plugin_command_prefix in plugin_name]
-                        self.debug_stream("Plugin commands found @ %s" % indices)
-                        for i in indices:
-                            del self.plugin_cmd_list[i]
-
-                        self.info_stream("Removing plugin state control from TANGO...")
-                        indices = [i for i, state_name in enumerate(self.state_list) if plugin_command_prefix in state_name]
-                        self.debug_stream("Plugin state controls found @ %s" % indices)
-                        for i in indices:
-                            del self.state_list[i]
-
-                        argout = True
+                    if instance is None:
+                        self.fpga_instance.unload_plugin(plugin_friendly_name)
                     else:
-                        self.info_stream("No TANGO plugin entries removed.")
-                        argout = False
+                        self.fpga_instance.unload_plugin(plugin_friendly_name, instance = instance)
+
+                    self.info_stream("Plugin removed.")
+                    self.update_plugins()
+                    argout = True
                 except DevFailed as df:
                     self.debug_stream("Failed to unload plugin: %s" % df)
                     argout = False
@@ -1359,25 +1363,73 @@ class FPGA_DS (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FPGA_DS.unload_all_plugins) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
-            try:
-                plugins_dict = self.fpga_instance.get_loaded_plugins()
-                for plugin_friendly_name in plugins_dict:
-                    arguments = {'plugin': plugin_friendly_name, 'instance': None}
-                    args = pickle.dumps(arguments)
-                    self.unload_plugin(args)
-
-                self.info_stream("Cleaning up...")
-                self.fpga_instance.unload_all_plugins()
-                self.info_stream("All plugins removed.")
-                argout = True
-            except DevFailed as df:
-                self.debug_stream("Failed to unload all plugins: %s" % df)
-            except:
-                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
-                argout = False
+            self.info_stream("Cleaning up...")
+            self.fpga_instance.unload_all_plugins()
+            self.update_plugins()
+            self.info_stream("All plugins removed.")
+            argout = True
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	FPGA_DS.unload_all_plugins
+        return argout
+        
+    def update_plugins(self):
+        """ This command is used to sync the Tango driver with the internal plugin state of the access layer.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: Returns true of update was successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In update_plugins()")
+        argout = False
+        #----- PROTECTED REGION ID(FPGA_DS.update_plugins) ENABLED START -----#
+        state_ok = self.check_state_flow(inspect.stack()[0][3])
+        if state_ok:
+            try:
+                self.info_stream("Updating plugins...")
+                self.plugin_cmd_list = {}
+                self.plugin_state_list = {}
+
+                self.info_stream("Old registry removed. Rebuilding...")
+                plugins_dict = self.fpga_instance.get_loaded_plugins() # friendly name
+
+                for plugin_friendly_name in plugins_dict:
+                    # Find how many instances of this plugin exist
+                    plugin_instances = 0
+                    if self.fpga_instance.__dict__:
+                        plugin_instances = len(getattr(self.fpga_instance, plugin_friendly_name))
+
+                    # for every instance
+                    for i in range(1, plugin_instances):
+                        for command in plugins_dict[plugin_friendly_name]:
+                            full_command_name = plugin_friendly_name+'['+str(i-1)+']'+'.'+command
+                            self.info_stream("Adding commands: %s" % full_command_name)
+                            arguments = {}
+                            arguments['commandName'] = full_command_name
+                            arguments['inDesc'] = ''
+                            arguments['outDesc'] = ''
+                            arguments['states'] = self.all_states_list
+                            args = pickle.dumps(arguments)
+                            result = self.add_command(args)
+                            if result == True:
+                                self.info_stream("Command [%s].[%s] created successfully in device server." % (plugin_friendly_name, full_command_name))
+                                try:
+                                    self.__dict__[full_command_name] = lambda input: self.call_plugin_command(input)
+                                except DevFailed as df:
+                                    self.debug_stream("Failed to create lambda expression: %s" % df)
+                                    self.info_stream("Command [%s].[%s] not created" % full_command_name)
+                            else:
+                                self.info_stream("Command [%s].[%s] not created" % full_command_name)
+
+                self.info_stream("Plugins updated.")
+                argout = True
+            except DevFailed as df:
+                self.debug_stream("Failed to update plugins: %s" % df)
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+        else:
+            self.debug_stream("Invalid state")
+        #----- PROTECTED REGION END -----#	//	FPGA_DS.update_plugins
         return argout
         
 
@@ -1503,6 +1555,9 @@ class FPGA_DSClass(PyTango.DeviceClass):
         'unload_all_plugins':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevBoolean, "True if operation successful."]],
+        'update_plugins':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevBoolean, "Returns true of update was successful."]],
         }
 
 
