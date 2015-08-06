@@ -122,6 +122,7 @@ class TpmFpga(FirmwareBlock):
         # Check FPGA PLL is locked and receiving data from the FPGA
         if self.board['%s.jesd204_if.regfile_status.qpll_locked' % self._device] == 0x1 and \
            self.board['%s.jesd204_if.regfile_status.valid' % self._device] == 0x1:
+            print 'FPGA already initialised'
             return Status.OK
         else:
             return Status.BoardError

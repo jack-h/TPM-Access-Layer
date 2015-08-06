@@ -20,9 +20,9 @@ class Roach(FPGABoard):
         super(Roach, self).connect(ip, port)
 
         # Check if ROACH is programmed (has any registers loaded)
-        self._programmed = True
+        self._programmed = {Device.Board : True}
         if len(self.get_register_list()) == 0:
-            self._programmed = False
+            self._programmed[Device.FPGA_1] = False
 
     def get_register_list(self, reset = False, load_values = False):
         """ Add functionality to getRegisterList in order to map register names 
@@ -59,9 +59,9 @@ class Roach(FPGABoard):
         """ Roach helper for writeRegister"""
         return super(Roach, self).write_register(register, values, offset, device = Device.FPGA_1)
 
-    def load_firmware(self, device, boffile = None, load_values = False):
+    def load_firmware(self, boffile = None, load_values = False):
         """ Roach helper for loadFirmwareBlocking """
-        return super(Roach, self).load_firmware(Device.FPGA_1, boffile)
+        return super(Roach, self).load_firmware(Device.FPGA_1, filepath = boffile)
 
     def read_address(self, address, n = 1, device = None):
         """ Roach helper for readAddress """
@@ -142,7 +142,7 @@ class Roach(FPGABoard):
         super(Roach, self).list_register_names()
         return ""
 
-# if __name__ == '__main__':
-#     roach = Roach(ip="192.168.100.2", port=7147)
-#     roach.load_firmware_blocking('tut1_2015_Apr_11_1544.bof')
-#     print roach.a
+if __name__ == '__main__':
+    roach = Roach(ip="192.168.100.2", port=7147)
+    roach.load_firmware('tut4.bof')
+    print roach

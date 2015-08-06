@@ -343,6 +343,7 @@ class TpmPll(FirmwareBlock):
         logging.info("TpmPll : Checking status")
 
         if self.board[('pll', 0x508)] not in [0xF2, 0xE7]:
+            print 'PLL not initialised'
             return Status.BoardError
         return Status.OK
 

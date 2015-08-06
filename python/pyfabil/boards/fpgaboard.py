@@ -39,6 +39,10 @@ class FPGABoard(object):
         self._getAttributeNames = None
         self.__members__        = None
 
+        # Initialise list of available and loaded plugins
+        self._available_plugins = {}
+        self._loaded_plugins = { }
+
         # Used by __setattr__ to know how to handle new attributes
         self.__initialised = True  
 
@@ -46,10 +50,6 @@ class FPGABoard(object):
         self._fpga_board = kwargs.get('fpgaBoard', None)
         if self._fpga_board is None:
             raise LibraryError("No BoarMake specified in FPGABoard initialiser")
-
-        # Initialise list of available and loaded plugins
-        self._available_plugins = {}
-        self._loaded_plugins = { }
 
         # Get list of available plugins which are compatible with board instance
         # noinspection PyUnresolvedReferences
