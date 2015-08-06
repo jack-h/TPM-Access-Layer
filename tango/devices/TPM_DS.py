@@ -310,12 +310,14 @@ class TPM_DS (FPGA_DS):
         
         :param argin: Name of plugin. Case sensitive.
         :type: PyTango.DevString
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Return True if successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In load_plugin()")
+        argout = False
         #----- PROTECTED REGION ID(TPM_DS.load_plugin) ENABLED START -----#
-        super(TPM_DS, self).load_plugin(argin)
+        argout = super(TPM_DS, self).load_plugin(argin)
         #----- PROTECTED REGION END -----#	//	TPM_DS.load_plugin
+        return argout
         
     def read_address(self, argin):
         """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
@@ -661,7 +663,7 @@ class TPM_DSClass(FPGA_DSClass):
             [PyTango.DevVarStringArray, "List of register names."]],
         'load_plugin':
             [[PyTango.DevString, "Name of plugin. Case sensitive."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Return True if successful."]],
         'read_address':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevVarULongArray, "Register values."]],

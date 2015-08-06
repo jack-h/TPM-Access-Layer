@@ -49,14 +49,14 @@ __docformat__ = 'restructuredtext'
 import PyTango
 import sys
 # Add additional import
-#----- PROTECTED REGION ID(FPGA_DS.additionnal_import) ENABLED START -----#
+# ----- PROTECTED REGION ID(FPGA_DS.additionnal_import) ENABLED START -----#
 from PyTango import DevState, Util, Attr, SpectrumAttr, Attribute, MultiAttribute
 from PyTango._PyTango import DevFailed, DevFailed
 from pyfabil import Device, BoardState
 from types import *
 import pickle
 import inspect
-#----- PROTECTED REGION END -----#	//	FPGA_DS.additionnal_import
+# ----- PROTECTED REGION END -----#	//	FPGA_DS.additionnal_import
 
 ## Device States Description
 ## ON : Device is ON for alarm/event handling.
@@ -65,11 +65,11 @@ import inspect
 class FPGA_DS (PyTango.Device_4Impl):
 
     #--------- Add you global variables here --------------------------
-    #----- PROTECTED REGION ID(FPGA_DS.global_variables) ENABLED START -----#
+    # ----- PROTECTED REGION ID(FPGA_DS.global_variables) ENABLED START -----#
     all_states_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     plugin_cmd_list = {}
-    plugin_state_list ={}
+    plugin_state_list = {}
 
     # State flow definitions - allowed states for each command
     state_list = {
@@ -103,7 +103,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         'sink_alarm_state': all_states_list
     }
 
-    def call_plugin_command(self, argin = None):
+    def call_plugin_command(self, argin=None):
         """ This method is responsible for calling a command from attached plugins.
         The input to this command has to include a set of arguments required by the command to be called.
 
@@ -126,23 +126,23 @@ class FPGA_DS (PyTango.Device_4Impl):
             if state_ok:
                 try:
                     argin_dict = pickle.loads(arginput)
-                    #self.info_stream("Input to command: %s" % argin_dict)
+                    # self.info_stream("Input to command: %s" % argin_dict)
                     if argin_dict:
                         self.info_stream("Call with parameters")
                         argout = eval('self.fpga_instance.%s' % command_name(arginput))
 
-                        #command_trace = command_name.split('.')
-                        #argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])(arginput)
+                        # command_trace = command_name.split('.')
+                        # argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])(arginput)
                     else:
                         self.info_stream("Call without parameters")
                         argout = eval('self.fpga_instance.%s' % command_name())
 
-                        #command_trace = command_name.split('.')
-                        #a = 'tpm_adc[0].initliase(asdflkasjdk)'
-                        #res = eval('self.fpga_instance.%s' % a)
-                        #getattr(self.fpga_instance, command_name[0])
+                        # command_trace = command_name.split('.')
+                        # a = 'tpm_adc[0].initliase(asdflkasjdk)'
+                        # res = eval('self.fpga_instance.%s' % a)
+                        # getattr(self.fpga_instance, command_name[0])
 
-                        #argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])()
+                        # argout = getattr(getattr(self.fpga_instance, command_trace[0]), command_trace[1])()
                 except DevFailed as df:
                     self.info_stream("Failed to run plugin command: %s" % df)
                     argout = ''
@@ -240,8 +240,8 @@ class FPGA_DS (PyTango.Device_4Impl):
         arguments['words'] = 1
         arguments['offset'] = 0
         args = str(arguments)
-        values_array = self.read_register(args)  #get actual value by reading from register
-        attr.set_value(values_array[0]) # readRegister returns an array, so a scalar requires a read from 0'th location
+        values_array = self.read_register(args)  # get actual value by reading from register
+        attr.set_value(values_array[0])  # readRegister returns an array, so a scalar requires a read from 0'th location
 
     def write_general_scalar(self, attr):
         """ A method that writes to a scalar attribute.
@@ -276,8 +276,8 @@ class FPGA_DS (PyTango.Device_4Impl):
         arguments['words'] = 1
         arguments['offset'] = 0
         args = str(arguments)
-        values_array = self.read_register(args)  #get actual values by reading from register
-        attr.set_value(values_array) # readRegister returns an array
+        values_array = self.read_register(args)  # get actual values by reading from register
+        attr.set_value(values_array)  # readRegister returns an array
 
     def write_general_vector(self, attr):
         """ A method that writes to a vector attribute.
@@ -297,21 +297,21 @@ class FPGA_DS (PyTango.Device_4Impl):
         args = str(arguments)
         self.write_register(args)
 
-    #----- PROTECTED REGION END -----#	//	FPGA_DS.global_variables
+    # ----- PROTECTED REGION END -----#	//	FPGA_DS.global_variables
 
     def __init__(self,cl, name):
         PyTango.Device_4Impl.__init__(self,cl,name)
         self.debug_stream("In __init__()")
         FPGA_DS.init_device(self)
-        #----- PROTECTED REGION ID(FPGA_DS.__init__) ENABLED START -----#
-        #self.fpga_instance = None
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.__init__
+        # ----- PROTECTED REGION ID(FPGA_DS.__init__) ENABLED START -----#
+        # self.fpga_instance = None
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.__init__
         
     def delete_device(self):
         self.debug_stream("In delete_device()")
-        #----- PROTECTED REGION ID(FPGA_DS.delete_device) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.delete_device
+        # ----- PROTECTED REGION ID(FPGA_DS.delete_device) ENABLED START -----#
+
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.delete_device
 
     def init_device(self):
         self.debug_stream("In init_device()")
@@ -320,19 +320,19 @@ class FPGA_DS (PyTango.Device_4Impl):
         self.attr_is_programmed_read = False
         self.attr_ip_address_read = ''
         self.attr_port_read = 0
-        #----- PROTECTED REGION ID(FPGA_DS.init_device) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.init_device) ENABLED START -----#
         self.info_stream("Starting device initialization...")
         self.set_state(DevState.ON)
         self.set_board_state(BoardState.Init.value)
         self.fpga_instance = []
         self.info_stream("Device has been initialized.")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.init_device
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.init_device
 
     def always_executed_hook(self):
         self.debug_stream("In always_excuted_hook()")
-        #----- PROTECTED REGION ID(FPGA_DS.always_executed_hook) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.always_executed_hook
+        # ----- PROTECTED REGION ID(FPGA_DS.always_executed_hook) ENABLED START -----#
+
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.always_executed_hook
 
     #-----------------------------------------------------------------------------
     #    FPGA_DS read/write attribute methods
@@ -340,58 +340,58 @@ class FPGA_DS (PyTango.Device_4Impl):
     
     def read_board_state(self, attr):
         self.debug_stream("In read_board_state()")
-        #----- PROTECTED REGION ID(FPGA_DS.board_state_read) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.board_state_read) ENABLED START -----#
         attr.set_value(self.attr_board_state_read)
         self.info_stream(BoardState(self.attr_board_state_read))
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.board_state_read
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.board_state_read
         
     def read_is_programmed(self, attr):
         self.debug_stream("In read_is_programmed()")
-        #----- PROTECTED REGION ID(FPGA_DS.is_programmed_read) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.is_programmed_read) ENABLED START -----#
         attr.set_value(self.attr_is_programmed_read)
-        
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.is_programmed_read
+
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.is_programmed_read
         
     def read_ip_address(self, attr):
         self.debug_stream("In read_ip_address()")
-        #----- PROTECTED REGION ID(FPGA_DS.ip_address_read) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.ip_address_read) ENABLED START -----#
         attr.set_value(self.attr_ip_address_read)
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.ip_address_read
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.ip_address_read
         
     def write_ip_address(self, attr):
         self.debug_stream("In write_ip_address()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(FPGA_DS.ip_address_write) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.ip_address_write) ENABLED START -----#
         self.info_stream("IP Address set up.")
         self.attr_ip_address_read = data
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.ip_address_write
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.ip_address_write
         
     def read_port(self, attr):
         self.debug_stream("In read_port()")
-        #----- PROTECTED REGION ID(FPGA_DS.port_read) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.port_read) ENABLED START -----#
         attr.set_value(self.attr_port_read)
-        #self.info_stream("Attribute: %s has quality: %s" %(attr.get_name(), attr.get_quality()))
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.port_read
+        # self.info_stream("Attribute: %s has quality: %s" %(attr.get_name(), attr.get_quality()))
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.port_read
         
     def write_port(self, attr):
         self.debug_stream("In write_port()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(FPGA_DS.port_write) ENABLED START -----#
-        #self.info_stream("Port set up.")
+        # ----- PROTECTED REGION ID(FPGA_DS.port_write) ENABLED START -----#
+        # self.info_stream("Port set up.")
         self.attr_port_read = data
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.port_write
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.port_write
         
     
     
-        #----- PROTECTED REGION ID(FPGA_DS.initialize_dynamic_attributes) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.initialize_dynamic_attributes
+        # ----- PROTECTED REGION ID(FPGA_DS.initialize_dynamic_attributes) ENABLED START -----#
+
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.initialize_dynamic_attributes
             
     def read_attr_hardware(self, data):
         self.debug_stream("In read_attr_hardware()")
-        #----- PROTECTED REGION ID(FPGA_DS.read_attr_hardware) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.read_attr_hardware
+        # ----- PROTECTED REGION ID(FPGA_DS.read_attr_hardware) ENABLED START -----#
+
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.read_attr_hardware
 
 
     #-----------------------------------------------------------------------------
@@ -407,9 +407,9 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In add_command()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.add_command) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.add_command) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
-        #state_ok = self.check_state_flow(self.add_command.__name__)
+        # state_ok = self.check_state_flow(self.add_command.__name__)
         if state_ok:
             #  Protect the script from exceptions raised by Tango
             try:
@@ -422,7 +422,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 allowedStates = arguments['states']
                 self.plugin_state_list[commandName] = allowedStates
                 self.plugin_cmd_list[commandName] = [[PyTango.DevString, inDesc], [PyTango.DevString, outDesc]]
-                #self.cmd_list[commandName] = [[PyTango.DevString, inDesc], [PyTango.DevString, outDesc]]
+                # self.cmd_list[commandName] = [[PyTango.DevString, inDesc], [PyTango.DevString, outDesc]]
                 argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to create new command entry in device server: \n%s" % df)
@@ -431,7 +431,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 return argout
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.add_command
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.add_command
         return argout
         
     def connect(self):
@@ -442,7 +442,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In connect()")
-        #----- PROTECTED REGION ID(FPGA_DS.connect) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.connect) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -456,7 +456,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.debug_stream("Failed to connect: %s" % df)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.connect
+            # ----- PROTECTED REGION END -----#	//	FPGA_DS.connect
         
     def create_scalar_attribute(self, argin):
         """ A method that creates a new scalar attribute.
@@ -466,7 +466,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In create_scalar_attribute()")
-        #----- PROTECTED REGION ID(FPGA_DS.create_scalar_attribute) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.create_scalar_attribute) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -478,7 +478,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.debug_stream("Failed to create scalar attribute: %s" % df)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.create_scalar_attribute
+            # ----- PROTECTED REGION END -----#	//	FPGA_DS.create_scalar_attribute
         
     def create_vector_attribute(self, argin):
         """ A method that creates a new vector attribute.
@@ -488,7 +488,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In create_vector_attribute()")
-        #----- PROTECTED REGION ID(FPGA_DS.create_vector_attribute) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.create_vector_attribute) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -505,7 +505,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.debug_stream("Failed to create vector attribute: %s" % df)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.create_vector_attribute
+            # ----- PROTECTED REGION END -----#	//	FPGA_DS.create_vector_attribute
         
     def disconnect(self):
         """ Disconnect this device.
@@ -515,7 +515,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In disconnect()")
-        #----- PROTECTED REGION ID(FPGA_DS.disconnect) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.disconnect) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.info_stream("Disconnecting...")
@@ -523,7 +523,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             self.info_stream("Disconnected from board.")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.disconnect
+            # ----- PROTECTED REGION END -----#	//	FPGA_DS.disconnect
         
     def flush_attributes(self):
         """ A method that removes all attributes for the current firmware.
@@ -533,13 +533,13 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In flush_attributes()")
-        #----- PROTECTED REGION ID(FPGA_DS.flush_attributes) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.flush_attributes) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
                 if self.attr_is_programmed_read:
                     register_dict = self.fpga_instance.get_register_list()
-                    if not register_dict: #if dict is empty
+                    if not register_dict:  # if dict is empty
                         for reg_name, entries in register_dict.iteritems():
                             self.remove_attribute(reg_name)
                 else:
@@ -548,7 +548,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.debug_stream("Failed to flush attributes: %s" % df)
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.flush_attributes
+            # ----- PROTECTED REGION END -----#	//	FPGA_DS.flush_attributes
         
     def generate_attributes(self):
         """ A method that generates dynamic attributes based on the current firmware.
@@ -558,14 +558,14 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In generate_attributes()")
-        #----- PROTECTED REGION ID(FPGA_DS.generate_attributes) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.generate_attributes) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             register_dict = self.fpga_instance.get_register_list()
             try:
                 for reg_name, entries in register_dict.iteritems():
                     size = entries.get('size')
-                    #print reg_name, size
+                    # print reg_name, size
                     if size > 1:
                         self.info_stream("Setting up a new vector attribute...")
                         args = {'name': reg_name, 'length': size}
@@ -607,7 +607,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_device_list()")
         argout = ''
-        #----- PROTECTED REGION ID(FPGA_DS.get_device_list) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.get_device_list) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -620,7 +620,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = ''
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.get_device_list
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.get_device_list
         return argout
         
     def get_firmware_list(self, argin):
@@ -632,7 +632,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_firmware_list()")
         argout = ''
-        #----- PROTECTED REGION ID(FPGA_DS.get_firmware_list) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.get_firmware_list) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -653,7 +653,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = pickle.dumps('')
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.get_firmware_list
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.get_firmware_list
         return argout
         
     def get_register_info(self, argin):
@@ -665,7 +665,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevString """
         self.debug_stream("In get_register_info()")
         argout = ''
-        #----- PROTECTED REGION ID(FPGA_DS.get_register_info) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.get_register_info) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -684,7 +684,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = ''
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.get_register_info
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.get_register_info
         return argout
         
     def get_register_list(self, argin):
@@ -696,7 +696,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVarStringArray """
         self.debug_stream("In get_register_list()")
         argout = ['']
-        #----- PROTECTED REGION ID(FPGA_DS.get_register_list) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.get_register_list) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         self.debug_stream("Permission: %s" % state_ok)
         if state_ok:
@@ -713,7 +713,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                     load_values = False
 
                 self.info_stream("Retrieving register list...")
-                register_dict = self.fpga_instance.get_register_list(reset = reset, load_values = load_values)
+                register_dict = self.fpga_instance.get_register_list(reset=reset, load_values=load_values)
                 argout = register_dict.keys()
                 self.info_stream("Register list retrieved.")
             except DevFailed as df:
@@ -721,7 +721,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = ''
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.get_register_list
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.get_register_list
         return argout
         
     def load_firmware(self, argin):
@@ -733,7 +733,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In load_firmware()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.load_firmware) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.load_firmware) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -748,7 +748,7 @@ class FPGA_DS (PyTango.Device_4Impl):
 
             self.flush_attributes()
             try:
-                self.fpga_instance.load_firmware(Device(device), filepath = filepath, load_values = load_values)
+                self.fpga_instance.load_firmware(Device(device), filepath=filepath, load_values=load_values)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")
@@ -759,7 +759,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.flush_attributes()
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.load_firmware
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.load_firmware
         return argout
         
     def load_plugin(self, argin):
@@ -767,72 +767,46 @@ class FPGA_DS (PyTango.Device_4Impl):
         
         :param argin: Name of plugin. Case sensitive.
         :type: PyTango.DevString
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Return True if successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In load_plugin()")
-        #----- PROTECTED REGION ID(FPGA_DS.load_plugin) ENABLED START -----#
+        argout = False
+        # ----- PROTECTED REGION ID(FPGA_DS.load_plugin) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             plugin_list = self.fpga_instance.get_available_plugins()
-            self.info_stream("List of plugins: %s" % plugin_list)
+            #self.info_stream("List of plugins: %s" % plugin_list)
             class_names = plugin_list.keys()
-            self.info_stream("List of plugins class names: %s" % class_names)
+            #self.info_stream("List of plugins class names: %s" % class_names)
             friendly_names = plugin_list.values()
-            #self.info_stream("Plugins: %s" % class_names)
+            # self.info_stream("Plugins: %s" % class_names)
 
-            #unpack plugin name and kwargs
+            # unpack plugin name and kwargs
             arguments = pickle.loads(argin)
             plugin_name_load = arguments['plugin_name_load']
             kw_args = arguments['kw_args']
 
-            if plugin_name_load in class_names:
-                try:
-                    plugin_index = class_names.index(plugin_name_load)
-                    plugin_friendly_name = friendly_names[plugin_index]
-                    plugin_class_name = class_names[plugin_index]
+            plugin_list = self.fpga_instance.get_available_plugins()
+            class_names = plugin_list.keys()
+            friendly_names = plugin_list.values()
 
-                    plugin_instances = 0
-                    if self.fpga_instance.__dict__:
-                        plugin_instances = len(getattr(self.fpga_instance, plugin_friendly_name))
-                        self.info_stream("Instances present before loading: %s" % plugin_instances)
+            plugin_index = friendly_names.index(plugin_name_load)
+            plugin_class_name = class_names[plugin_index]
+            plugin_friendly_name = friendly_names[plugin_index]
 
-                    self.fpga_instance.load_plugin(plugin_class_name, **kw_args)
-
-                    plugin_instances = 0
-                    if self.fpga_instance.__dict__:
-                        plugin_instances = len(getattr(self.fpga_instance, plugin_friendly_name))
-                        self.info_stream("Instances now present: %s" % plugin_instances)
-
-
-                    plugins_dict = self.fpga_instance.get_loaded_plugins()
-                    #self.info_stream("Plugin dictionary: %s" % plugins_dict)
-                    self.info_stream("Plugin pre-loaded: %s at index: %s" % (plugin_friendly_name, plugin_index))
-                    for command in plugins_dict[plugin_friendly_name]:
-                        full_command_name = plugin_friendly_name+'['+str(plugin_instances-1)+']'+'.'+command
-                        self.info_stream("Adding commands: %s" % full_command_name)
-                        arguments = {}
-                        arguments['commandName'] = full_command_name
-                        arguments['inDesc'] = ''
-                        arguments['outDesc'] = ''
-                        arguments['states'] = self.all_states_list
-                        args = pickle.dumps(arguments)
-                        result = self.add_command(args)
-                        if result == True:
-                            self.info_stream("Command [%s].[%s] created successfully in device server." % (plugin_name_load, full_command_name))
-                            try:
-                                self.__dict__[full_command_name] = lambda input: self.call_plugin_command(input)
-                            except DevFailed as df:
-                                self.debug_stream("Failed to create lambda expression: %s" % df)
-                                self.info_stream("Command [%s].[%s] not created" % full_command_name)
-                        else:
-                            self.info_stream("Command [%s].[%s] not created" % full_command_name)
-                except DevFailed as df:
-                    self.debug_stream("Failed to load plugin: %s" % df)
-            else:
-                 self.info_stream("Plugin not found.")
+            try:
+                self.fpga_instance.load_plugin(plugin_class_name, **kw_args)
+                self.update_plugins()
+                argout = True
+                self.info_stream("Plugin load: %s" % argout)
+            except DevFailed as df:
+                self.debug_stream("Failed to load plugin: %s" % df)
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.load_plugin
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.load_plugin
+        return argout
         
     def read_address(self, argin):
         """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
@@ -843,7 +817,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVarULongArray """
         self.debug_stream("In read_address()")
         argout = [0]
-        #----- PROTECTED REGION ID(FPGA_DS.read_address) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.read_address) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -858,7 +832,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             self.info_stream("Reading address...")
             try:
                 pass_address = eval(address)
-                result = self.fpga_instance.read_address(pass_address, n = words)
+                result = self.fpga_instance.read_address(pass_address, n=words)
                 self.info_stream("Address read.")
                 if words > 1:
                     argout = result
@@ -872,7 +846,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = []
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.read_address
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.read_address
         return argout
         
     def read_device(self, argin):
@@ -887,7 +861,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevULong """
         self.debug_stream("In read_device()")
         argout = 0
-        #----- PROTECTED REGION ID(FPGA_DS.read_device) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.read_device) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -907,8 +881,8 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
                 argout = 0
         else:
-           self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.read_device
+            self.debug_stream("Invalid state")
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.read_device
         return argout
         
     def read_register(self, argin):
@@ -920,7 +894,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevVarULongArray """
         self.debug_stream("In read_register()")
         argout = [0]
-        #----- PROTECTED REGION ID(FPGA_DS.read_register) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.read_register) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -939,30 +913,30 @@ class FPGA_DS (PyTango.Device_4Impl):
             reg_info = pickle.loads(self.get_register_info(register))
             try:
                 length_register = reg_info['size']
-                if words+offset <= length_register:
-                        self.debug_stream("Register: %s" % register)
-                        self.debug_stream("Words: %s" % words)
-                        self.debug_stream("Offset: %s" % offset)
-                        self.debug_stream("Device: %s" % device)
-                        self.info_stream("Reading register...")
-                        result = self.fpga_instance.read_register(register, n = words, offset = offset, device = Device(device))
+                if words + offset <= length_register:
+                    self.debug_stream("Register: %s" % register)
+                    self.debug_stream("Words: %s" % words)
+                    self.debug_stream("Offset: %s" % offset)
+                    self.debug_stream("Device: %s" % device)
+                    self.info_stream("Reading register...")
+                    result = self.fpga_instance.read_register(register, n=words, offset=offset, device=Device(device))
 
-                        if words > 1:
-                            argout = result
-                        else:
-                            argout = [result]
-                        self.info_stream("Register read.")
+                    if words > 1:
+                        argout = result
+                    else:
+                        argout = [result]
+                    self.info_stream("Register read.")
                 else:
                     self.info_stream("Register size limit exceeded, no values read.")
             except DevFailed as df:
-                    self.debug_stream("Failed to read register: %s" % df)
-                    argout = []
+                self.debug_stream("Failed to read register: %s" % df)
+                argout = []
             except:
                 self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
                 argout = []
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.read_register
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.read_register
         return argout
         
     def remove_command(self, argin):
@@ -974,12 +948,12 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In remove_command()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.remove_command) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.remove_command) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
                 self.info_stream("Removing command from device...")
-                #self.info_stream(self.cmd_list)
+                # self.info_stream(self.cmd_list)
                 del self.plugin_cmd_list[argin]
                 self.info_stream("Updating state flow...")
                 del self.plugin_state_list[argin]
@@ -995,7 +969,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 return argout
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.remove_command
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.remove_command
         return argout
         
     def run_plugin_command(self, argin):
@@ -1007,7 +981,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevString """
         self.debug_stream("In run_plugin_command()")
         argout = ''
-        #----- PROTECTED REGION ID(FPGA_DS.run_plugin_command) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.run_plugin_command) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -1032,7 +1006,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.info_stream("Command does not exist.")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.run_plugin_command
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.run_plugin_command
         return argout
         
     def set_attribute_levels(self, argin):
@@ -1047,7 +1021,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In set_attribute_levels()")
-        #----- PROTECTED REGION ID(FPGA_DS.set_attribute_levels) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.set_attribute_levels) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -1077,7 +1051,7 @@ class FPGA_DS (PyTango.Device_4Impl):
 
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.set_attribute_levels
+            # ----- PROTECTED REGION END -----#	//	FPGA_DS.set_attribute_levels
         
     def set_board_state(self, argin):
         """ Sets the board status by passing in a value.
@@ -1098,7 +1072,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In set_board_state()")
-        #----- PROTECTED REGION ID(FPGA_DS.set_board_state) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.set_board_state) ENABLED START -----#
         if argin in self.all_states_list:
             self.info_stream("Setting board state...")
             self.attr_board_state_read = argin
@@ -1135,7 +1109,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_address()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.write_address) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.write_address) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -1146,7 +1120,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             try:
                 self.info_stream("Writing address...")
                 pass_address = eval(address)
-                argout = self.fpga_instance.write_address(address = pass_address, values = values)
+                argout = self.fpga_instance.write_address(address=pass_address, values=values)
                 self.info_stream("Address written.")
                 argout = True
             except DevFailed as df:
@@ -1157,7 +1131,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = False
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.write_address
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.write_address
         return argout
         
     def write_device(self, argin):
@@ -1173,7 +1147,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_device()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.write_device) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.write_device) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -1185,7 +1159,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             try:
                 self.info_stream("Writing device...")
                 pass_address = eval(address)
-                argout = self.fpga_instance.write_device(device = device, address = pass_address, value = value)
+                argout = self.fpga_instance.write_device(device=device, address=pass_address, value=value)
                 self.info_stream("Device written.")
                 argout = True
             except DevFailed as df:
@@ -1196,7 +1170,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = False
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.write_device
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.write_device
         return argout
         
     def write_register(self, argin):
@@ -1208,7 +1182,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In write_register()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.write_register) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.write_register) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -1226,11 +1200,11 @@ class FPGA_DS (PyTango.Device_4Impl):
             try:
                 length_register = reg_info['size']
                 length_values = len(values)
-                if length_values+offset <= length_register:
-                        self.info_stream("Writing register...")
-                        argout = self.fpga_instance.write_register(register, values, offset = offset, device = Device(device))
-                        argout = True
-                        self.info_stream("Register written.")
+                if length_values + offset <= length_register:
+                    self.info_stream("Writing register...")
+                    argout = self.fpga_instance.write_register(register, values, offset=offset, device=Device(device))
+                    argout = True
+                    self.info_stream("Register written.")
                 else:
                     self.info_stream("Register size limit exceeded, no changes committed.")
             except DevFailed as df:
@@ -1241,7 +1215,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = False
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.write_register
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.write_register
         return argout
         
     def sink_alarm_state(self):
@@ -1252,7 +1226,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :return: 
         :rtype: PyTango.DevVoid """
         self.debug_stream("In sink_alarm_state()")
-        #----- PROTECTED REGION ID(FPGA_DS.sink_alarm_state) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.sink_alarm_state) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -1265,7 +1239,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.sink_alarm_state
+            # ----- PROTECTED REGION END -----#	//	FPGA_DS.sink_alarm_state
         
     def unload_plugin(self, argin):
         """ This command removes a plugin if it is loaded.
@@ -1276,7 +1250,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In unload_plugin()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.unload_plugin) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.unload_plugin) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.debug_stream("Unpacking arguments...")
@@ -1288,19 +1262,20 @@ class FPGA_DS (PyTango.Device_4Impl):
             class_names = plugin_list.keys()
             friendly_names = plugin_list.values()
 
-            plugin_name_unload = plugin
+            plugin_index = friendly_names.index(plugin)
+            plugin_class_name = class_names[plugin_index]
+            plugin_friendly_name = friendly_names[plugin_index]
+
+
+            plugin_name_unload = plugin_friendly_name
             self.info_stream("Plugin to remove: %s" % plugin_name_unload)
 
             if plugin_name_unload in friendly_names:
                 try:
-                    plugin_index = friendly_names.index(plugin_name_unload)
-                    plugin_class_name = class_names[plugin_index]
-                    plugin_friendly_name = friendly_names[plugin_index]
-
                     if instance is None:
                         self.fpga_instance.unload_plugin(plugin_friendly_name)
                     else:
-                        self.fpga_instance.unload_plugin(plugin_friendly_name, instance = instance)
+                        self.fpga_instance.unload_plugin(plugin_friendly_name, instance=instance)
 
                     self.info_stream("Plugin removed.")
                     self.update_plugins()
@@ -1309,14 +1284,14 @@ class FPGA_DS (PyTango.Device_4Impl):
                     self.debug_stream("Failed to unload plugin: %s" % df)
                     argout = False
                 except:
-                    self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                    self.debug_stream("Unexpected error: %s" % sys.exc_info()[0])
                     argout = False
             else:
-                 self.info_stream("Plugin not found.")
-                 argout = False
+                self.info_stream("Plugin not found.")
+                argout = False
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.unload_plugin
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.unload_plugin
         return argout
         
     def reset_board(self, argin):
@@ -1328,7 +1303,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In reset_board()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.reset_board) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.reset_board) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -1337,7 +1312,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 device = arguments['device']
 
                 self.info_stream("Resetting board...")
-                self.fpga_instance.reset(device = Device(device))
+                self.fpga_instance.reset(device=Device(device))
                 self.info_stream("Board reset.")
                 argout = True
             except DevFailed as df:
@@ -1348,7 +1323,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 argout = False
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.reset_board
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.reset_board
         return argout
         
     def unload_all_plugins(self):
@@ -1360,7 +1335,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In unload_all_plugins()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.unload_all_plugins) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.unload_all_plugins) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             self.info_stream("Cleaning up...")
@@ -1370,7 +1345,7 @@ class FPGA_DS (PyTango.Device_4Impl):
             argout = True
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.unload_all_plugins
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.unload_all_plugins
         return argout
         
     def update_plugins(self):
@@ -1382,7 +1357,7 @@ class FPGA_DS (PyTango.Device_4Impl):
         :rtype: PyTango.DevBoolean """
         self.debug_stream("In update_plugins()")
         argout = False
-        #----- PROTECTED REGION ID(FPGA_DS.update_plugins) ENABLED START -----#
+        # ----- PROTECTED REGION ID(FPGA_DS.update_plugins) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
@@ -1391,7 +1366,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.plugin_state_list = {}
 
                 self.info_stream("Old registry removed. Rebuilding...")
-                plugins_dict = self.fpga_instance.get_loaded_plugins() # friendly name
+                plugins_dict = self.fpga_instance.get_loaded_plugins()  # friendly name
 
                 for plugin_friendly_name in plugins_dict:
                     # Find how many instances of this plugin exist
@@ -1402,7 +1377,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                     # for every instance
                     for i in range(1, plugin_instances):
                         for command in plugins_dict[plugin_friendly_name]:
-                            full_command_name = plugin_friendly_name+'['+str(i-1)+']'+'.'+command
+                            full_command_name = plugin_friendly_name + '[' + str(i - 1) + ']' + '.' + command
                             self.info_stream("Adding commands: %s" % full_command_name)
                             arguments = {}
                             arguments['commandName'] = full_command_name
@@ -1412,7 +1387,8 @@ class FPGA_DS (PyTango.Device_4Impl):
                             args = pickle.dumps(arguments)
                             result = self.add_command(args)
                             if result == True:
-                                self.info_stream("Command [%s].[%s] created successfully in device server." % (plugin_friendly_name, full_command_name))
+                                self.info_stream("Command [%s].[%s] created successfully in device server." % (
+                                    plugin_friendly_name, full_command_name))
                                 try:
                                     self.__dict__[full_command_name] = lambda input: self.call_plugin_command(input)
                                 except DevFailed as df:
@@ -1429,19 +1405,19 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
         else:
             self.debug_stream("Invalid state")
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.update_plugins
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.update_plugins
         return argout
         
 
-    #----- PROTECTED REGION ID(FPGA_DS.programmer_methods) ENABLED START -----#
-    
-    #----- PROTECTED REGION END -----#	//	FPGA_DS.programmer_methods
+    # ----- PROTECTED REGION ID(FPGA_DS.programmer_methods) ENABLED START -----#
+
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.programmer_methods
 
 class FPGA_DSClass(PyTango.DeviceClass):
     #--------- Add you global class variables here --------------------------
-    #----- PROTECTED REGION ID(FPGA_DS.global_class_variables) ENABLED START -----#
-    
-    #----- PROTECTED REGION END -----#	//	FPGA_DS.global_class_variables
+    # ----- PROTECTED REGION ID(FPGA_DS.global_class_variables) ENABLED START -----#
+
+    # ----- PROTECTED REGION END -----#	//	FPGA_DS.global_class_variables
 
     def dyn_attr(self, dev_list):
         """Invoked to create dynamic attributes for the given devices.
@@ -1458,9 +1434,9 @@ class FPGA_DSClass(PyTango.DeviceClass):
                 import traceback
                 dev.warn_stream("Failed to initialize dynamic attributes")
                 dev.debug_stream("Details: " + traceback.format_exc())
-        #----- PROTECTED REGION ID(FPGA_DS.dyn_attr) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.dyn_attr
+        # ----- PROTECTED REGION ID(FPGA_DS.dyn_attr) ENABLED START -----#
+
+                # ----- PROTECTED REGION END -----#	//	FPGA_DS.dyn_attr
 
     #    Class Properties
     class_property_list = {
@@ -1512,7 +1488,7 @@ class FPGA_DSClass(PyTango.DeviceClass):
             [PyTango.DevBoolean, "Return true if successful."]],
         'load_plugin':
             [[PyTango.DevString, "Name of plugin. Case sensitive."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Return True if successful."]],
         'read_address':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevVarULongArray, "Register values."]],
@@ -1586,9 +1562,9 @@ def main():
     try:
         py = PyTango.Util(sys.argv)
         py.add_class(FPGA_DSClass,FPGA_DS,'FPGA_DS')
-        #----- PROTECTED REGION ID(FPGA_DS.add_classes) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	FPGA_DS.add_classes
+        # ----- PROTECTED REGION ID(FPGA_DS.add_classes) ENABLED START -----#
+
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.add_classes
 
         U = PyTango.Util.instance()
         U.server_init()

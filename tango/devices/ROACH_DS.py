@@ -187,12 +187,12 @@ class ROACH_DS (FPGA_DS):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In connect()")
         #----- PROTECTED REGION ID(ROACH_DS.connect) ENABLED START -----#
-        #super(ROACH_DS, self).connect()
         state_ok = self.check_state_flow(inspect.stack()[0][3])
-        #state_ok = self.check_state_flow(self.connect.__name__)
         if state_ok:
             try:
+                self.info_stream("Connecting...")
                 self.fpga_instance.connect(self.attr_ip_address_read, self.attr_port_read)
+                self.info_stream("Connected to board.")
             except DevFailed as df:
                 self.debug_stream("Failed to connect: %s" % df)
         else:
@@ -286,18 +286,24 @@ class ROACH_DS (FPGA_DS):
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
             try:
+                self.debug_stream("Unpacking arguments...")
                 arguments = pickle.loads(argin)
                 device = arguments['device']
 
                 if device is None:
                     device = Device.FPGA_1.value
 
-                firmware_list = self.fpga_instance.get_firmware_list(Device(device))
-
-                argout = pickle.dumps(firmware_list)
+                if device is not None:
+                    self.info_stream("Retrieving firmware list...")
+                    firmware_list = self.fpga_instance.get_firmware_list(Device(device))
+                    argout = pickle.dumps(firmware_list)
+                    self.info_stream("Firmware list retreived.")
+                else:
+                    self.info_stream("No device supplied. Retrieval terminated.")
+                    argout = pickle.dumps('')
             except DevFailed as df:
                 self.debug_stream("Failed to get firmware list: %s" % df)
-                argout = ''
+                argout = pickle.dumps('')
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	ROACH_DS.get_firmware_list
@@ -328,16 +334,25 @@ class ROACH_DS (FPGA_DS):
         argout = ['']
         #----- PROTECTED REGION ID(ROACH_DS.get_register_list) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
+        self.debug_stream("Permission: %s" % state_ok)
         if state_ok:
             try:
+                self.debug_stream("Unpacking arguments...")
                 arguments = pickle.loads(argin)
+                # reset = arguments['reset']
                 load_values = arguments['load_values']
 
+                self.debug_stream("Checking argument values...")
+                # if reset is None:
+                #     reset = False
                 if load_values is None:
                     load_values = False
 
-                register_dict = self.fpga_instance.get_register_list(load_values)
+                self.info_stream("Retrieving register list...")
+                # register_dict = self.fpga_instance.get_register_list(reset=reset, load_values=load_values)
+                register_dict = self.fpga_instance.get_register_list(load_values = load_values)
                 argout = register_dict.keys()
+                self.info_stream("Register list retrieved.")
             except DevFailed as df:
                 self.debug_stream("Failed to get register list: %s" % df)
                 argout = ''
@@ -358,16 +373,20 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION ID(ROACH_DS.load_firmware) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
             arguments = pickle.loads(argin)
+            # device = arguments['device']
             filepath = arguments['path']
             load_values = arguments['load_values']
 
+            self.debug_stream("Checking argument values...")
             if load_values is None:
                 load_values = False
 
             self.flush_attributes()
             try:
-                self.fpga_instance.load_firmware(filepath, load_values)
+                self.fpga_instance.load_firmware(filepath = filepath, load_values = load_values)
+                # self.fpga_instance.load_firmware(Device(device), filepath=filepath, load_values=load_values)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
                 self.info_stream("Firmware loaded.")
@@ -405,19 +424,31 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION ID(ROACH_DS.read_address) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
             arguments = pickle.loads(argin)
             address = arguments['address']
             words = arguments['words']
             device = Device.FPGA_1.value
 
+            self.debug_stream("Checking argument values...")
             if words is None:
                 words = 1
 
+            self.info_stream("Reading address...")
             try:
-                argout = self.fpga_instance.read_address(address, words, device)
+                pass_address = eval(address)
+                result = self.fpga_instance.read_address(pass_address, n=words, device = device)
+                self.info_stream("Address read.")
+                if words > 1:
+                    argout = result
+                else:
+                    argout = [result]
             except DevFailed as df:
                 self.debug_stream("Failed to read address: %s" % df)
-                argout = ''
+                argout = []
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = []
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	ROACH_DS.read_address
@@ -438,16 +469,24 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION ID(ROACH_DS.read_device) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
             arguments = pickle.loads(argin)
             device = arguments['device']
             address = arguments['address']
+
+            self.info_stream("Reading device...")
             try:
-                argout = self.fpga_instance.read_device(device, address)
+                pass_address = eval(address)
+                argout = self.fpga_instance.read_device(device, pass_address)
+                self.info_stream("Device read.")
             except DevFailed as df:
                 self.debug_stream("Failed to read device: %s" % df)
                 argout = 0
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = 0
         else:
-           self.debug_stream("Invalid state")
+            self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	ROACH_DS.read_device
         return argout
         
@@ -463,33 +502,44 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION ID(ROACH_DS.read_register) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
             arguments = pickle.loads(argin)
+            # device = arguments['device']
             register = arguments['register']
             words = arguments['words']
             offset = arguments['offset']
+            device = Device.FPGA_1.value
 
+            self.debug_stream("Checking argument values...")
             if words is None:
                 words = 1
-
             if offset is None:
                 offset = 0
 
-            device = Device.FPGA_1.value
-
             reg_info = pickle.loads(self.get_register_info(register))
-            self.info_stream("Reg info: %s" % reg_info)
-            length_register = reg_info['size']
-            if words+offset <= length_register:
-                try:
+            try:
+                length_register = reg_info['size']
+                if words + offset <= length_register:
                     self.debug_stream("Register: %s" % register)
                     self.debug_stream("Words: %s" % words)
                     self.debug_stream("Offset: %s" % offset)
-                    argout = self.fpga_instance.read_register(register, words, offset, device)
-                except DevFailed as df:
-                    self.debug_stream("Failed to read register: %s" % df)
-                    argout = [0]
-            else:
-                self.info_stream("Register size limit exceeded, no values read.")
+                    self.debug_stream("Device: %s" % device)
+                    self.info_stream("Reading register...")
+                    result = self.fpga_instance.read_register(register, n=words, offset=offset, device=Device(device))
+
+                    if words > 1:
+                        argout = result
+                    else:
+                        argout = [result]
+                    self.info_stream("Register read.")
+                else:
+                    self.info_stream("Register size limit exceeded, no values read.")
+            except DevFailed as df:
+                self.debug_stream("Failed to read register: %s" % df)
+                argout = []
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = []
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	ROACH_DS.read_register
@@ -586,14 +636,23 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION ID(ROACH_DS.write_address) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
             arguments = pickle.loads(argin)
             address = arguments['address']
             values = arguments['values']
             device = Device.FPGA_1.value
+
             try:
-                argout = self.fpga_instance.write_address(address, values, device)
+                self.info_stream("Writing address...")
+                pass_address = eval(address)
+                argout = self.fpga_instance.write_address(address=pass_address, values=values, device = device)
+                self.info_stream("Address written.")
+                argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to write address: %s" % df)
+                argout = False
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
                 argout = False
         else:
             self.debug_stream("Invalid state")
@@ -616,14 +675,23 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION ID(ROACH_DS.write_device) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
             arguments = pickle.loads(argin)
             device = arguments['device']
             address = arguments['address']
             value = arguments['value']
+
             try:
-                argout = self.fpga_instance.write_device(device, address, value)
+                self.info_stream("Writing device...")
+                pass_address = eval(address)
+                argout = self.fpga_instance.write_device(device=device, address=pass_address, value=value)
+                self.info_stream("Device written.")
+                argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to write device: %s" % df)
+                argout = False
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
                 argout = False
         else:
             self.debug_stream("Invalid state")
@@ -642,27 +710,35 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION ID(ROACH_DS.write_register) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
+            self.debug_stream("Unpacking arguments...")
             arguments = pickle.loads(argin)
+            # device = arguments['device']
             register = arguments['register']
             values = arguments['values']
             offset = arguments['offset']
             device = Device.FPGA_1.value
 
+            self.debug_stream("Checking argument values...")
             if offset is None:
                 offset = 0
 
             reg_info = pickle.loads(self.get_register_info(register))
-            length_register = reg_info['size']
-            length_values = len(values)
-            if length_values+offset <= length_register:
-                try:
-                    argout = self.fpga_instance.write_register(register, values, offset, device)
+            try:
+                length_register = reg_info['size']
+                length_values = len(values)
+                if length_values + offset <= length_register:
+                    self.info_stream("Writing register...")
+                    argout = self.fpga_instance.write_register(register, values, offset=offset, device=Device(device))
                     argout = True
-                except DevFailed as df:
-                    self.debug_stream("Failed to write register: %s" % df)
-                    argout = False
-            else:
-                self.info_stream("Register size limit exceeded, no changes committed.")
+                    self.info_stream("Register written.")
+                else:
+                    self.info_stream("Register size limit exceeded, no changes committed.")
+            except DevFailed as df:
+                self.debug_stream("Failed to write register: %s" % df)
+                argout = False
+            except:
+                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
+                argout = False
         else:
             self.debug_stream("Invalid state")
         #----- PROTECTED REGION END -----#	//	ROACH_DS.write_register

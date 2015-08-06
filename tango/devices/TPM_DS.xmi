@@ -127,8 +127,8 @@
       <argin description="Name of plugin. Case sensitive.">
         <type xsi:type="pogoDsl:StringType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Return True if successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
