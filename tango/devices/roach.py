@@ -1,11 +1,11 @@
 import PyTango
 from pyfabil import Device
-import fpga
+import tpm
 import pickle
 import sys
 
 
-class Roach(fpga.Fpga):
+class Roach(tpm.Tpm):
 
     # Class constructor
     def __init__(self, device_name = None, ip_address = "127.0.0.1", port = 1000):
