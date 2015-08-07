@@ -55,17 +55,17 @@
       <argin description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="generate_attributes" description="A method that generates dynamic attributes based on the current firmware." execMethod="generate_attributes" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
@@ -118,8 +118,8 @@
       <argin description="Name of plugin. Case sensitive.">
         <type xsi:type="pogoDsl:StringType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Return True if successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
@@ -172,19 +172,19 @@
       <argin description="A pickled string storing a dictionary with the required alarm levels, and name of attribute.">
         <type xsi:type="pogoDsl:StringType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="set_board_state" description="Sets the board status by passing in a value.&#xA;        UNKNOWN&#x9;=  0&#xA;        INIT&#x9;&#x9;=  1&#xA;        ON&#x9;&#x9;=  2&#xA;        RUNNING&#x9;=  3&#xA;        FAULT&#x9;&#x9;=  4&#xA;        OFF&#x9;&#x9;=  5&#xA;        STANDBY&#x9;=  6&#xA;        SHUTTING_DOWN&#x9;=  7&#xA;        MAINTENANCE&#x9;=  8&#xA;        LOW_POWER&#x9;=  9&#xA;        SAFE_STATE&#x9;=  10" execMethod="set_board_state" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Board status value.">
         <type xsi:type="pogoDsl:IntType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="sink_alarm_state" description="This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on." execMethod="sink_alarm_state" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
@@ -239,6 +239,42 @@
         <type xsi:type="pogoDsl:StateType"/>
       </argout>
       <status abstract="true" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="unload_plugin" description="This command removes a plugin if it is loaded." execMethod="unload_plugin" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="Plugin name to unload.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="True if successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="reset_board" description="A command to reset the board." execMethod="reset_board" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="Input arguments as dictionary pickled in a string.">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="Returns true if successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="unload_all_plugins" description="A command to unload all plugins and instances." execMethod="unload_all_plugins" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="True if operation successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
+    </commands>
+    <commands name="update_plugins" description="This command is used to sync the Tango driver with the internal plugin state of the access layer." execMethod="update_plugins" displayLevel="OPERATOR" polledPeriod="0">
+      <argin description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argin>
+      <argout description="Returns true of update was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
+      </argout>
+      <status abstract="false" inherited="true" concrete="true"/>
     </commands>
     <attributes name="board_state" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true">
       <dataType xsi:type="pogoDsl:IntType"/>

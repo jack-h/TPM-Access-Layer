@@ -41,7 +41,6 @@
 ##############################################################################
 
 """A Tango device server for the ROACH board."""
-from sardana.macroserver.macros.env import load_env
 
 __all__ = ["ROACH_DS", "ROACH_DSClass", "main"]
 
@@ -240,24 +239,28 @@ class ROACH_DS (FPGA_DS):
         
         :param : 
         :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In flush_attributes()")
+        argout = False
         #----- PROTECTED REGION ID(ROACH_DS.flush_attributes) ENABLED START -----#
-        super(ROACH_DS, self).flush_attributes()
+        argout = super(ROACH_DS, self).flush_attributes()
         #----- PROTECTED REGION END -----#	//	ROACH_DS.flush_attributes
+        return argout
         
     def generate_attributes(self):
         """ A method that generates dynamic attributes based on the current firmware.
         
         :param : 
         :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In generate_attributes()")
+        argout = False
         #----- PROTECTED REGION ID(ROACH_DS.generate_attributes) ENABLED START -----#
-        super(ROACH_DS, self).generate_attributes()
+        argout = super(ROACH_DS, self).generate_attributes()
         #----- PROTECTED REGION END -----#	//	ROACH_DS.generate_attributes
+        return argout
         
     def get_device_list(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
@@ -385,7 +388,7 @@ class ROACH_DS (FPGA_DS):
 
             self.flush_attributes()
             try:
-                self.fpga_instance.load_firmware(filepath = filepath, load_values = load_values)
+                self.fpga_instance.load_firmware(boffile = filepath, load_values = load_values)
                 # self.fpga_instance.load_firmware(Device(device), filepath=filepath, load_values=load_values)
                 self.generate_attributes()
                 self.attr_is_programmed_read = True
@@ -405,12 +408,14 @@ class ROACH_DS (FPGA_DS):
         
         :param argin: Name of plugin. Case sensitive.
         :type: PyTango.DevString
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Return True if successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In load_plugin()")
+        argout = False
         #----- PROTECTED REGION ID(ROACH_DS.load_plugin) ENABLED START -----#
         super(ROACH_DS, self).load_plugin(argin)
         #----- PROTECTED REGION END -----#	//	ROACH_DS.load_plugin
+        return argout
         
     def read_address(self, argin):
         """ Reads values from a register location. Instead of a register name, the actual physical address has to be provided.
@@ -582,12 +587,14 @@ class ROACH_DS (FPGA_DS):
         
         :param argin: A pickled string storing a dictionary with the required alarm levels, and name of attribute.
         :type: PyTango.DevString
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In set_attribute_levels()")
+        argout = False
         #----- PROTECTED REGION ID(ROACH_DS.set_attribute_levels) ENABLED START -----#
-        super(ROACH_DS, self).set_attribute_levels(argin)
+        argout = super(ROACH_DS, self).set_attribute_levels(argin)
         #----- PROTECTED REGION END -----#	//	ROACH_DS.set_attribute_levels
+        return argout
         
     def set_board_state(self, argin):
         """ Sets the board status by passing in a value.
@@ -605,12 +612,14 @@ class ROACH_DS (FPGA_DS):
         
         :param argin: Board status value.
         :type: PyTango.DevLong
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In set_board_state()")
+        argout = False
         #----- PROTECTED REGION ID(ROACH_DS.set_board_state) ENABLED START -----#
-        super(ROACH_DS, self).set_board_state(argin)
+        argout = super(ROACH_DS, self).set_board_state(argin)
         #----- PROTECTED REGION END -----#	//	ROACH_DS.set_board_state
+        return argout
         
     def sink_alarm_state(self):
         """ This method is designed to turn off the device alarm state. It however, the cause that triggers an alarm is still present, alarm will turn back on.
@@ -647,7 +656,7 @@ class ROACH_DS (FPGA_DS):
                 pass_address = eval(address)
                 argout = self.fpga_instance.write_address(address=pass_address, values=values, device = device)
                 self.info_stream("Address written.")
-                argout = True
+                #argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to write address: %s" % df)
                 argout = False
@@ -744,6 +753,62 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION END -----#	//	ROACH_DS.write_register
         return argout
         
+    def unload_plugin(self, argin):
+        """ This command removes a plugin if it is loaded.
+        
+        :param argin: Plugin name to unload.
+        :type: PyTango.DevString
+        :return: True if successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In unload_plugin()")
+        argout = False
+        #----- PROTECTED REGION ID(ROACH_DS.unload_plugin) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.unload_plugin
+        return argout
+        
+    def reset_board(self, argin):
+        """ A command to reset the board.
+        
+        :param argin: Input arguments as dictionary pickled in a string.
+        :type: PyTango.DevString
+        :return: Returns true if successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In reset_board()")
+        argout = False
+        #----- PROTECTED REGION ID(ROACH_DS.reset_board) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.reset_board
+        return argout
+        
+    def unload_all_plugins(self):
+        """ A command to unload all plugins and instances.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: True if operation successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In unload_all_plugins()")
+        argout = False
+        #----- PROTECTED REGION ID(ROACH_DS.unload_all_plugins) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.unload_all_plugins
+        return argout
+        
+    def update_plugins(self):
+        """ This command is used to sync the Tango driver with the internal plugin state of the access layer.
+        
+        :param : 
+        :type: PyTango.DevVoid
+        :return: Returns true of update was successful.
+        :rtype: PyTango.DevBoolean """
+        self.debug_stream("In update_plugins()")
+        argout = False
+        #----- PROTECTED REGION ID(ROACH_DS.update_plugins) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.update_plugins
+        return argout
+        
 
     #----- PROTECTED REGION ID(ROACH_DS.programmer_methods) ENABLED START -----#
     
@@ -805,10 +870,10 @@ class ROACH_DSClass(FPGA_DSClass):
             [PyTango.DevVoid, "none"]],
         'flush_attributes':
             [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'generate_attributes':
             [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'get_device_list':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevString, "Dictionary of devices."]],
@@ -826,7 +891,7 @@ class ROACH_DSClass(FPGA_DSClass):
             [PyTango.DevBoolean, "Return true if successful."]],
         'load_plugin':
             [[PyTango.DevString, "Name of plugin. Case sensitive."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Return True if successful."]],
         'read_address':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevVarULongArray, "Register values."]],
@@ -844,10 +909,10 @@ class ROACH_DSClass(FPGA_DSClass):
             [PyTango.DevString, "Any output from the command."]],
         'set_attribute_levels':
             [[PyTango.DevString, "A pickled string storing a dictionary with the required alarm levels, and name of attribute."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'set_board_state':
             [[PyTango.DevLong, "Board status value."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command successful."]],
         'sink_alarm_state':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevVoid, "none"]],
@@ -860,6 +925,18 @@ class ROACH_DSClass(FPGA_DSClass):
         'write_register':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevBoolean, "True if successful, false if not."]],
+        'unload_plugin':
+            [[PyTango.DevString, "Plugin name to unload."],
+            [PyTango.DevBoolean, "True if successful."]],
+        'reset_board':
+            [[PyTango.DevString, "Input arguments as dictionary pickled in a string."],
+            [PyTango.DevBoolean, "Returns true if successful."]],
+        'unload_all_plugins':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevBoolean, "True if operation successful."]],
+        'update_plugins':
+            [[PyTango.DevVoid, "none"],
+            [PyTango.DevBoolean, "Returns true of update was successful."]],
         }
     cmd_list.update(FPGA_DSClass.cmd_list)
 

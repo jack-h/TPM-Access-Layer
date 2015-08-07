@@ -72,8 +72,8 @@
       <argin description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
@@ -81,8 +81,8 @@
       <argin description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
@@ -167,15 +167,6 @@
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
-    <commands name="remove_command" description="A generic command that removes a command entry from the Tango device driver." execMethod="remove_command" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="Command name.">
-        <type xsi:type="pogoDsl:StringType"/>
-      </argin>
-      <argout description="True if command removal was successful, false otherwise.">
-        <type xsi:type="pogoDsl:BooleanType"/>
-      </argout>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-    </commands>
     <commands name="run_plugin_command" description="Proxy to run a particular plugin command." execMethod="run_plugin_command" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Dictionary with name of command to run, and arguments.">
         <type xsi:type="pogoDsl:StringType"/>
@@ -189,8 +180,8 @@
       <argin description="A pickled string storing a dictionary with the required alarm levels, and name of attribute.">
         <type xsi:type="pogoDsl:StringType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
@@ -198,8 +189,8 @@
       <argin description="Board status value.">
         <type xsi:type="pogoDsl:IntType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>

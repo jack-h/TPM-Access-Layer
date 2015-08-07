@@ -230,24 +230,28 @@ class TPM_DS (FPGA_DS):
         
         :param : 
         :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In flush_attributes()")
+        argout = False
         #----- PROTECTED REGION ID(TPM_DS.flush_attributes) ENABLED START -----#
-        super(TPM_DS, self).flush_attributes()
+        argout = super(TPM_DS, self).flush_attributes()
         #----- PROTECTED REGION END -----#	//	TPM_DS.flush_attributes
+        return argout
         
     def generate_attributes(self):
         """ A method that generates dynamic attributes based on the current firmware.
         
         :param : 
         :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In generate_attributes()")
+        argout = False
         #----- PROTECTED REGION ID(TPM_DS.generate_attributes) ENABLED START -----#
-        super(TPM_DS, self).generate_attributes()
+        argout = super(TPM_DS, self).generate_attributes()
         #----- PROTECTED REGION END -----#	//	TPM_DS.generate_attributes
+        return argout
         
     def get_device_list(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
@@ -401,12 +405,14 @@ class TPM_DS (FPGA_DS):
         
         :param argin: A pickled string storing a dictionary with the required alarm levels, and name of attribute.
         :type: PyTango.DevString
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In set_attribute_levels()")
+        argout = False
         #----- PROTECTED REGION ID(TPM_DS.set_attribute_levels) ENABLED START -----#
-        super(TPM_DS, self).set_attribute_levels(argin)
+        argout = super(TPM_DS, self).set_attribute_levels(argin)
         #----- PROTECTED REGION END -----#	//	TPM_DS.set_attribute_levels
+        return argout
         
     def set_board_state(self, argin):
         """ Sets the board status by passing in a value.
@@ -424,12 +430,14 @@ class TPM_DS (FPGA_DS):
         
         :param argin: Board status value.
         :type: PyTango.DevLong
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In set_board_state()")
+        argout = False
         #----- PROTECTED REGION ID(TPM_DS.set_board_state) ENABLED START -----#
-        super(TPM_DS, self).set_board_state(argin)
+        argout = super(TPM_DS, self).set_board_state(argin)
         #----- PROTECTED REGION END -----#	//	TPM_DS.set_board_state
+        return argout
         
     def write_address(self, argin):
         """ Writes values to a register location. The actual physical address has to be provided.
@@ -645,10 +653,10 @@ class TPM_DSClass(FPGA_DSClass):
             [PyTango.DevVoid, "none"]],
         'flush_attributes':
             [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'generate_attributes':
             [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'get_device_list':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevString, "Dictionary of devices."]],
@@ -681,10 +689,10 @@ class TPM_DSClass(FPGA_DSClass):
             [PyTango.DevString, "Any output from the command."]],
         'set_attribute_levels':
             [[PyTango.DevString, "A pickled string storing a dictionary with the required alarm levels, and name of attribute."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'set_board_state':
             [[PyTango.DevLong, "Board status value."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command successful."]],
         'write_address':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevBoolean, "True if successful, false if not."]],

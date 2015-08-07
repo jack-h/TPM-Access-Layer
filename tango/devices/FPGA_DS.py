@@ -530,9 +530,10 @@ class FPGA_DS (PyTango.Device_4Impl):
         
         :param : 
         :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In flush_attributes()")
+        argout = False
         # ----- PROTECTED REGION ID(FPGA_DS.flush_attributes) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
@@ -542,6 +543,7 @@ class FPGA_DS (PyTango.Device_4Impl):
                     if not register_dict:  # if dict is empty
                         for reg_name, entries in register_dict.iteritems():
                             self.remove_attribute(reg_name)
+                    argout = True
                 else:
                     self.info_stream("Device not programmed. No attributes removed.")
             except DevFailed as df:
@@ -549,17 +551,20 @@ class FPGA_DS (PyTango.Device_4Impl):
         else:
             self.debug_stream("Invalid state")
             # ----- PROTECTED REGION END -----#	//	FPGA_DS.flush_attributes
+        return argout
         
     def generate_attributes(self):
         """ A method that generates dynamic attributes based on the current firmware.
         
         :param : 
         :type: PyTango.DevVoid
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In generate_attributes()")
+        argout = False
         # ----- PROTECTED REGION ID(FPGA_DS.generate_attributes) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
+        self.flush_attributes()
         if state_ok:
             register_dict = self.fpga_instance.get_register_list()
             try:
@@ -575,28 +580,13 @@ class FPGA_DS (PyTango.Device_4Impl):
                         self.info_stream("Setting up a new scalar attribute...")
                         self.create_scalar_attribute(reg_name)
                         self.info_stream("Name: %s - Size: %s" % (reg_name, 1))
+                argout = True
             except DevFailed as df:
                 self.debug_stream("Firmware attribute generation failed for: %s - Error: %s" % (reg_name, df))
         else:
             self.debug_stream("Invalid state")
-
-    # def get_device_list(self):
-    #     """ Returns a list of devices, as a serialized python dictionary, stored as a string.
-    #
-    #     :param :
-    #     :type: PyTango.DevVoid
-    #     :return: Dictionary of devices.
-    #     :rtype: PyTango.DevString """
-    #     self.debug_stream("In get_device_list()")
-    #     argout = ''
-    #     #----- PROTECTED REGION ID(FPGA_DS.get_device_list) ENABLED START -----#
-    #     state_ok = self.check_state_flow(self.get_device_list.__name__)
-    #     if state_ok:
-    #         devlist = self.fpga_instance.get_device_list()
-    #         argout = pickle.dumps(devlist)
-    #     else:
-    #         self.debug_stream("Invalid state")
-    #     #----- PROTECTED REGION END -----#	//	FPGA_DS.get_device_list
+        # ----- PROTECTED REGION END -----#	//	FPGA_DS.generate_attributes
+        return argout
         
     def get_device_list(self):
         """ Returns a list of devices, as a serialized python dictionary, stored as a string.
@@ -939,39 +929,6 @@ class FPGA_DS (PyTango.Device_4Impl):
         # ----- PROTECTED REGION END -----#	//	FPGA_DS.read_register
         return argout
         
-    def remove_command(self, argin):
-        """ A generic command that removes a command entry from the Tango device driver.
-        
-        :param argin: Command name.
-        :type: PyTango.DevString
-        :return: True if command removal was successful, false otherwise.
-        :rtype: PyTango.DevBoolean """
-        self.debug_stream("In remove_command()")
-        argout = False
-        # ----- PROTECTED REGION ID(FPGA_DS.remove_command) ENABLED START -----#
-        state_ok = self.check_state_flow(inspect.stack()[0][3])
-        if state_ok:
-            try:
-                self.info_stream("Removing command from device...")
-                # self.info_stream(self.cmd_list)
-                del self.plugin_cmd_list[argin]
-                self.info_stream("Updating state flow...")
-                del self.plugin_state_list[argin]
-                argout = True
-                self.info_stream("Command removed.")
-            except DevFailed as df:
-                print("Failed to remove command entry in device server: \n%s" % df)
-                argout = False
-            except:
-                self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
-                argout = False
-            finally:
-                return argout
-        else:
-            self.debug_stream("Invalid state")
-        # ----- PROTECTED REGION END -----#	//	FPGA_DS.remove_command
-        return argout
-        
     def run_plugin_command(self, argin):
         """ Proxy to run a particular plugin command.
         
@@ -1018,9 +975,10 @@ class FPGA_DS (PyTango.Device_4Impl):
         
         :param argin: A pickled string storing a dictionary with the required alarm levels, and name of attribute.
         :type: PyTango.DevString
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command was successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In set_attribute_levels()")
+        argout = False
         # ----- PROTECTED REGION ID(FPGA_DS.set_attribute_levels) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
@@ -1043,15 +1001,15 @@ class FPGA_DS (PyTango.Device_4Impl):
                 self.info_stream("Setting attribute levels...")
                 attribute.set_properties(multi_prop)
                 self.info_stream("Attribute levels set.")
+                argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to set attribute levels: %s" % df)
             except:
                 self.debug_stream("Unexpected error. Operation ignored. Maybe inputs are incorrect?")
-                argout = []
-
         else:
             self.debug_stream("Invalid state")
             # ----- PROTECTED REGION END -----#	//	FPGA_DS.set_attribute_levels
+        return argout
         
     def set_board_state(self, argin):
         """ Sets the board status by passing in a value.
@@ -1069,14 +1027,16 @@ class FPGA_DS (PyTango.Device_4Impl):
         
         :param argin: Board status value.
         :type: PyTango.DevLong
-        :return: 
-        :rtype: PyTango.DevVoid """
+        :return: Returns True if command successful.
+        :rtype: PyTango.DevBoolean """
         self.debug_stream("In set_board_state()")
+        argout = False
         # ----- PROTECTED REGION ID(FPGA_DS.set_board_state) ENABLED START -----#
         if argin in self.all_states_list:
             self.info_stream("Setting board state...")
             self.attr_board_state_read = argin
             self.info_stream("Board state set.")
+            argout = True
         else:
             self.info_stream("Wrong state given. Expected one of: %s" % self.all_states_list)
 
@@ -1099,6 +1059,7 @@ class FPGA_DS (PyTango.Device_4Impl):
     #     else:
     #         self.debug_stream("Invalid state")
     #     #----- PROTECTED REGION END -----#	//	FPGA_DS.write_address
+        return argout
         
     def write_address(self, argin):
         """ Writes values to a register location. The actual physical address has to be provided.
@@ -1467,10 +1428,10 @@ class FPGA_DSClass(PyTango.DeviceClass):
             [PyTango.DevVoid, "none"]],
         'flush_attributes':
             [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'generate_attributes':
             [[PyTango.DevVoid, "none"],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'get_device_list':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevString, "Dictionary of devices."]],
@@ -1498,18 +1459,15 @@ class FPGA_DSClass(PyTango.DeviceClass):
         'read_register':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevVarULongArray, "Register values."]],
-        'remove_command':
-            [[PyTango.DevString, "Command name."],
-            [PyTango.DevBoolean, "True if command removal was successful, false otherwise."]],
         'run_plugin_command':
             [[PyTango.DevString, "Dictionary with name of command to run, and arguments."],
             [PyTango.DevString, "Any output from the command."]],
         'set_attribute_levels':
             [[PyTango.DevString, "A pickled string storing a dictionary with the required alarm levels, and name of attribute."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command was successful."]],
         'set_board_state':
             [[PyTango.DevLong, "Board status value."],
-            [PyTango.DevVoid, "none"]],
+            [PyTango.DevBoolean, "Returns True if command successful."]],
         'write_address':
             [[PyTango.DevString, "Associated register information."],
             [PyTango.DevBoolean, "True if successful, false if not."]],

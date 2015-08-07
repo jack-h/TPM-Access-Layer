@@ -73,17 +73,17 @@
       <argin description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="generate_attributes" description="A method that generates dynamic attributes based on the current firmware." execMethod="generate_attributes" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="">
         <type xsi:type="pogoDsl:VoidType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
       <status abstract="false" inherited="true" concrete="true"/>
     </commands>
@@ -181,19 +181,19 @@
       <argin description="A pickled string storing a dictionary with the required alarm levels, and name of attribute.">
         <type xsi:type="pogoDsl:StringType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command was successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="set_board_state" description="Sets the board status by passing in a value.&#xA;        UNKNOWN&#x9;=  0&#xA;        INIT&#x9;&#x9;=  1&#xA;        ON&#x9;&#x9;=  2&#xA;        RUNNING&#x9;=  3&#xA;        FAULT&#x9;&#x9;=  4&#xA;        OFF&#x9;&#x9;=  5&#xA;        STANDBY&#x9;=  6&#xA;        SHUTTING_DOWN&#x9;=  7&#xA;        MAINTENANCE&#x9;=  8&#xA;        LOW_POWER&#x9;=  9&#xA;        SAFE_STATE&#x9;=  10" execMethod="set_board_state" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Board status value.">
         <type xsi:type="pogoDsl:IntType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Returns True if command successful.">
+        <type xsi:type="pogoDsl:BooleanType"/>
       </argout>
-      <status abstract="false" inherited="true" concrete="true"/>
+      <status abstract="false" inherited="true" concrete="true" concreteHere="false"/>
     </commands>
     <commands name="write_address" description="Writes values to a register location. The actual physical address has to be provided." execMethod="write_address" displayLevel="OPERATOR" polledPeriod="0">
       <argin description="Associated register information.">
