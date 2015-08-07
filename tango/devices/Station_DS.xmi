@@ -63,8 +63,8 @@
       <argin description="A pickled string containing:&#xA;1) Name of command&#xA;2) Arguments for command&#xA;&#xA;Arguments for a command have to be supplied as list of dictionaries.&#xA;If only one item is in the list, the same input is applied to all station commands.&#xA;&#xA;If more than one item is in the list, then each item is sent to an individual device (in order of station devices).&#xA;Therefore the size of the list should be equivalent to the number of devices controlled by the station.">
         <type xsi:type="pogoDsl:StringType"/>
       </argin>
-      <argout description="True if operation was successful, false otherwise.">
-        <type xsi:type="pogoDsl:BooleanType"/>
+      <argout description="Returns a set of replies per device in the station, pickled as a string.">
+        <type xsi:type="pogoDsl:StringType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>

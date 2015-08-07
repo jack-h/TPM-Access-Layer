@@ -289,10 +289,10 @@ class Station_DS (PyTango.Device_4Impl):
             If more than one item is in the list, then each item is sent to an individual device (in order of station devices).
             Therefore the size of the list should be equivalent to the number of devices controlled by the station.
         :type: PyTango.DevString
-        :return: True if operation was successful, false otherwise.
-        :rtype: PyTango.DevBoolean """
+        :return: Returns a set of replies per device in the station, pickled as a string.
+        :rtype: PyTango.DevString """
         self.debug_stream("In run_station_command()")
-        argout = False
+        argout = ''
         # ----- PROTECTED REGION ID(Station_DS.run_station_command) ENABLED START -----#
         state_ok = self.check_state_flow(inspect.stack()[0][3])
         if state_ok:
@@ -302,16 +302,21 @@ class Station_DS (PyTango.Device_4Impl):
                 fnInput = arguments['fnInput']
                 self.info_stream("Calling TPM function: %s" % fnName)
 
-                if len(fnInput) > 1 and len(fnInput) != len(self.tpm_dict):
-                    raise Exception(
-                        'Number of inputs to station commands not equivalent to number of devices under station control.')
+                if fnInput is not None:
+                    if len(fnInput) > 1 and len(fnInput) != len(self.tpm_dict):
+                        raise Exception(
+                            'Number of inputs to station commands not equivalent to number of devices under station control.')
 
                 # loop over tpms in station
                 command_indexes = []
                 cnt = 0
                 for device in self.tpm_dict:
                     tpm_proxy = self.station_devices.get_device(device)
-                    if len(fnInput) > 1:
+                    print tpm_proxy
+                    if fnInput is None:
+                        self.info_stream("No input detected...")
+                        command_indexes.append(tpm_proxy.command_inout_asynch(fnName))
+                    elif len(fnInput) > 1:
                         self.info_stream("Multiple inputs detected...spreading to boards")
                         pickled_fnInput = pickle.dumps(fnInput[cnt])
                         command_indexes.append(tpm_proxy.command_inout_asynch(fnName, pickled_fnInput))
@@ -330,6 +335,7 @@ class Station_DS (PyTango.Device_4Impl):
                         self.debug_stream("Waiting for asynchronous reply...")
                         tpm_proxy = self.station_devices.get_device(device)
                         try:
+                            #replies[cnt] = tpm_proxy.command_inout_reply(command_indexes[cnt])
                             replies[cnt] = tpm_proxy.command_inout_reply(command_indexes[cnt])
                             replies_gathered += 1
                             self.debug_stream('Received: %s' % replies[cnt])
@@ -341,7 +347,7 @@ class Station_DS (PyTango.Device_4Impl):
                                 continue
                                 #raise Exception, 'Weird exception received!: %s' % e
 
-                argout = True
+                argout = pickle.dumps(replies)
             except DevFailed as df:
                 self.debug_stream("Failed to run station-wide command: %s" % df)
         else:
@@ -434,7 +440,7 @@ class Station_DSClass(PyTango.DeviceClass):
             [PyTango.DevVoid, "none"]],
         'run_station_command':
             [[PyTango.DevString, "A pickled string containing:\n1) Name of command\n2) Arguments for command\n\nArguments for a command have to be supplied as list of dictionaries.\nIf only one item is in the list, the same input is applied to all station commands.\n\nIf more than one item is in the list, then each item is sent to an individual device (in order of station devices).\nTherefore the size of the list should be equivalent to the number of devices controlled by the station."],
-            [PyTango.DevBoolean, "True if operation was successful, false otherwise."]],
+            [PyTango.DevString, "Returns a set of replies per device in the station, pickled as a string."]],
         'get_station_state':
             [[PyTango.DevVoid, "none"],
             [PyTango.DevString, "A pickled string storing the state of each TPM in the station."]],

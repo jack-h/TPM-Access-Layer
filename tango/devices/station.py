@@ -55,7 +55,7 @@ class Station(object):
             arguments['fnName'] = command_name
             arguments['fnInput'] = command_input
             args = pickle.dumps(arguments)
-            return self._station_instance.command_inout("run_station_command", args)
+            return pickle.loads(self._station_instance.command_inout("run_station_command", args))
         except:
             print "Error:", sys.exc_info()[0]
             raise
@@ -64,3 +64,7 @@ if __name__ == "__main__":
     station = Station(station_name = "test/station/1")
     print station.add_tpm(device_name = "test/tpm_board/1", device_type = BoardMake.TpmBoard, ip_address = "127.0.0.1", port = 10000)
     print station.connect_tpm(device_name = "test/tpm_board/1")
+
+    fnName = "sink_alarm_state"
+    fnInput = None
+    print station.run_station_command(fnName, fnInput)
