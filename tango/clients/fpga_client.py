@@ -14,7 +14,7 @@ arguments = {}
 arguments['device'] = 2
 arguments['path'] = '/home/andrea/Documents/AAVS/xml/map.xml'
 args = pickle.dumps(arguments)
-fpga_instance.command_inout("load_firmware_blocking", args)
+fpga_instance.command_inout("load_firmware", args)
 
 # Load plugin
 fpga_instance.command_inout("load_plugin", 'FirmwareTest')
