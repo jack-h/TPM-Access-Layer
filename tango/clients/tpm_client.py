@@ -8,9 +8,12 @@ tpm_instance = PyTango.DeviceProxy("test/tpm_board/1")
 #tpm_instance.ip_address = "192.168.56.1"
 tpm_instance.ip_address = "127.0.0.1"
 tpm_instance.port = 10000
+print tpm_instance
+print tpm_instance.is_connected
 
 # Connect to device
 tpm_instance.command_inout("connect")
+print tpm_instance.is_connected
 
 # INIT device
 tpm_instance = PyTango.DeviceProxy("test/tpm_board/2")

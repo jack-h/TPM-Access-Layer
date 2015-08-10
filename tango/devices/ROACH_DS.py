@@ -90,6 +90,7 @@ class ROACH_DS (FPGA_DS):
         self.attr_is_programmed_read = False
         self.attr_ip_address_read = ''
         self.attr_port_read = 0
+        self.attr_is_connected_read = False
         #----- PROTECTED REGION ID(ROACH_DS.init_device) ENABLED START -----#
         self.fpga_instance = Roach()
         #----- PROTECTED REGION END -----#	//	ROACH_DS.init_device
@@ -145,6 +146,20 @@ class ROACH_DS (FPGA_DS):
         #----- PROTECTED REGION ID(ROACH_DS.port_write) ENABLED START -----#
         super(ROACH_DS, self).write_port(attr)
         #----- PROTECTED REGION END -----#	//	ROACH_DS.port_write
+        
+    def read_is_connected(self, attr):
+        self.debug_stream("In read_is_connected()")
+        #----- PROTECTED REGION ID(ROACH_DS.is_connected_read) ENABLED START -----#
+        attr.set_value(self.attr_is_connected_read)
+        super(ROACH_DS, self).write_is_connected(attr)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.is_connected_read
+        
+    def write_is_connected(self, attr):
+        self.debug_stream("In write_is_connected()")
+        data=attr.get_write_value()
+        #----- PROTECTED REGION ID(ROACH_DS.is_connected_write) ENABLED START -----#
+        super(ROACH_DS, self).write_is_connected(attr)
+        #----- PROTECTED REGION END -----#	//	ROACH_DS.is_connected_write
         
     
     
@@ -957,6 +972,10 @@ class ROACH_DSClass(FPGA_DSClass):
             PyTango.READ_WRITE]],
         'port':
             [[PyTango.DevULong,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE]],
+        'is_connected':
+            [[PyTango.DevBoolean,
             PyTango.SCALAR,
             PyTango.READ_WRITE]],
         }

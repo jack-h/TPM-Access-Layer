@@ -63,7 +63,6 @@ class Station(object):
 if __name__ == "__main__":
     station = Station(station_name = "test/station/1")
     print station.add_tpm(device_name = "test/tpm_board/1", device_type = BoardMake.TpmBoard, ip_address = "127.0.0.1", port = 10000)
-    print station.connect_tpm(device_name = "test/tpm_board/1")
 
     fnName = "sink_alarm_state"
     fnInput = None

@@ -239,8 +239,10 @@ class Station_DS (PyTango.Device_4Impl):
                 tpm_instance.port = sub_dict['port']
 
                 # Connect to device
-                tpm_instance.command_inout("connect")
-                self.info_stream("Connected: %s" % device_name)
+                if not tpm_instance.is_connected:
+                    tpm_instance.command_inout("connect")
+                    self.info_stream("Connected: %s" % device_name)
+
                 argout = True
             except DevFailed as df:
                 self.debug_stream("Failed to connect to all station devices: %s" % df)
@@ -312,7 +314,7 @@ class Station_DS (PyTango.Device_4Impl):
                 cnt = 0
                 for device in self.tpm_dict:
                     tpm_proxy = self.station_devices.get_device(device)
-                    print tpm_proxy
+                    self.connect_tpm(device)
                     if fnInput is None:
                         self.info_stream("No input detected...")
                         command_indexes.append(tpm_proxy.command_inout_asynch(fnName))
