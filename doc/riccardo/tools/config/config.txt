@@ -1,0 +1,60 @@
+[MAIN]
+REPO_ROOT = C:/Project/SKA/Channelizer/trunk/Firmware
+VIVADO_EXE = C:/Xilinx/Vivado/2014.2/bin/vivado.bat
+MSIM_LIB_PATH = C:/compile_simlib_vivado_2014.2
+
+[BEAMFORMER]
+FPGA_IP = 10.0.10.2
+UDP_PORT = 10000
+SIM_UDP_PORT = 10003
+UDP_TIMEOUT = 1
+XML_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/Beamformer/src/xml2vhdl_generated/Beamformer_output.xml
+SWP_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/Beamformer/src/vhdl/tb/c2c/c2c_swap.txt
+STREAM_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/Beamformer/src/vhdl/tb/c2c/c2c_stream_log.txt
+C2C_FOLDER = C:/Project/SKA/Channelizer/trunk/Firmware/designs/Beamformer/src/vhdl/tb/c2c
+SIM = 1
+
+[COARSE_LFAA]
+FPGA_IP = 10.0.10.2
+UDP_PORT = 10000
+SIM_UDP_PORT = 10002
+UDP_TIMEOUT = 1
+XML_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/Coarse_lfaa/src/xml2vhdl_generated/Coarse_lfaa_output.xml
+SWP_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/Coarse_lfaa/src/vhdl/tb/c2c/c2c_swap.txt
+STREAM_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/Coarse_lfaa/src/vhdl/tb/c2c/c2c_stream_log.txt
+C2C_FOLDER = C:/Project/SKA/Channelizer/trunk/Firmware/designs/Coarse_lfaa/src/vhdl/tb/c2c
+SIM = 1
+
+[TPM_CHANNELIZER]
+FPGA_IP = 10.0.10.2
+UDP_PORT = 10000
+SIM_UDP_PORT = 10001
+UDP_TIMEOUT = 1
+XML_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_channelizer/src/xml2vhdl_generated/tpm_channelizer_output.xml
+SWP_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_channelizer/src/vhdl/tb/c2c/c2c_swap.txt
+STREAM_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_channelizer/src/vhdl/tb/c2c/c2c_stream_log.txt
+C2C_FOLDER = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_channelizer/src/vhdl/tb/c2c
+SIM = 1
+
+[TPM_TEST]
+FPGA_IP = 10.0.10.2
+UDP_PORT = 10000
+SIM_UDP_PORT = 10000
+UDP_TIMEOUT = 1
+XML_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_test/src/xml2vhdl_generated/tpm_test_output.xml
+SWP_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_test/src/vhdl/tb/c2c/c2c_swap.txt
+STREAM_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_test/src/vhdl/tb/c2c/c2c_stream_log.txt
+C2C_FOLDER = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_test/src/vhdl/tb/c2c
+SIM = 0
+
+[TPM_TEST_2]
+FPGA_IP = 10.0.10.2
+UDP_PORT = 10000
+SIM_UDP_PORT = 10000
+UDP_TIMEOUT = 1
+XML_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_test_2/src/xml2vhdl_generated/tpm_test_2_output.xml
+SWP_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_test_2/src/vhdl/tb/c2c/c2c_swap.txt
+STREAM_FILE = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_test_2/src/vhdl/tb/c2c/c2c_stream_log.txt
+C2C_FOLDER = C:/Project/SKA/Channelizer/trunk/Firmware/designs/tpm_test_2/src/vhdl/tb/c2c
+SIM = 0
+

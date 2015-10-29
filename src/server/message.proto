@@ -12,7 +12,7 @@ message Request
         GET_REGISTER_VALUES = 8;
         SET_REGISTER_VALUES = 9;
         LOAD_FIRMWARE = 10;
-        LOAD_FIRMWARE_BLOCKING = 11;
+        LOAD_FIRMWARE_BLOCKING = 11
     }
 
     enum DeviceType

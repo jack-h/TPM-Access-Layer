@@ -6,6 +6,8 @@
 \usepackage{color}
 \usepackage{geometry}
 \usepackage{url}
+\usepackage{graphicx}
+\usepackage{parskip}
 
 \geometry{a4paper, portrait, margin=1.2in}
 
@@ -21,12 +23,12 @@
   \hyphenchar\font=`\-   % allowing hyphenation
 }
 
-\title{TPM Access Layer}
+\title{PyFabil}
 \author{Alessio Magro}
 \date{}
 
 \pdfinfo{%
-  /Title    (TPM Access Layer)
+  /Title    (Python FpgA Board Interface Layer)
   /Author   (Alessio Magro)
   /Creator  ()
   /Producer ()
@@ -38,171 +40,154 @@
 \sloppy
 \maketitle
 
-This document serves as a rough user-guide for the {\it TPM Access Layer}
-software tools. These include a C-like API for communicating with TPMs, a Python 
-wrapper with extended functionality for interactive debugging and scripting, as 
-well as a C++ server for communication with higher software layers. The latter 
-program is primarily designed to be used by the Web-based UI application, and 
-is based on a Protobuf over ZeroMQ interface. This document is not meant to 
-provide a detailed technical discussion on the software's implementation. This 
-access layer is still in active development, and many features are not yet 
-implemented (such as loading of firmware onto the FPGAs, access to on-board SPI 
-devices, and so on). This document will be continually updated as new feature 
-are introduced. 
+This document servers as a rough user-guide for PyFabil and related software 
+tools. These include a C-like API for communicating with digital boards, a 
+Python wrapper with extended functionality for interactive debugging and 
+scripting, as well as a C++ server for communication with higher software 
+layers. The latter program is primarily designed to be used by high level 
+client applications and is based on a Protobuf over ZeroMQ interface. This 
+document is not meant to provide a detailed technical discussion on the 
+software's implementation. The tools are still in active development, and many 
+feature are not implemented yet. This document will be continually updated as 
+new features are introduced. 
 
-At the core of all these features lies an XML schema which describes the memory 
-maps of loaded firmware and the board itself. This provides a map between 
-register names or mnemonics to a memory address on the board's address space. 
-In the UniBoard Control Protocol (UCP), all register and memory accesses are 
-performed on a provided memory address, such that any address conversion has 
-to be performed on the client side. For this reason, all checks (such as 
-memory block length, bitmasks, access permissions ...) have to performed on the 
-client side as well. The XML file must contain all this information. Section 
-\ref{XML} describes the XML schema in detail. 
+\section{Introduction}
 
-The access layer API can be used directly by custom C or C++ code. A C-like 
-interface was chosen so as to make it possible to use this API from pure 
-C-code, although the library itself is written in C++. The library has no 
-external third-party dependencies, and is easily compilable with a modern g++ 
-compiler (currently version 4.8+). Section \ref{TPMAPI} provides additional 
-details on this layer. However, it is generally tedious to debug and test 
-functionality using compiled C code, and for this reason a Python wrapper is 
-also provided. This loads the compiled C++ library and provides direct access to 
-the underlying API. The wrapper extends the functionality of the underlying 
-library by providing Pythonesque behavior. Section \ref{Python} describes this 
-wrapper in further detail.
+The primary aim of pyfabil is to provide a single access points to multiple 
+digital boards. In this way, the same function signatures can be used to access 
+any board type and instance. All communication protocol as well as 
+device and register handling details are hidden to the client. The end user 
+does not need to know whether the underlying communcation is performed using a 
+UDP or TCP-based protocol, or whether the list of registers is loaded through 
+an XML file or from a the programmed firmware itself. Most of these are 
+implemented in a C++, primarlity for speed. The higher level Pyhon interface 
+provides an abstracted view of the board. 
 
-\section{XML Memory Map}
-\label{XML}
+Three boards are currently supported:
+\begin{itemize}
+ \item UniBoard
+ \item ROACH and ROACH2
+ \item iTPM (Italian Tile Processing Module, once of the candidates for the SKA 
+LFAA digital backend)
+\end{itemize}
 
-The XML file provides a mapping between register and memory block 
-names/mnemonics to memory address on the board. In the TPM's case, the XML file 
-can contain the mapping for up to three 'devices': the CPLD (or board), the 
-firmware loaded on the first FPGA and the firmware loaded on the second FPGA. 
-The same firmware can be loaded on both FPGAs. The register in a firmware map 
-can be logically split into components (such as channeliser, beamformer, 
-calibrator ...), and in turn each register can be composed of multiple 
-bit-fields, where disjoint sets of bits have different interpretation in the 
-firmware. For this reason, an XML mapping file is composed of a hierarchy of 
-four nodes (excluding the root node):
+\begin{figure}[t]
+\centering
+\includegraphics[scale=0.8]{pyfabil.png}
+\caption{PyFabil overall design}
+\label{pyfabil_design}
+\end{figure}
+
+Figure \ref{pyfabil_design} depicts the overall design of the Python layer. TThe 
+interface block encapsulates the API provided by the FPGA Board Access Layer 
+shared library, allowing higher level components to call C functions directly. 
+This can be used on its own, allowing software developers to implement their own 
+abstract functionality. The \texttt{Defs} block is a placeholder for 
+package-wide declarations, including enumeration, decorators, Exceptions, and so 
+on. The \texttt{FPGABoard} is an abstract superclass which implements common 
+functionality, available to all board types. These include :
+\begin{itemize}
+ \item Connecting to and disconnecting from a board
+ \item Load and unload plugins
+ \item Calling the wrapped C++ functions with default parameters
+ \item Keeping the internal state of the instance (for example, FPGA(s) 
+programmed, connected, faulty)
+ \item Provide helper functions, such as to search for a particular register or 
+device name
+ \item Automatic handling of register bitfields (all masking and shifting is 
+performed internally if this information is available)
+\item Significant error checking and logging routines
+\end{itemize}
+
+For each new board type an new class should be implemented which inherits from 
+\texttt{FPGABoard}. Any method defined in the superclass can be re-implemented 
+(overridden), however one should ensure that any book-keeping defined in the 
+parent's class are performed here as well. Ideally, the parent's method is 
+called directly after board-specific functionality is implemented. This 
+generally takes the form of: \texttt{super(ClassName, self).method\_name()}. 
+
+When firmware is loaded onto FPGAs the functionality of the board changes. 
+Firmware-specific initialisation, checks, monitoring and control have to be 
+performed. Generally, this is accomplished by writing custom scripts which 
+utilize the underlying protocol and board wrappers. These scripts are then 
+usually directly integrated into the set of scripts used during the 
+operational lifetime of the instrument. These scripts are disjoint, can be 
+written by different people, and have no consistency, unless this is 
+explicitly enforced. The latter constraint is of particular concern when 
+designing a general monitoring and control framework with multiple states, 
+modes and status check routines. 
+
+To address this issue, pyfabil includes a firmware block \texttt{Plugin} 
+mechanism. When a developer writes a new firmware block (where this block can in 
+effect be the entire design), a plugin associated with this firmware must be 
+implemented. This plugin must subclass the FirmwareBlock abstract class, define 
+a number of parameters (implemented as decorators), implement the abstract 
+methods defined in the superclass as well as any custom functionality. These 
+plugins can then be dynamically loaded to any board instance during runtime. The 
+abstract methods make sure that all plugins provide sufficient functionality to 
+be able to perform basic tests, initialise the firmware, routinely check the 
+status of the running firmware and perform tests and diagnostics (assuming that 
+these were properly implemented). The custom functionality implemented in these 
+plugins can also be directly called. The list of available plugins is 
+dynamically checked by the python wrapper, and when loading a plugin, it checks 
+whether it is compatible with the board to which it is being loaded. It is up to 
+the plugin developer to make sure that the loaded firmware on the board is 
+correct (for example, by checking firmware name, version, and so on). It is 
+generally desirable to be able to configure these plugins automatically. For 
+example, during initialisation, a number of registers need to be set and checked 
+for a particular observation. This can either be performed explicitly by the 
+user, or by providing a configuration file which performs this automatically. 
+Plugins will be covered in greater detail in section XXX.
+
+The Python wrapper, together with the FPGA Board Access Layer, can either be 
+used as a standalone tool, or in combination with other tools in more complex 
+systems. In both cases, a standard and automatic way of configuring all the 
+boards and firmware forming part of a deployment is desirable. A deployment of 
+multiple boards and firmware will be referred to as an instrument. An instrument 
+is composed of multiple boards, which can be of different types, each of which 
+can have a number of firmware loaded (depending on the number of FPGAs on the 
+board). Each board can have a different role in the setup. Instead of having to 
+manually configure all boards and firmware, an \texttt{Instrument} management 
+class is provided which, given a configuration file, will:
+\begin{itemize}
+ \item Parse the configuration file 
+ \item Create all board instance, which can be of different types
+ \item Connect to these boards
+ \item Load the respective firmware on each board
+ \item Load required plugins on each board
+ \item Call the initialization routine on each board
+ \item Call the initialization routine for each plugin
+ \item Exposes functions for checking the status of the entire instrument, as 
+well a drill-down view of the status of each board and plugin
+\end{itemize}
+
+The configuration file takes the form of an XML file. Since this feature is 
+still in development, additional information will be provided in a later 
+version of this document.
+
+\section{Generic FPGA Board}
+
+The main python package is called \texttt{pyfabil}. It contains a number of 
+sub-packages:
 \begin{description}
- \item[Device node] Highest level node, representing the board itself (CPLD) or 
-the firmware loaded on the FPGAs. The identifiers for nodes in this level are 
-``CPLD'', ``FPGA1'' and ``FPGA2''.
- \item[Component node] Registers for each device can be grouped into 
-components, which makes it easier to logically partition the functionality of 
-these registers. For example, registers belonging to different firmware 
-components can be grouped into different nodes at this level. A base address can 
-be specified for each component.
- \item[Register node] Each component can be composed of multiple registers or 
-memory blocks, each requiring an identifier (the name or mnemonic) and the 
-memory-mapped address. Additional attributes can also be specified, such as the 
-size in words, access permission, the bitmask and a description. 
- \item[Bit node] A register can be composed of a combination of multiple 
-bitfields. These bitfields are specified in the fourth node level, having an 
-entry for each bitfield in the register. A bitmask per bitfield must be 
-specified.
+ \item[base] Implementations of base functionality, including the wrapper to 
+the C++ shared library, the definitions file and a set of utilities
+ \item[boards] Implementations of FPGABoard class as well as all digital board 
+sub classes
+ \item[instruments] Contains the generic instrument script and a placeholder 
+for any custom instrument scripts 
+ \item[plugins] Contains a sub-package for each board type, each having a set 
+of plugins implemented for the particular board
+ \item[tests] Location of any unit tests and test scripts
 \end{description}
 
-The XML listing below provides a very concise example of an XML mapping file. 
-Each of the node attributes are defined as follows:
+The \texttt{FPGABoard} implements the basic functionality for interfacing with 
+a digital board. The following list defines the functions available in this 
+class, together with a brief descriptions of how they would be used. Since an 
+instance of the this class cannot be created, an instance of the \texttt{TPM} 
+will be used in the examples below. To following snippet can be used to 
+instantiate a TPM instance:
 
-\begin{description}
- \item[id] The device, register, memory block or bitfield name/mnemonic. This 
-does not need to be unique within the XML file (such that the same firmware can 
-be loaded on both FPGAs). The IDs of successive levels in the hierarchy are 
-combined to generate the full name in the access layer. For example, the 
-full name of the first bit in \texttt{bit\_register}, \texttt{regfile}, 
-\texttt{FPGA1} in the example below would be 
-\texttt{\justify regfile.bit\_register.bit1} (the registers are partitioned 
-internally by device). 
-
- \item[address] The memory address to which the register is mapped. A base 
-address can be specified at all levels (except bitfields). In this case, 
-successive base addresses are added together to form the final address. 
-
- \item[permission] Access permissions for the register or memory block. Allowed 
-entries are \texttt{r}, \texttt{w} and \texttt{rw}.
-
- \item[size] The size in words of the register or memory block. If this value 
-is not specified, then the register is assumed to be of size 1 (32-bits). 
-Memory blocks can essentially be defined by setting this value. Note that if a 
-bitmask is specified for a memory block with size greater than 1, then it is 
-applied for all consecutive words.
- 
- \item[mask] The bitmask to be applied to the values after reading from or 
-before writing to the memory address. 
-
- \item[description] A textual description for the register.
-\end{description}
-
-\lstset{
-  language=XML,
-  captionpos=b,              
-  commentstyle=\color{mygreen},    
-  stringstyle=\color{mygreen},
-  keywordstyle=\color{blue},
-  morekeywords={node,id,address,encoding,mask,permission,size,description}
-}
-
-\begin{lstlisting}[caption=XML memory map]
-<?xml version="1.0" encoding="ISO-8859-1" ?>
-
-<node>
-
-  <node id="CPLD">
-    <node id="regfile" address="0x00000000">
-      <node id="register1" address="0x00000010" permission="rw" 
-            size="1" mask="0xFFFFFFFF" description="..."/>
-      ...
-    </node>
-    ...
-  </node>
-  
-  <node id="FPGA1" address="0x100000000">
-    <node id="regfile" address="0x00001000">
-      <node id="bit_register" address="0x00000010" />
-        <node id="bit1" mask="0x00000001" permission="rw" 
-              description="..." />
-        <node id="bit2" mask="0x00000002" permission="rw" 
-              description="..." />
-        ...
-      </node>
-      ...
-    </node> 
-    ...
-  </node>
-  
-  <node id="FPGA2"> ... </node>
-  
-</node>
-\end{lstlisting}
-
-\section{TPM Access Layer API}
-\label{TPMAPI}
-
-The TPM Access Layer provides a C-like API for communicating with TPMs using 
-UCP. Although monitoring and control of TPMs is the primary use-case for this 
-API, its software design allows the same layer to be usable with other FPGA 
-boards. Minimal changes are required to make it compatible with UniBoards 
-(since they use the same protocol), whilst custom Protocol and Board classes 
-are required to make it compatible with other boards. Details on how to change 
-and extend this layer will be provided in a separate technical guide. The 
-listing in Appendix B lists the currently defined API calls in this layer. The 
-access layer is capable of handling connections to multiple boards, which could 
-be of different types. 
-
-
-\section{Python wrapper}
-\label{Python}
-
-The Python wrapper can be used for interactive testing and scripting. All the 
-functionality is defined in the package \texttt{tpm}. This section will provide 
-a rough tutorial on how to use this package. In the following examples, 
-the wrapper will be connecting to one TPM board and issue requests via the 
-underlying access layer. Before these interactions can occur, two operations 
-need to be performed: connect to the board and load the XML memory map. The 
-listing below shows how to do this.
 
 \lstset{ %
   backgroundcolor=\color{white},   
@@ -228,50 +213,114 @@ listing below shows how to do this.
   stepnumber=2,                    
   stringstyle=\color{mymauve},     
   tabsize=2,
-  title=\lstname                   
+  title=\lstname
 }
 
-\begin{lstlisting}
- from tpm import *
+\begin{lstlisting}[belowskip=-1 \baselineskip]
+ from pyfabil import TPM
  
- # Create a new TPM instance
+ # Instantiate TPM instance
+ tpm = TPM()
+ 
+ # Instantiate TPM instance and connect to board
  tpm = TPM(ip="127.0.0.1", port=10000)
- 
- # Call load firmware to load XML file
- tpm.loadFirmwareBlocking(Device.FPGA_1, "/path/to/xml/file")
 \end{lstlisting}
 
-The first line imports all definitions from the \texttt{tpm} package. The next 
-statement then creates a new instance of class \texttt{TPM}. When an IP and 
-port are specified, as in this example, the \texttt{connectBoard} in the 
-library is called, setting up all required internal 
-data structures. It will also check to see whether the destination IP and port 
-can process UCP requests, and if not, an error is generated. For this reason, 
-either a TPM is required, or a script which acts as a UCP server. You can get 
-this script from the \texttt{scripts} directory in the code repository, called 
-\texttt{mock\_tpm.py}. Just run this on a separate console, and it will bind 
-itself to all local IP address and wait for read and write requests. The 
-\texttt{TPM} 
-constructor also accepts an additional argument, the filepath of the compiled 
-access layer, in cases where the library is not directly accessible by the 
-wrapper. This can be passed with \texttt{library='path'}. 
+The first statement imports the \texttt{TPM} class from \texttt{pyfabil} (Note 
+that even though the TPM class is defined in \texttt{pyfabil.boards.tpm}, 
+helper imports are defined in the \_\_init\_\_ file of the root package). The 
+next statement then create a new instance of class \texttt(TPM). When an IP and 
+port are specified, as in the third statement, the \texttt{connect} method in 
+the library is called, setting up all the required internal data structures. It 
+will also check whether it can communicate with the destination IP and port (in 
+this case using the UCP protocol). A TPM simulator is also provided in 
+\texttt{pyfabil.tests.tpm\_simulator} in cases where a TPM is unavailable. This 
+can be run in a separate console, and it will bind itself to all local IP 
+addresses and wait for read and write requests. \texttt{FPGABoard} will keep 
+an internal status for the device and all FPGAs defined for the board. If no 
+error occurs, the status for a connected board will be \texttt{Status.OK}, 
+otherwise if a network error occurs \texttt{Status.NetworkError}. The 
+constructor will also set up logging and get a list of all available plugins 
+which can be loaded for the board instance. 
 
-Once connected, the XML memory file needs to be loaded. The way in which this 
-will be performed on the board is not yet defined, so for the time being the 
-\texttt{loadFirmwareBlocking} call must be used. This takes the device on which 
-the ``firmware'' will be loaded and the path to the XML file. \texttt{Device} 
-is a representation of the \texttt{DEVICE} enum in the library, and can 
-currently have three values: \texttt{Device.FPGA\_1}, \texttt{Device.FPGA\_2} 
-and \texttt{Device.Board}. Only the two former cases are allows for this 
-functional call, since you cannot load a firmware on the board itself. This 
-call will also populate all internal data structures containing register and 
-memory block mapping information, such that read and write operations can 
-immediately be issued by the user.
+The status of the digital board upon connection depends on the board type as 
+well as whether it (FPGAs on the board) has been programmed or not. Generally, 
+if a firmware is already programmed the instance will get the query the 
+register list and populate internal structures. These checks and the population 
+of the register list is board-specific, so this functionality is implemented in 
+the board classes. Generally, when connecting to a board which has already been 
+programmed, the register is automatically generated and the user can then 
+interact with them.
 
-The wrapper provides two ways in which registers can be read from or written 
-to, one based on direct function calls and the other using indexed access. The 
-following listing provides the function definitions for using the functions 
-directly:
+The programmed firmware can be changed by using the \texttt{load\_firmware} 
+method, as per the following snippet. This will re-program the specified device 
+and re-load the register list. Note that the behavior of the command is 
+board-specific, so please consult the appropriate sections in this document.
+
+\begin{lstlisting}[belowskip=-1 \baselineskip]
+from pyfabil import Device
+tpm.load_firmware(Device.FPGA_1, firmware="custom_design")
+\end{lstlisting}
+
+The first argument defines on which FPGA on the board the firmware will be 
+loaded. The TPM has two FPGAs, and this statement will load the firmware 
+labelled ``custom\_design'' on FPGA 1 (or ID 0). This call will populate 
+all internal data structures containing register and memory block mapping 
+information, such that read and write operations can immediately be issued by 
+the user. An additional call, \texttt{get\_firmware\_list} can be used to list 
+the firmware available on the board (generally on Flash or over an NFS-mounted 
+directory). Additional functions are also provided, defined in section XXX.
+
+Once the board is connected and the register list is loaded, operations on 
+registers, devices and memory block can be performed. Three types of operations 
+can be performed:
+\begin{itemize}
+ \item Read from and write to a memory address
+ \item Read from and write to a register
+ \item Read from and write to a memory address on a device (such as an SPI 
+device)
+\end{itemize}
+A read and write method for each operation type is provided. Indexed access to 
+the board instance can also be used to indirectly call these methods. Use 
+indexed access results in less clutter in the code and makes it more readable. 
+However, indexed access cannot be used in all cases, for example if a number of 
+words or an offset needs to be provided, then the methods have to be called 
+directly. The following snippet demonstrates these for a register (or memory 
+block). The two sets of statements here are equivalent.
+
+\begin{lstlisting}[belowskip=-1 \baselineskip]
+tpm.write_register('fpga1.register_name', 0x25)
+val = tpm.read_register('fpga1.register_name', n = 1)
+
+tpm['fpga1.register_name'] = 0x25
+val = tpm['fpga1.register_name']
+\end{lstlisting}
+
+The first argument is the register name on which the operation will be 
+performed. The structure of this name is board-specific. Generally, the device 
+name with which the register is associated will be pre-pended to the actual 
+name, such that identical register names on different FPGAs can be identified. 
+The list of register can be grouped into components (as is the case for the 
+TPM). The full register name must match the internal representation of the 
+register (as stored in the register dictionary). The list of register names can 
+be acquired by calling \texttt{list\_register\_names}. Additional information 
+for each register can also be analyzed by calling \texttt{get\_register\_list}. 
+A user-friendly print out of the register list can be displayed by the 
+statement:
+\begin{lstlisting}[belowskip=-1 \baselineskip]
+print tpm
+\end{lstlisting}
+which will generated an output similar to:
+\begin{lstlisting}
+ Device  Register                           Address        Bitmask
+------  --------                           -------        -------
+FPGA 1	regfile.block2048b                 0x1000L        0xFFFFFFFF
+FPGA 1	regfile.date_code                  0x0L           0xFFFFFFFF
+...
+Board   regfile.ada_ctrl.ada_a_ada4961     0x30000010L    0x00000008
+Board   regfile.ada_ctrl.ada_fa_ada4961    0x30000010L    0x00000008
+... (redacted)
+\end{lstlisting}
 
 \begin{lstlisting}
  # Read register values from specified register
@@ -308,7 +357,8 @@ The first two functions defined above require both the \texttt{device} and
 checks are performed by the wrapper to make sure that requests don't go out of 
 bounds (for example, the length of the list of values to write are larger than 
 the size of the register, the register has write permissions in case of writes, 
-and so on). The list of registers which have been loaded can be displayed either 
+and so on). The list of registers which have been loaded can be displayed 
+either 
 with the \texttt{listRegisterNames()} function call, or with the following 
 statement: \texttt{print tpm}, where tpm is a \texttt{TPM} class instance. This 
 will print out the list of register with additional information, as shown below:
@@ -411,6 +461,119 @@ disconnect from the board:
  tpm.disconnect()
 \end{lstlisting}
 
+
+\section{iTPM}
+
+\subsection{XML Memory Map}
+\label{XML}
+
+The XML file provides a mapping between register and memory block 
+names/mnemonics to memory address on the board. In the TPM's case, the XML file 
+can contain the mapping for up to three 'devices': the CPLD (or board), the 
+firmware loaded on the first FPGA and the firmware loaded on the second FPGA. 
+The same firmware can be loaded on both FPGAs. The register in a firmware map 
+can be logically split into components (such as channeliser, beamformer, 
+calibrator ...), and in turn each register can be composed of multiple 
+bit-fields, where disjoint sets of bits have different interpretation in the 
+firmware. For this reason, an XML mapping file is composed of a hierarchy of 
+four nodes (excluding the root node):
+\begin{description}
+ \item[Device node] Highest level node, representing the board itself (CPLD) or 
+the firmware loaded on the FPGAs. The identifiers for nodes in this level are 
+``CPLD'', ``FPGA1'' and ``FPGA2''.
+ \item[Component node] Registers for each device can be grouped into 
+components, which makes it easier to logically partition the functionality of 
+these registers. For example, registers belonging to different firmware 
+components can be grouped into different nodes at this level. A base address 
+can 
+be specified for each component.
+ \item[Register node] Each component can be composed of multiple registers or 
+memory blocks, each requiring an identifier (the name or mnemonic) and the 
+memory-mapped address. Additional attributes can also be specified, such as the 
+size in words, access permission, the bitmask and a description. 
+ \item[Bit node] A register can be composed of a combination of multiple 
+bitfields. These bitfields are specified in the fourth node level, having an 
+entry for each bitfield in the register. A bitmask per bitfield must be 
+specified.
+\end{description}
+
+The XML listing below provides a very concise example of an XML mapping file. 
+Each of the node attributes are defined as follows:
+
+\begin{description}
+ \item[id] The device, register, memory block or bitfield name/mnemonic. This 
+does not need to be unique within the XML file (such that the same firmware can 
+be loaded on both FPGAs). The IDs of successive levels in the hierarchy are 
+combined to generate the full name in the access layer. For example, the 
+full name of the first bit in \texttt{bit\_register}, \texttt{regfile}, 
+\texttt{FPGA1} in the example below would be 
+\texttt{\justify regfile.bit\_register.bit1} (the registers are partitioned 
+internally by device). 
+
+ \item[address] The memory address to which the register is mapped. A base 
+address can be specified at all levels (except bitfields). In this case, 
+successive base addresses are added together to form the final address. 
+
+ \item[permission] Access permissions for the register or memory block. Allowed 
+entries are \texttt{r}, \texttt{w} and \texttt{rw}.
+
+ \item[size] The size in words of the register or memory block. If this value 
+is not specified, then the register is assumed to be of size 1 (32-bits). 
+Memory blocks can essentially be defined by setting this value. Note that if a 
+bitmask is specified for a memory block with size greater than 1, then it is 
+applied for all consecutive words.
+ 
+ \item[mask] The bitmask to be applied to the values after reading from or 
+before writing to the memory address. 
+
+ \item[description] A textual description for the register.
+\end{description}
+
+\lstset{
+  language=XML,
+  captionpos=b,              
+  commentstyle=\color{mygreen},    
+  stringstyle=\color{mygreen},
+  keywordstyle=\color{blue},
+  morekeywords={node,id,address,encoding,mask,permission,size,description}
+}
+
+\begin{lstlisting}[caption=XML memory map]
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<node>
+
+  <node id="CPLD">
+    <node id="regfile" address="0x00000000">
+      <node id="register1" address="0x00000010" permission="rw" 
+            size="1" mask="0xFFFFFFFF" description="..."/>
+      ...
+    </node>
+    ...
+  </node>
+  
+  <node id="FPGA1" address="0x100000000">
+    <node id="regfile" address="0x00001000">
+      <node id="bit_register" address="0x00000010" />
+        <node id="bit1" mask="0x00000001" permission="rw" 
+              description="..." />
+        <node id="bit2" mask="0x00000002" permission="rw" 
+              description="..." />
+        ...
+      </node>
+      ...
+    </node> 
+    ...
+  </node>
+  
+  <node id="FPGA2"> ... </node>
+  
+</node>
+\end{lstlisting}
+
+\section{UniBoard}
+
+\section{ROACH}
 
 \pagebreak
 

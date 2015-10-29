@@ -20,7 +20,7 @@ class Roach(FPGABoard):
         super(Roach, self).connect(ip, port)
 
         # Check if ROACH is programmed (has any registers loaded)
-        self._programmed = {Device.Board : True}
+        self._programmed = {Device.Board : True, Device.FPGA_1 : True }
         if len(self.get_register_list()) == 0:
             self._programmed[Device.FPGA_1] = False
 
