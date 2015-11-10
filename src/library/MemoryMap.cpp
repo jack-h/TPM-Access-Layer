@@ -17,7 +17,7 @@ MemoryMap::MemoryMap()
 
 
 // MemoryMap constructor which loads from file
-RETURN MemoryMap::updateMemoryMap(char *xmlFile)
+RETURN MemoryMap::updateMemoryMap(char *xmlFile, DEVICE device, uint32_t base_address)
 {
     // TODO: Check if filepath exists
 
@@ -42,7 +42,6 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
     xml_document<> doc;
     doc.parse<0>(content);
 
-
     DEBUG_PRINT("MemoryMap::updateMemoryMap. Updating memory map from " << xmlFile);
 
     // We are at the root of the XML file, we now need to iterate through
@@ -61,7 +60,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
         // Transform board string to upper case
         transform(device_id.begin(), device_id.end(), device_id.begin(), ::toupper);
 
-        currType = FIRMWARE_REGISTER;
+     /*   currType = FIRMWARE_REGISTER;
         if (device_id.compare("FPGA1") == 0)
             currDevice = FPGA_1;
         else if (device_id.compare("FPGA2") == 0)
@@ -78,10 +77,13 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
             currDevice = FPGA_7;
         else if (device_id.compare("FPGA8") == 0)
             currDevice = FPGA_8;
-        else
+        else */
         {
-            currDevice = BOARD;
-            currType   = BOARD_REGISTER;
+            currDevice = device;
+            if (device == BOARD_REGISTER)
+                currType   = BOARD_REGISTER;
+            else
+                currType = FIRMWARE_REGISTER;
         }
 
         // Create new device entry in register map
@@ -92,9 +94,9 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
         deviceAttr = deviceNode -> first_attribute("address");
         UINT device_address;
         if (deviceAttr == 0)
-            device_address = 0x0;
+            device_address = base_address;
         else
-            device_address = stol(deviceAttr -> value(), 0, 16);
+            device_address = stol(deviceAttr -> value(), 0, 16) + base_address;
 
         // Loop over device node attributes
         for(deviceAttr = deviceNode -> first_attribute();
@@ -138,7 +140,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile)
             RegisterInfo *reg_info = new RegisterInfo(RegisterInfo(comp_id));
             reg_info -> device      = currDevice;
             reg_info -> type        = COMPONENT;
-            reg_info -> address     = comp_address;
+            reg_info -> address     = comp_address + device_address;
             reg_info -> description = desc;        
             reg_info -> module      = module;
             memory_map[currDevice][comp_id]  = reg_info;

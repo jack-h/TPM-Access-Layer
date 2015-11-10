@@ -1,4 +1,4 @@
-__author__ = 'lessju'
+__author__ = 'Alessio Magro'
 
 import logging
 

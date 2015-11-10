@@ -22,7 +22,7 @@ class TpmPll(FirmwareBlock):
 
         if self._board_type == "XTPM":
             self._pll_out_config = ["sysref_hstl",  # "sysref_hstl",
-                                    "unused",       # "clk",
+                                    "clk",          # "clk",
                                     "clk",          # "unused",
                                     "unused",       # "unused",
                                     "sysref_hstl",  # "sysref_hstl",
@@ -89,22 +89,25 @@ class TpmPll(FirmwareBlock):
         """
 
         # Check if PLL has already been programmed
-        if self.status_check() ==  Status.OK:
-            print "PLL already initialised"
-            return
+        #if self.status_check() ==  Status.OK:
+        #    print "PLL already initialised"
+        #    return
 
         if freq not in [1000, 800, 700]:
             print "Frequency " + str(freq) + " MHz is not currently supported."
             freq = 700
 
-        self.board['board.regfile.ctrl.ad9528_rst'] = 0
-        time.sleep(1)
         self.board['board.regfile.ctrl.ad9528_rst'] = 1
+        time.sleep(0.2)
+        self.board['board.regfile.ctrl.ad9528_rst'] = 0
+        time.sleep(0.2)
+        self.board['board.regfile.ctrl.ad9528_rst'] = 1
+        time.sleep(0.2)
 
-        self.board[('pll', 0x0)] = 0x1
-        if do_until_eq(lambda : self.board[('pll', 0x0)] & 0x1, 0, ms_retry = 100, s_timeout = 10) is None:
-            raise PluginError("PLL timeout error")
-        self.board[('pll', 0xf)] = 0x1
+    #    self.board[('pll', 0x0)] = 0x1
+    #    if do_until_eq(lambda : self.board[('pll', 0x0)] & 0x1, 0, ms_retry = 100, s_timeout = 10) is None:
+    #        raise PluginError("PLL timeout error")
+        self.board[('pll', 0xF)] = 0x1
 
         if self._board_type == "XTPM":
             self.board[('pll', 0x100)] = 0x1
@@ -112,20 +115,9 @@ class TpmPll(FirmwareBlock):
             self.board[('pll', 0x104)] = 0xA   # VCXO100MHz
             self.board[('pll', 0x106)] = 0x14  # VCXO100MHz ##mod
             self.board[('pll', 0x107)] = 0x13  # Not disable holdover
-
-            old = 0
-            if old == 1:
-                self.board[('pll', 0x108)] = 0x10
-            else:
-                self.board[('pll', 0x100)] = 0x38 # VCXO100MHz ##mod  ##10MHZ: 0x38
-
+            self.board[('pll', 0x100)] = 0x38 # VCXO100MHz ##mod  ##10MHZ: 0x38
             self.board[('pll', 0x109)] = 0x4
-
-            if old == 1:
-                self.board[('pll', 0x10A)] = 0x0
-            else:
-                self.board[('pll', 0x10A)] = 0x2  ###10MHZ: 0x2
-
+            self.board[('pll', 0x10A)] = 0x2  ###10MHZ: 0x2
         else:
             self.board[('pll', 0x100)] = 0x1
             self.board[('pll', 0x102)] = 0x1
@@ -136,7 +128,7 @@ class TpmPll(FirmwareBlock):
             self.board[('pll', 0x109)] = 0x4
             self.board[('pll', 0x10A)] = 0x0
 
-        if self.board == "XTPM":
+        if self._board_type == "XTPM":
             self.board[('pll', 0x200)] = 0xE6
 
             if freq == 1000:

@@ -207,7 +207,7 @@ REGISTER_INFO *UniBoard::getRegisterList(UINT *num_registers, bool load_values)
 }
 
 // Synchronously load firmware to FPGA
-RETURN UniBoard::loadFirmware(DEVICE device, const char *bitstream)
+RETURN UniBoard::loadFirmware(DEVICE device, const char *bitstream, uint32_t base_address)
 {
     // A new firmware needs to be loaded onto one of the FPGAs
     // NOTE: It is assumed that the new XML mapping contains all the

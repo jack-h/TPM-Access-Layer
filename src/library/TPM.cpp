@@ -271,7 +271,7 @@ FIRMWARE TPM::getFirmware(DEVICE device, UINT *num_firmware)
 }
 
 // Synchronously load firmware to FPGA
-RETURN TPM::loadFirmware(DEVICE device, const char *bitstream)
+RETURN TPM::loadFirmware(DEVICE device, const char *bitstream, uint32_t base_address)
 {
     // The TPM is composed of the CPLD and two FPGAs. Each one has an
     // associated XML file which can be loaded separately. Firmware on FPGA 1
@@ -283,7 +283,7 @@ RETURN TPM::loadFirmware(DEVICE device, const char *bitstream)
 
     // Update memory map with XML file. Memory map will automatically remove existing map
     // if FPGA had already been loaded
-    memory_map -> updateMemoryMap(xml_file);
+    memory_map -> updateMemoryMap(xml_file, device, base_address);
 
     return SUCCESS;
 }

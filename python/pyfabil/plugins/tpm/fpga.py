@@ -29,7 +29,7 @@ class TpmFpga(FirmwareBlock):
         elif self._device == Device.FPGA_2:
             self._device = 'fpga2'
         else:
-            raise PluginError("TpmFpga: Invalid device %d" % self._device)
+            raise PluginError("TpmFpga: Invalid device %s" % self._device)
 
         self._nof_inputs = 16
 
@@ -46,6 +46,9 @@ class TpmFpga(FirmwareBlock):
             print "FPGA OK"
             return
 
+        # Clear FPGA
+        self.fpga_stop()
+
         filter_list = []
         for n in input_list:
             if n in enabled_list:
@@ -56,15 +59,19 @@ class TpmFpga(FirmwareBlock):
             mask = 1 << item
             disabled_input ^= mask
 
-        self.board['board.regfile.ctrl'] = 0x0081  # Power down ADCs
+        self.board['board.regfile.ctrl'] = 0x1  # Power down ADCs
         self.board['board.regfile.ada_ctrl'] = 0x0000 # 0x1 Turns on ADS
-        self.board['board.regfile.ethernet_pause'] = 0xA000
+        self.board['board.regfile.ethernet_pause'] = 0x0
 
-        self.board['%s.jesd_buffer.bit_per_sample' % self._device] = 0x8  # bit per sample
+        self.board['%s.jesd_buffer.bit_per_sample' % self._device] = 0x8  # bits per sample
         self.board['%s.jesd204_if.regfile_channel_disable' % self._device] = disabled_input
         self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x0
         self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._device] = 0x0
+
         self.board['%s.jesd204_if.regfile_ctrl.reset_n' % self._device] = 0x1
+
+        if do_until_eq(lambda : self.board['%s.jesd204_if.regfile_status.qpll_locked' % self._device], 1, ms_retry = 100, s_timeout = 10) is None:
+            print "QPLL not locked"
 
         # Setting default buffer configuration
         for n in range(self._nof_inputs):
@@ -98,11 +105,21 @@ class TpmFpga(FirmwareBlock):
         self.board['%s.jesd_buffer.write_mux_we' % self._device] = mask
         self.board['%s.jesd_buffer.write_mux_we_shift' % self._device] = 0x0
 
+        self.board['%s.regfile.stream_demux' % self._device] = 0x1
+
     def fpga_stop(self):
         """ Stop FPGA acquisition and data downloading through 1Gbit Ethernet """
+        self.board['board.regfile.c2c_stream_enable'] = 0x0
         self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x0
         self.board['%s.jesd204_if.regfile_ctrl' % self._device] = 0x0
         time.sleep(1)
+
+    def fpga_sync_status(self):
+        """ Read FPGA0, FPGA1, FPGA0. If x0 == x2 then within same PPS, then if x1 != x1 FPGAs are out of sync,
+            calculate difference and update fpga sync register
+        """
+        #TODO: Implement syncing mechanism
+        pass
 
     ##################### Superclass method implementations #################################
 
@@ -122,10 +139,11 @@ class TpmFpga(FirmwareBlock):
         # Check FPGA PLL is locked and receiving data from the FPGA
         if self.board['%s.jesd204_if.regfile_status.qpll_locked' % self._device] == 0x1 and \
            self.board['%s.jesd204_if.regfile_status.valid' % self._device] == 0x1:
-            print 'FPGA already initialised'
+            print 'FPGA %s already initialised' % self._device
             return Status.OK
         else:
             return Status.BoardError
+
     def clean_up(self):
         """ Perform cleanup
         :return: Success

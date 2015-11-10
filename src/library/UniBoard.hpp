@@ -54,7 +54,7 @@ class UniBoard: public Board
         FIRMWARE getFirmware(DEVICE device, UINT *num_firmware);
 
     // Synchronously load firmware to FPGA
-        RETURN loadFirmware(DEVICE device, const char *bitstream);
+        RETURN loadFirmware(DEVICE device, const char *bitstream, uint32_t base_address = 0);
 
         // Functions dealing with on-board devices (such as SPI devices)
         RETURN          loadSPIDevices(DEVICE device, const char *filepath);

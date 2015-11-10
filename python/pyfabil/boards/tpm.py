@@ -35,8 +35,14 @@ class TPM(FPGABoard):
         if (not self._simulator) and self.id is not None:
             # Pre-load all required plugins. Board-level devices are loaded here
             [self.load_plugin("TpmFirmwareInformation", firmware=x) for x in range(1,4)]
-            self.load_plugin("TpmPll", board_type="NOTXTPM")
-            [self.load_plugin("TpmAdc", adc_id = adc) for adc in ["adc0", "adc1"]]
+
+            # Load ADCs
+            [self.load_plugin("TpmAdc", adc_id = adc) for adc in
+                ["adc0", "adc1", "adc2", "adc3", "adc4", "adc5", "adc6", "adc7",
+                 "adc8", "adc9", "adc10", "adc11", "adc12", "adc13", "adc14", "adc15"]]
+
+            # Load PLL
+            self.load_plugin("TpmPll")
             self._initialise_board()
         else:
             print "Running in simulation mode"
@@ -81,6 +87,12 @@ class TPM(FPGABoard):
             if self.id is None:
                 raise LibraryError("Not connected to board, cannot load firmware")
 
+            # Get FPGA base address
+            if device == Device.FPGA_1:
+                base_address = self['board.info.fpga1_base_add']
+            else:
+                base_address = self['board.info.fpga2_base_add']
+
             # Check if register exists in map
             if device == Device.FPGA_1:
                 loaded = self['board.regfile.fpga1_programmed_fw']
@@ -101,11 +113,22 @@ class TPM(FPGABoard):
                 f.flush()
 
                 # Call superclass with this file
-                super(TPM, self).load_firmware(device = device, filepath = filepath)
+                super(TPM, self).load_firmware(device = device, filepath = filepath, base_address = base_address)
         else:
             # Check if file exists
             if not os.path.exists(filepath):
                 raise LibraryError("Cannot load firmware with file %s, does not exist" % filepath)
+
+            # If file is an XML file, call superclass method directly, otherwise assume that it's a
+            # bistream and load bitstream to FPGA first
+            if not filepath.endswidth(".xml"):
+                # Erase FPGA first
+                # TODO
+
+                # Load bitstream
+                # TODO
+                pass
+
             # Call load firmware method on super class
             super(TPM, self).load_firmware(device = device, filepath = filepath)
 
@@ -159,17 +182,23 @@ class TPM(FPGABoard):
             self.load_firmware(device = Device.FPGA_1)
 
         if self['board.regfile.fpga2_programmed_fw'] != 0:
-            self.load_firmware(device = Device.FPGA_2)
+           self.load_firmware(device = Device.FPGA_2)
 
     def _initialise_devices(self, frequency = 700):
         """ Initialise the SPI and other devices on the board """
 
-        # Initialise PLL
-        self.tpm_pll.pll_start(frequency)
+        # Initialise PLL (3 retries)
+        for i in range(3):
+            try:
+                self.tpm_pll.pll_start(frequency)
+                self.tpm_pll.pll_start(frequency)
+                break
+            except PluginError as err:
+                if i == 2:
+                    raise err
 
         # Initialise ADCs
-        [self.tpm_adc[i].adc_single_start() for i in range(2)]
-
+        [self.tpm_adc[i].adc_single_start() for i in range(len(self.tpm_adc))]
 
     def _get_xml_file(self, xml_offset):
         """ Get XML file from board

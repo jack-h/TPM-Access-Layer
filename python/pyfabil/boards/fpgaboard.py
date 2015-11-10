@@ -226,7 +226,6 @@ class FPGABoard(object):
 
             # Check if a compatible design was found
             if compatible_design is not None:
-                print compatible_design
                 if 'device' not in kwargs.keys():
                     raise LibraryError("Plugin %s with firmware association required a device argument" % plugin)
 
@@ -378,7 +377,7 @@ class FPGABoard(object):
 
         return self._firmwareList
 
-    def load_firmware(self, device, filepath = None, load_values = False):
+    def load_firmware(self, device, filepath = None, load_values = False, base_address = 0):
         """ Blocking call to load firmware
          :param device: Device on board to load firmware to
          :param filepath: Path to firmware
@@ -399,7 +398,7 @@ class FPGABoard(object):
 
         # All OK, call function
         self.status[device] = Status.LoadingFirmware
-        err = call_load_firmware(self.id, device, filepath)
+        err = call_load_firmware(self.id, device, filepath, base_address)
         self._logger.debug(self.log("Called load_firmware"))
 
         # If call succeeded, get register and device list

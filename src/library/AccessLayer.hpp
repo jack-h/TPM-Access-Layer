@@ -212,7 +212,7 @@ extern "C" FIRMWARE getFirmware(ID id, DEVICE device, UINT *num_firmware);
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-extern "C" RETURN loadFirmware(ID id, DEVICE device, const char* bitstream);
+extern "C" RETURN loadFirmware(ID id, DEVICE device, const char* bitstream, uint32_t base_address = 0);
 
 // Request RF data from the running firmware. This is still TBD
 

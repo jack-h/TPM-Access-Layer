@@ -112,7 +112,7 @@ FIRMWARE ROACH::getFirmware(DEVICE device, UINT *num_firmware)
 }
 
 // Synchronously load firmware to FPGA
-RETURN ROACH::loadFirmware(DEVICE device, const char *bitstream)
+RETURN ROACH::loadFirmware(DEVICE device, const char *bitstream, uint32_t base_address)
 {
     // Check if device is valid
     if (device != FPGA_1)

@@ -3,6 +3,7 @@ __author__ = 'lessju'
 from pyfabil.plugins.firmwareblock import FirmwareBlock
 from pyfabil.base.definitions import *
 from pyfabil.base.utils import *
+from time import sleep
 import logging
 
 
@@ -11,7 +12,7 @@ class TpmJesd(FirmwareBlock):
 
     @compatibleboards(BoardMake.TpmBoard)
     @friendlyname('tpm_jesd')
-    @maxinstances(1)
+    @maxinstances(4)
     def __init__(self, board, **kwargs):
         """ TpmJesd initialiser
         :param board: Pointer to board instance
@@ -41,7 +42,7 @@ class TpmJesd(FirmwareBlock):
         self.board['%s.jesd204_if.core_id_%d_scrambling' % (self._fpga, self._core)] = 0x1
         self.board['%s.jesd204_if.core_id_%d_octets_per_frame' % (self._fpga, self._core)] = 0x0
         self.board['%s.jesd204_if.core_id_%d_frames_per_multiframe' % (self._fpga, self._core)] = 0x1F
-        if self.board == "XTPM":
+        if self._board_type == "XTPM":
             self.board['%s.jesd204_if.core_id_%d_lanes_in_use' % (self._fpga, self._core)] = 0x7  # xTPM
         else:
             self.board['%s.jesd204_if.core_id_%d_lanes_in_use' % (self._fpga, self._core)] = 0x3

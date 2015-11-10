@@ -56,7 +56,7 @@ public:
         virtual FIRMWARE getFirmware(DEVICE device, UINT *num_firmware) = 0;
 
         // Synchronously load firmware to FPGA
-        virtual RETURN loadFirmware(DEVICE device, const char *bitstream) = 0;
+        virtual RETURN loadFirmware(DEVICE device, const char *bitstream, uint32_t base_address = 0) = 0;
 
         // Functions dealing with on-board devices (such as SPI devices)
         virtual RETURN          loadSPIDevices(DEVICE param, const char *string) = 0;

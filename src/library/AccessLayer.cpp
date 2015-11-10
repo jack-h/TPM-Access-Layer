@@ -387,7 +387,7 @@ FIRMWARE  getFirmware(ID id, DEVICE device, UINT *num_firmware)
 
 // Same as loadFirmware, however return only after the bitstream is loaded or
 // an error occurs
-RETURN  loadFirmware(ID id, DEVICE device, const char* bitstream)
+RETURN  loadFirmware(ID id, DEVICE device, const char* bitstream, uint32_t base_address)
 {
     // Check if board exists
     map<unsigned int, Board *>::iterator it;
@@ -402,7 +402,7 @@ RETURN  loadFirmware(ID id, DEVICE device, const char* bitstream)
     Board *board = it -> second;
 
     // Call loadFirmware on board instance
-    return board -> loadFirmware(device, bitstream);
+    return board -> loadFirmware(device, bitstream, base_address);
 }
 /*
 // [Optional] Set a periodic register

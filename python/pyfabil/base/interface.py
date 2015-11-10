@@ -42,7 +42,7 @@ def initialise_library(filepath = None):
     library.getFirmware.restype = ctypes.POINTER(ctypes.c_char_p)
 
     # Define loadFirmwareBlocking function
-    library.loadFirmware.argtypes =  [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
+    library.loadFirmware.argtypes =  [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32]
     library.loadFirmware.restype = ctypes.c_int
 
     # Define getRegisterList function
@@ -158,7 +158,7 @@ def call_get_firmware_list(board_id, device):
 
     return firmwareList
 
-def call_load_firmware(board_id, device, filepath):
+def call_load_firmware(board_id, device, filepath, base_address = 0):
     """ Load firmware on board in blocking mode
     :param board_id: ID of board to communicate with
     :param device: Device on board to load firmware onto
@@ -166,7 +166,7 @@ def call_load_firmware(board_id, device, filepath):
     :return: Success or Failure
     """
     global library
-    return Error(library.loadFirmware(board_id, device.value, filepath))
+    return Error(library.loadFirmware(board_id, device.value, filepath, base_address))
 
 def call_get_register_list(board_id, load_values = False):
     """ Get list of available registers on board

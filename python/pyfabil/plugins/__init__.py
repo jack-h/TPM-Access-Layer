@@ -30,6 +30,8 @@ from pyfabil.plugins.uniboard.mmdp                    import UniBoardMmdp
 # TPM plugins
 from pyfabil.plugins.tpm.kcu_test_firmware            import KcuTestFirmware
 from pyfabil.plugins.tpm.firmware_information         import TpmFirmwareInformation
+from pyfabil.plugins.tpm.tpm_test_firmware            import TpmTestFirmware
+from pyfabil.plugins.tpm.ten_g_core                   import TpmTenGCore
 from pyfabil.plugins.tpm.fpga                         import TpmFpga
 from pyfabil.plugins.tpm.jesd                         import TpmJesd
 from pyfabil.plugins.tpm.pll                          import TpmPll
