@@ -68,7 +68,7 @@ class TPM(FPGABoard):
         return firmware
 
     def load_firmware(self, device, filepath = None, load_values = False):
-        """ Override superclass load_firmware to extract memory map from the bitfile
+        """ Override uperclass load_firmware to extract memory map from the bitfile
             This is saved in a tmp directory and forwarded to the superclass for
             processing
             :param device: The device on which the firmware will be loaded
@@ -78,7 +78,7 @@ class TPM(FPGABoard):
 
         # Check if device is valid
         if device not in [Device.Board, Device.FPGA_1, Device.FPGA_2]:
-            raise LibraryError("TPM devices can only be FPGA_1 and FPGA_2")
+            raise LibraryError("TPM devices can only be Board, FPGA_1 and FPGA_2")
 
         # If a filepath is not provided, then this means that we're loading from the board itself
         if not filepath:
@@ -87,17 +87,12 @@ class TPM(FPGABoard):
             if self.id is None:
                 raise LibraryError("Not connected to board, cannot load firmware")
 
-            # Get FPGA base address
-            if device == Device.FPGA_1:
-                base_address = self['board.info.fpga1_base_add']
-            else:
-                base_address = self['board.info.fpga2_base_add']
+            # Get FPGA base address and check if firmwared is loaded in FPGA
+            base_address = self['board.info.fpga1_base_add']   if device == Device.FPGA_1 \
+                                                               else self['board.info.fpga2_base_add']
+            loaded = self['board.regfile.fpga1_programmed_fw'] if device == Device.FPGA_1 \
+                                                               else self['board.regfile.fpga2_programmed_fw']
 
-            # Check if register exists in map
-            if device == Device.FPGA_1:
-                loaded = self['board.regfile.fpga1_programmed_fw']
-            else:
-                loaded = self['board.regfile.fpga2_programmed_fw']
             register = 'board.info.fw%d_xml_offset' % loaded
             if not self.register_list.has_key(register):
                 raise LibraryError("CPLD XML file must be loaded prior to loading firmware")
@@ -122,12 +117,14 @@ class TPM(FPGABoard):
             # If file is an XML file, call superclass method directly, otherwise assume that it's a
             # bistream and load bitstream to FPGA first
             if not filepath.endswidth(".xml"):
-                # Erase FPGA first
-                # TODO
 
-                # Load bitstream
-                # TODO
-                pass
+                # Check that we're trying to program an FPGA not the CPLD
+                if device not in [Device.Board, Device.FPGA_1, Device.FPGA_2]:
+                    raise LibraryError("Can only program TPM devices FPGA_1 and FPGA_2")
+
+                #device_index = 1 if device == Device.FPGA_1 else Device.FPGA_2
+                #self.tpm_fpga[device_index].fpga_erase()
+                #self.tpm_fpga[device_index].fpga_program()
 
             # Call load firmware method on super class
             super(TPM, self).load_firmware(device = device, filepath = filepath)
@@ -154,6 +151,7 @@ class TPM(FPGABoard):
 
         # Load SPI file, if exists
         if self.register_list.has_key('board.info.spi_xml_offset'):
+
             # Get SPI XML file
             spi_xml = self._get_xml_file(self.read_register("board.info.spi_xml_offset"))
 

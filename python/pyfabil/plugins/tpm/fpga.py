@@ -3,6 +3,7 @@ __author__ = 'lessju'
 from pyfabil.plugins.firmwareblock import FirmwareBlock
 from pyfabil.base.definitions import *
 from pyfabil.base.utils import *
+from time import sleep
 import logging
 
 
@@ -120,6 +121,59 @@ class TpmFpga(FirmwareBlock):
         """
         #TODO: Implement syncing mechanism
         pass
+
+    def fpga_erase(self):
+        """ Erase FPGA """
+        xil_register = 'board.smap.%s' % \
+                       "xil_0" if self._device == Device.FPGA_1 else "xil_1"
+
+        # Check if FPGA is programmed, if not return (no need to erase)
+        if self.board[xil_register] & 0x1 == 0:
+            return
+
+        self.board[xil_register] = 0x10  # Select FPGA
+        self.board["board.smap.global"] = 0x1  # PROG = 0
+
+        while self.board[xil_register] & 0x1 == 1:
+            sleep(0.1)
+
+        self.board["board.smap.global"] = 0x3
+
+        while self.board[xil_register] & 0x1 == 0:
+            sleep(0.1)
+
+        self.board[xil_register] = 0x0
+
+    def fpga_program(self, bitstream):
+        """ Program FPGA
+        :param path: Bitfile to download onto FPGA
+        """
+
+        # Read bistream
+        with open(bitstream, "rb") as fp:
+            data  = fp.read()
+
+        xil_register = 'board.smap.%s' % \
+                       "xil_0" if self._device == Device.FPGA_1 else "xil_1"
+
+        if self.board[xil_register] & 0x1 == 0:
+            raise PluginError("Could not program FPGA")
+
+        self.board[xil_register] = 0x10
+        self.board["board.smap.global"] = 0x2
+
+        # Group bytes into word and correct endiannes of bitfile content
+        data = [(d << 24 | c << 16 | b << 8 | a)  for (a, b, c, d) in zip(*[iter(data)]*4)]
+
+        # Write bitfile to FPGA
+        self.board["board.smap.wr_fifo"] = data
+
+        # Wait for operation to complete
+        while self.board[xil_register] & 0x10 == 0:
+            sleep(0.1)
+
+        self.board["board.smap.global"] = 0x3
+        self.board[xil_register] = 0x0
 
     ##################### Superclass method implementations #################################
 

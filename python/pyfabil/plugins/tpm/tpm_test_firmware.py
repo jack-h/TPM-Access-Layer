@@ -48,26 +48,30 @@ class TpmTestFirmware(FirmwareBlock):
         if retries == max_retries:
             raise BoardError("TpmTestFirmware: Could not configure JESD cores")
 
+        # Initialise SPEAD transmission
+        self.initialize_spead()
+
     #######################################################################################
 
-    def start_streaming(self):
-        """ Start data streaming """
+    def initialize_spead(self):
+        """ Initialize SPEAD  """
         self.board["board.regfile.c2c_stream_enable"] = 0x1
+        self.board["%s.spead_tx.control" % self._device_name] = 0x0400100C
 
     def send_raw_data(self):
         """ Send raw data from the TPM """
-        self.board["fpga1.lmc_gen_request.raw_data"] = 0x1
+        self.board["%s.lmc_gen.request.raw_data" % self._device_name] = 0x1
 
-    def send_channelised_data(self):
+    def send_channelised_data(self, number_of_samples = 128):
         """ Send channelized data from the TPM """
-        self.board["fpga1.lmc_gen_request.channelized_data"] = 0x1
+        self.board["%s.lmc_gen.channelized_pkt_length" % self._device_name] = number_of_samples - 1
+        self.board["%s.lmc_gen.request.channelized_data" % self._device_name] = 0x1
 
     def send_beam_data(self):
         """ Send beam data from the TPM """
-        self.board["fpga1.lmc_gen_request.beamformed_data"] = 0x1
+        self.board["%s.lmc_gen.request.beamformed_data" % self._device_name] = 0x1
 
     ##################### Superclass method implementations #################################
-
 
     def initialise(self):
         """ Initialise TpmTestFirmware """

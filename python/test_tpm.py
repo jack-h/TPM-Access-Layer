@@ -20,6 +20,6 @@ tpm.load_plugin("TpmTestFirmware", device = Device.FPGA_2)
 # tpm["board.regfile.c2c_stream_enable"] = 0x1
 
 # To send data
-tpm.tpm_test_firmware.send_raw_data()
+#tpm.tpm_test_firmware.send_raw_data()
 
 #print tpm
