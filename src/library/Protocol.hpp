@@ -18,8 +18,8 @@
 
 #include "Definitions.hpp"
 
-// Define maximum payload size in words (4-bytes)
-#define MAX_PAYLOAD_SIZE 350
+// Define maximum payload size in bytes
+#define MAX_PAYLOAD_SIZE 1024
 
 // Create protocol abstract class
 class Protocol

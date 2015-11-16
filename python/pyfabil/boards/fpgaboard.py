@@ -413,11 +413,11 @@ class FPGABoard(object):
             self.status[device]      = Status.LoadingFirmwareError
             raise BoardError("load_firmware failed on board")
 
-    def download_firmware(self, device):
+    def download_firmware(self, device, bitfile):
         """ Download firmware onto the FPGA (or FLASH)
         :param device: Device to download firmware to
         """
-        pass
+        raise LibraryError("Download firmware not implemented")
 
     def get_register_list(self, reset = False, load_values = False):
         """ Get list of registers

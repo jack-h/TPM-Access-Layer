@@ -1,4 +1,7 @@
 import os
+from time import sleep
+import math
+from pyfabil.base.utils import swap32
 from pyfabil.boards.fpgaboard import FPGABoard, DeviceNames
 from pyfabil.base.definitions import *
 from math import ceil
@@ -67,6 +70,57 @@ class TPM(FPGABoard):
         # All done, return
         return firmware
 
+    def download_firmware(self, device, bitfile):
+        """ Download bitfile to FPGA
+        :param device: FPGA to download bitfile
+        :param bifile: Bitfile to download
+        """
+
+        # Temporary
+        xil_registers    = [0x50000004, 0x50000008]
+        global_register = 0x50000000
+        fifo_register   = 0x50001000
+
+        # Check if FPGA is programmed (if not no need to erase)
+        for xil_register in xil_registers:
+            if self[xil_register] & 0x1 != 0:
+                self[xil_register] = 0x10  # Select FPGA
+                self[global_register] = 0x1  # PROG = 0
+                while self[xil_register] & 0x1 == 1:
+                    sleep(0.1)
+                self[global_register] = 0x3
+                while self[xil_register] & 0x1 == 0:
+                    sleep(0.1)
+                self[xil_register] = 0x0
+
+        # Read bistream
+        with open(bitfile, "rb") as fp:
+            data  = fp.read()
+
+        for xil_register in xil_registers:
+            self[xil_register] = 0x10
+        self[global_register] = 0x2
+
+        # Group bytes into word and correct endiannes of bitfile content
+        formatted_data = [(ord(d) << 24 | ord(c) << 16 | ord(b) << 8 | ord(a))  for (a, b, c, d) in zip(*[iter(data)]*4)]
+
+        # Write bitfile to FPGA
+        packet_size = 256
+        num = int(math.floor(len(formatted_data) / float(packet_size)))
+        for i in range(num):
+            self[fifo_register] = formatted_data[i * packet_size : i * packet_size + packet_size]
+        self[fifo_register] = formatted_data[num * packet_size:]
+
+        # Wait for operation to complete
+        for xil_register in xil_registers:
+            while self[xil_register] & 0x10 == 0:
+                sleep(0.1)
+
+        self[global_register] = 0x3
+        for xil_register in xil_registers:
+            self[xil_register] = 0x0
+
+
     def load_firmware(self, device, filepath = None, load_values = False):
         """ Override uperclass load_firmware to extract memory map from the bitfile
             This is saved in a tmp directory and forwarded to the superclass for
@@ -122,10 +176,6 @@ class TPM(FPGABoard):
                 if device not in [Device.Board, Device.FPGA_1, Device.FPGA_2]:
                     raise LibraryError("Can only program TPM devices FPGA_1 and FPGA_2")
 
-                #device_index = 1 if device == Device.FPGA_1 else Device.FPGA_2
-                #self.tpm_fpga[device_index].fpga_erase()
-                #self.tpm_fpga[device_index].fpga_program()
-
             # Call load firmware method on super class
             super(TPM, self).load_firmware(device = device, filepath = filepath)
 
@@ -177,10 +227,10 @@ class TPM(FPGABoard):
         # CPLD and SPI XML files have been loaded, check whether FPGA have been programmed
         # If FPGA is programmed, load the firmware's XML file
         if self['board.regfile.fpga1_programmed_fw'] != 0:
-            self.load_firmware(device = Device.FPGA_1)
+           self.load_firmware(device = Device.FPGA_1)
 
         if self['board.regfile.fpga2_programmed_fw'] != 0:
-           self.load_firmware(device = Device.FPGA_2)
+          self.load_firmware(device = Device.FPGA_2)
 
     def _initialise_devices(self, frequency = 700):
         """ Initialise the SPI and other devices on the board """
@@ -218,22 +268,26 @@ class TPM(FPGABoard):
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
 
-        # Run checks
-        if not self._checks():
-            return
-
         # Check if the specified key is a memory address or register name
         if type(key) in [int, long]:
             return self.read_address(key)
 
         # Check if the specified key is a tuple, in which case we are reading from a device
         if type(key) is tuple:
+            # Run checks
+            if not self._checks():
+                return
+
             if len(key) == 2:
                 return self.read_device(key[0], key[1])
             else:
                 raise LibraryError("A device name and address need to be specified for writing to SPI devices")
 
         elif type(key) is str:
+            # Run checks
+            if not self._checks():
+                return
+
             # Check if a device is specified in the register name
             if self.register_list.has_key(key):
                 reg = self.register_list[key]
@@ -247,22 +301,26 @@ class TPM(FPGABoard):
     def __setitem__(self, key, value):
         """ Override __setitem__, set value on board"""
 
-        # Run checks
-        if not self._checks():
-            return
-
         # Check is the specified key is a memory address or register name
         if type(key) in [int, long]:
             return self.write_address(key, value)
 
         # Check if the specified key is a tuple, in which case we are writing to a device
         if type(key) is tuple:
+            # Run checks
+            if not self._checks():
+                return
+
             if len(key) == 2:
                 return self.write_device(key[0], key[1], value)
             else:
                 raise LibraryError("A device name and address need to be specified for writing to SPI devices")
 
         elif type(key) is str:
+            # Run checks
+            if not self._checks():
+                return
+
             # Check if device is specified in the register name
             if self.register_list.has_key(key):
                 return self.write_register(key, value)

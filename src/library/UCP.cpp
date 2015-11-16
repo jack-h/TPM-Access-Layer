@@ -2,6 +2,7 @@
 #include "UCP.hpp"
 
 #include <stdlib.h>
+#include <math.h>
 
 // UCP Constructor
 UCP::UCP() : Protocol()
@@ -182,7 +183,7 @@ RETURN UCP::write(UINT address, UINT *values, UINT n, UINT offset, bool fifo)
     unsigned values_per_payload = MAX_PAYLOAD_SIZE / sizeof(UINT);
 
     // Check if we need to split this request up into multiple packets
-    unsigned num_packets = n / values_per_payload + 1;
+    unsigned num_packets = (int) ceil((float) n / (float) values_per_payload);
 
     // Issue requests one by one
     for(unsigned i = 0; i < num_packets; i++)
