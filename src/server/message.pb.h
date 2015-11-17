@@ -36,6 +36,12 @@ class Request;
 class Reply;
 class Reply_RegisterInfoType;
 class Reply_SPIInfoType;
+class Reply_RawDataReply;
+class Reply_RawDataReply_AdcPower;
+class ChannelisedDataRequest;
+class ChannelisedDataResponse;
+class ChannelisedDataResponse_ComplexSignedInt;
+class RawDataRequest;
 
 enum Request_CommandType {
   Request_CommandType_CONNECT = 1,
@@ -48,11 +54,13 @@ enum Request_CommandType {
   Request_CommandType_GET_REGISTER_VALUES = 8,
   Request_CommandType_SET_REGISTER_VALUES = 9,
   Request_CommandType_LOAD_FIRMWARE = 10,
-  Request_CommandType_LOAD_FIRMWARE_BLOCKING = 11
+  Request_CommandType_LOAD_FIRMWARE_BLOCKING = 11,
+  Request_CommandType_GET_CHANNELISED_DATA = 12,
+  Request_CommandType_GET_RAW_DATA = 13
 };
 bool Request_CommandType_IsValid(int value);
 const Request_CommandType Request_CommandType_CommandType_MIN = Request_CommandType_CONNECT;
-const Request_CommandType Request_CommandType_CommandType_MAX = Request_CommandType_LOAD_FIRMWARE_BLOCKING;
+const Request_CommandType Request_CommandType_CommandType_MAX = Request_CommandType_GET_RAW_DATA;
 const int Request_CommandType_CommandType_ARRAYSIZE = Request_CommandType_CommandType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Request_CommandType_descriptor();
@@ -106,14 +114,13 @@ inline bool Request_RegisterType_Parse(
     Request_RegisterType_descriptor(), name, value);
 }
 enum Request_BoardMake {
-  Request_BoardMake_TPM_BOARD = 1,
-  Request_BoardMake_ROACH_BAORD = 2,
-  Request_BoardMake_ROACH2_BOARD = 3,
-  Request_BoardMake_UNIBOARD_BOARD = 4
+  Request_BoardMake_TPM = 1,
+  Request_BoardMake_ROACH = 2,
+  Request_BoardMake_UNIBOARD = 3
 };
 bool Request_BoardMake_IsValid(int value);
-const Request_BoardMake Request_BoardMake_BoardMake_MIN = Request_BoardMake_TPM_BOARD;
-const Request_BoardMake Request_BoardMake_BoardMake_MAX = Request_BoardMake_UNIBOARD_BOARD;
+const Request_BoardMake Request_BoardMake_BoardMake_MIN = Request_BoardMake_TPM;
+const Request_BoardMake Request_BoardMake_BoardMake_MAX = Request_BoardMake_UNIBOARD;
 const int Request_BoardMake_BoardMake_ARRAYSIZE = Request_BoardMake_BoardMake_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Request_BoardMake_descriptor();
@@ -125,6 +132,25 @@ inline bool Request_BoardMake_Parse(
     const ::std::string& name, Request_BoardMake* value) {
   return ::google::protobuf::internal::ParseNamedEnum<Request_BoardMake>(
     Request_BoardMake_descriptor(), name, value);
+}
+enum Request_ProcessingPhase {
+  Request_ProcessingPhase_DSP = 1,
+  Request_ProcessingPhase_CSP = 2
+};
+bool Request_ProcessingPhase_IsValid(int value);
+const Request_ProcessingPhase Request_ProcessingPhase_ProcessingPhase_MIN = Request_ProcessingPhase_DSP;
+const Request_ProcessingPhase Request_ProcessingPhase_ProcessingPhase_MAX = Request_ProcessingPhase_CSP;
+const int Request_ProcessingPhase_ProcessingPhase_ARRAYSIZE = Request_ProcessingPhase_ProcessingPhase_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* Request_ProcessingPhase_descriptor();
+inline const ::std::string& Request_ProcessingPhase_Name(Request_ProcessingPhase value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    Request_ProcessingPhase_descriptor(), value);
+}
+inline bool Request_ProcessingPhase_Parse(
+    const ::std::string& name, Request_ProcessingPhase* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Request_ProcessingPhase>(
+    Request_ProcessingPhase_descriptor(), name, value);
 }
 enum Reply_ResultType {
   Reply_ResultType_SUCCESS = 0,
@@ -231,6 +257,26 @@ inline bool Reply_RegisterType_Parse(
   return ::google::protobuf::internal::ParseNamedEnum<Reply_RegisterType>(
     Reply_RegisterType_descriptor(), name, value);
 }
+enum ChannelisedDataResponse_Polarization {
+  ChannelisedDataResponse_Polarization_X = 1,
+  ChannelisedDataResponse_Polarization_Y = 2,
+  ChannelisedDataResponse_Polarization_XY = 3
+};
+bool ChannelisedDataResponse_Polarization_IsValid(int value);
+const ChannelisedDataResponse_Polarization ChannelisedDataResponse_Polarization_Polarization_MIN = ChannelisedDataResponse_Polarization_X;
+const ChannelisedDataResponse_Polarization ChannelisedDataResponse_Polarization_Polarization_MAX = ChannelisedDataResponse_Polarization_XY;
+const int ChannelisedDataResponse_Polarization_Polarization_ARRAYSIZE = ChannelisedDataResponse_Polarization_Polarization_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* ChannelisedDataResponse_Polarization_descriptor();
+inline const ::std::string& ChannelisedDataResponse_Polarization_Name(ChannelisedDataResponse_Polarization value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    ChannelisedDataResponse_Polarization_descriptor(), value);
+}
+inline bool ChannelisedDataResponse_Polarization_Parse(
+    const ::std::string& name, ChannelisedDataResponse_Polarization* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<ChannelisedDataResponse_Polarization>(
+    ChannelisedDataResponse_Polarization_descriptor(), name, value);
+}
 // ===================================================================
 
 class Request : public ::google::protobuf::Message {
@@ -296,6 +342,8 @@ class Request : public ::google::protobuf::Message {
   static const CommandType SET_REGISTER_VALUES = Request_CommandType_SET_REGISTER_VALUES;
   static const CommandType LOAD_FIRMWARE = Request_CommandType_LOAD_FIRMWARE;
   static const CommandType LOAD_FIRMWARE_BLOCKING = Request_CommandType_LOAD_FIRMWARE_BLOCKING;
+  static const CommandType GET_CHANNELISED_DATA = Request_CommandType_GET_CHANNELISED_DATA;
+  static const CommandType GET_RAW_DATA = Request_CommandType_GET_RAW_DATA;
   static inline bool CommandType_IsValid(int value) {
     return Request_CommandType_IsValid(value);
   }
@@ -368,10 +416,9 @@ class Request : public ::google::protobuf::Message {
   }
 
   typedef Request_BoardMake BoardMake;
-  static const BoardMake TPM_BOARD = Request_BoardMake_TPM_BOARD;
-  static const BoardMake ROACH_BAORD = Request_BoardMake_ROACH_BAORD;
-  static const BoardMake ROACH2_BOARD = Request_BoardMake_ROACH2_BOARD;
-  static const BoardMake UNIBOARD_BOARD = Request_BoardMake_UNIBOARD_BOARD;
+  static const BoardMake TPM = Request_BoardMake_TPM;
+  static const BoardMake ROACH = Request_BoardMake_ROACH;
+  static const BoardMake UNIBOARD = Request_BoardMake_UNIBOARD;
   static inline bool BoardMake_IsValid(int value) {
     return Request_BoardMake_IsValid(value);
   }
@@ -391,6 +438,30 @@ class Request : public ::google::protobuf::Message {
   static inline bool BoardMake_Parse(const ::std::string& name,
       BoardMake* value) {
     return Request_BoardMake_Parse(name, value);
+  }
+
+  typedef Request_ProcessingPhase ProcessingPhase;
+  static const ProcessingPhase DSP = Request_ProcessingPhase_DSP;
+  static const ProcessingPhase CSP = Request_ProcessingPhase_CSP;
+  static inline bool ProcessingPhase_IsValid(int value) {
+    return Request_ProcessingPhase_IsValid(value);
+  }
+  static const ProcessingPhase ProcessingPhase_MIN =
+    Request_ProcessingPhase_ProcessingPhase_MIN;
+  static const ProcessingPhase ProcessingPhase_MAX =
+    Request_ProcessingPhase_ProcessingPhase_MAX;
+  static const int ProcessingPhase_ARRAYSIZE =
+    Request_ProcessingPhase_ProcessingPhase_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  ProcessingPhase_descriptor() {
+    return Request_ProcessingPhase_descriptor();
+  }
+  static inline const ::std::string& ProcessingPhase_Name(ProcessingPhase value) {
+    return Request_ProcessingPhase_Name(value);
+  }
+  static inline bool ProcessingPhase_Parse(const ::std::string& name,
+      ProcessingPhase* value) {
+    return Request_ProcessingPhase_Parse(name, value);
   }
 
   // accessors -------------------------------------------------------
@@ -499,6 +570,31 @@ class Request : public ::google::protobuf::Message {
   inline ::Request_BoardMake board() const;
   inline void set_board(::Request_BoardMake value);
 
+  // optional .Request.ProcessingPhase processingPhase = 14;
+  inline bool has_processingphase() const;
+  inline void clear_processingphase();
+  static const int kProcessingPhaseFieldNumber = 14;
+  inline ::Request_ProcessingPhase processingphase() const;
+  inline void set_processingphase(::Request_ProcessingPhase value);
+
+  // optional .ChannelisedDataRequest channelisedDataRequest = 15;
+  inline bool has_channeliseddatarequest() const;
+  inline void clear_channeliseddatarequest();
+  static const int kChannelisedDataRequestFieldNumber = 15;
+  inline const ::ChannelisedDataRequest& channeliseddatarequest() const;
+  inline ::ChannelisedDataRequest* mutable_channeliseddatarequest();
+  inline ::ChannelisedDataRequest* release_channeliseddatarequest();
+  inline void set_allocated_channeliseddatarequest(::ChannelisedDataRequest* channeliseddatarequest);
+
+  // optional .RawDataRequest rawDataRequest = 16;
+  inline bool has_rawdatarequest() const;
+  inline void clear_rawdatarequest();
+  static const int kRawDataRequestFieldNumber = 16;
+  inline const ::RawDataRequest& rawdatarequest() const;
+  inline ::RawDataRequest* mutable_rawdatarequest();
+  inline ::RawDataRequest* release_rawdatarequest();
+  inline void set_allocated_rawdatarequest(::RawDataRequest* rawdatarequest);
+
   // @@protoc_insertion_point(class_scope:Request)
  private:
   inline void set_has_command();
@@ -523,6 +619,12 @@ class Request : public ::google::protobuf::Message {
   inline void clear_has_value();
   inline void set_has_board();
   inline void clear_has_board();
+  inline void set_has_processingphase();
+  inline void clear_has_processingphase();
+  inline void set_has_channeliseddatarequest();
+  inline void clear_has_channeliseddatarequest();
+  inline void set_has_rawdatarequest();
+  inline void clear_has_rawdatarequest();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -540,6 +642,9 @@ class Request : public ::google::protobuf::Message {
   ::google::protobuf::RepeatedField< ::google::protobuf::uint32 > values_;
   ::google::protobuf::uint32 value_;
   int board_;
+  ::ChannelisedDataRequest* channeliseddatarequest_;
+  ::RawDataRequest* rawdatarequest_;
+  int processingphase_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
   friend void protobuf_ShutdownFile_message_2eproto();
@@ -812,6 +917,172 @@ class Reply_SPIInfoType : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
+class Reply_RawDataReply_AdcPower : public ::google::protobuf::Message {
+ public:
+  Reply_RawDataReply_AdcPower();
+  virtual ~Reply_RawDataReply_AdcPower();
+
+  Reply_RawDataReply_AdcPower(const Reply_RawDataReply_AdcPower& from);
+
+  inline Reply_RawDataReply_AdcPower& operator=(const Reply_RawDataReply_AdcPower& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Reply_RawDataReply_AdcPower& default_instance();
+
+  void Swap(Reply_RawDataReply_AdcPower* other);
+
+  // implements Message ----------------------------------------------
+
+  Reply_RawDataReply_AdcPower* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Reply_RawDataReply_AdcPower& from);
+  void MergeFrom(const Reply_RawDataReply_AdcPower& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated int32 powerSamples = 1;
+  inline int powersamples_size() const;
+  inline void clear_powersamples();
+  static const int kPowerSamplesFieldNumber = 1;
+  inline ::google::protobuf::int32 powersamples(int index) const;
+  inline void set_powersamples(int index, ::google::protobuf::int32 value);
+  inline void add_powersamples(::google::protobuf::int32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::int32 >&
+      powersamples() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::int32 >*
+      mutable_powersamples();
+
+  // @@protoc_insertion_point(class_scope:Reply.RawDataReply.AdcPower)
+ private:
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::int32 > powersamples_;
+  friend void  protobuf_AddDesc_message_2eproto();
+  friend void protobuf_AssignDesc_message_2eproto();
+  friend void protobuf_ShutdownFile_message_2eproto();
+
+  void InitAsDefaultInstance();
+  static Reply_RawDataReply_AdcPower* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Reply_RawDataReply : public ::google::protobuf::Message {
+ public:
+  Reply_RawDataReply();
+  virtual ~Reply_RawDataReply();
+
+  Reply_RawDataReply(const Reply_RawDataReply& from);
+
+  inline Reply_RawDataReply& operator=(const Reply_RawDataReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Reply_RawDataReply& default_instance();
+
+  void Swap(Reply_RawDataReply* other);
+
+  // implements Message ----------------------------------------------
+
+  Reply_RawDataReply* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Reply_RawDataReply& from);
+  void MergeFrom(const Reply_RawDataReply& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  typedef Reply_RawDataReply_AdcPower AdcPower;
+
+  // accessors -------------------------------------------------------
+
+  // repeated .Reply.RawDataReply.AdcPower adcChannels = 1;
+  inline int adcchannels_size() const;
+  inline void clear_adcchannels();
+  static const int kAdcChannelsFieldNumber = 1;
+  inline const ::Reply_RawDataReply_AdcPower& adcchannels(int index) const;
+  inline ::Reply_RawDataReply_AdcPower* mutable_adcchannels(int index);
+  inline ::Reply_RawDataReply_AdcPower* add_adcchannels();
+  inline const ::google::protobuf::RepeatedPtrField< ::Reply_RawDataReply_AdcPower >&
+      adcchannels() const;
+  inline ::google::protobuf::RepeatedPtrField< ::Reply_RawDataReply_AdcPower >*
+      mutable_adcchannels();
+
+  // @@protoc_insertion_point(class_scope:Reply.RawDataReply)
+ private:
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::Reply_RawDataReply_AdcPower > adcchannels_;
+  friend void  protobuf_AddDesc_message_2eproto();
+  friend void protobuf_AssignDesc_message_2eproto();
+  friend void protobuf_ShutdownFile_message_2eproto();
+
+  void InitAsDefaultInstance();
+  static Reply_RawDataReply* default_instance_;
+};
+// -------------------------------------------------------------------
+
 class Reply : public ::google::protobuf::Message {
  public:
   Reply();
@@ -865,6 +1136,7 @@ class Reply : public ::google::protobuf::Message {
 
   typedef Reply_RegisterInfoType RegisterInfoType;
   typedef Reply_SPIInfoType SPIInfoType;
+  typedef Reply_RawDataReply RawDataReply;
 
   typedef Reply_ResultType ResultType;
   static const ResultType SUCCESS = Reply_ResultType_SUCCESS;
@@ -1085,6 +1357,15 @@ class Reply : public ::google::protobuf::Message {
   inline const ::google::protobuf::RepeatedPtrField< ::std::string>& firmware() const;
   inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_firmware();
 
+  // optional .Reply.RawDataReply rawData = 10;
+  inline bool has_rawdata() const;
+  inline void clear_rawdata();
+  static const int kRawDataFieldNumber = 10;
+  inline const ::Reply_RawDataReply& rawdata() const;
+  inline ::Reply_RawDataReply* mutable_rawdata();
+  inline ::Reply_RawDataReply* release_rawdata();
+  inline void set_allocated_rawdata(::Reply_RawDataReply* rawdata);
+
   // @@protoc_insertion_point(class_scope:Reply)
  private:
   inline void set_has_result();
@@ -1099,6 +1380,8 @@ class Reply : public ::google::protobuf::Message {
   inline void clear_has_message();
   inline void set_has_id();
   inline void clear_has_id();
+  inline void set_has_rawdata();
+  inline void clear_has_rawdata();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -1112,6 +1395,7 @@ class Reply : public ::google::protobuf::Message {
   ::google::protobuf::RepeatedPtrField< ::Reply_RegisterInfoType > registerlist_;
   ::std::string* message_;
   ::google::protobuf::RepeatedPtrField< ::std::string> firmware_;
+  ::Reply_RawDataReply* rawdata_;
   ::google::protobuf::int32 id_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
@@ -1119,6 +1403,412 @@ class Reply : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static Reply* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ChannelisedDataRequest : public ::google::protobuf::Message {
+ public:
+  ChannelisedDataRequest();
+  virtual ~ChannelisedDataRequest();
+
+  ChannelisedDataRequest(const ChannelisedDataRequest& from);
+
+  inline ChannelisedDataRequest& operator=(const ChannelisedDataRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ChannelisedDataRequest& default_instance();
+
+  void Swap(ChannelisedDataRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  ChannelisedDataRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ChannelisedDataRequest& from);
+  void MergeFrom(const ChannelisedDataRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required int32 AntennaId = 1;
+  inline bool has_antennaid() const;
+  inline void clear_antennaid();
+  static const int kAntennaIdFieldNumber = 1;
+  inline ::google::protobuf::int32 antennaid() const;
+  inline void set_antennaid(::google::protobuf::int32 value);
+
+  // optional int32 SampleCount = 2;
+  inline bool has_samplecount() const;
+  inline void clear_samplecount();
+  static const int kSampleCountFieldNumber = 2;
+  inline ::google::protobuf::int32 samplecount() const;
+  inline void set_samplecount(::google::protobuf::int32 value);
+
+  // @@protoc_insertion_point(class_scope:ChannelisedDataRequest)
+ private:
+  inline void set_has_antennaid();
+  inline void clear_has_antennaid();
+  inline void set_has_samplecount();
+  inline void clear_has_samplecount();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 antennaid_;
+  ::google::protobuf::int32 samplecount_;
+  friend void  protobuf_AddDesc_message_2eproto();
+  friend void protobuf_AssignDesc_message_2eproto();
+  friend void protobuf_ShutdownFile_message_2eproto();
+
+  void InitAsDefaultInstance();
+  static ChannelisedDataRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ChannelisedDataResponse_ComplexSignedInt : public ::google::protobuf::Message {
+ public:
+  ChannelisedDataResponse_ComplexSignedInt();
+  virtual ~ChannelisedDataResponse_ComplexSignedInt();
+
+  ChannelisedDataResponse_ComplexSignedInt(const ChannelisedDataResponse_ComplexSignedInt& from);
+
+  inline ChannelisedDataResponse_ComplexSignedInt& operator=(const ChannelisedDataResponse_ComplexSignedInt& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ChannelisedDataResponse_ComplexSignedInt& default_instance();
+
+  void Swap(ChannelisedDataResponse_ComplexSignedInt* other);
+
+  // implements Message ----------------------------------------------
+
+  ChannelisedDataResponse_ComplexSignedInt* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ChannelisedDataResponse_ComplexSignedInt& from);
+  void MergeFrom(const ChannelisedDataResponse_ComplexSignedInt& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required int32 Real = 1;
+  inline bool has_real() const;
+  inline void clear_real();
+  static const int kRealFieldNumber = 1;
+  inline ::google::protobuf::int32 real() const;
+  inline void set_real(::google::protobuf::int32 value);
+
+  // required int32 Imaginary = 2;
+  inline bool has_imaginary() const;
+  inline void clear_imaginary();
+  static const int kImaginaryFieldNumber = 2;
+  inline ::google::protobuf::int32 imaginary() const;
+  inline void set_imaginary(::google::protobuf::int32 value);
+
+  // @@protoc_insertion_point(class_scope:ChannelisedDataResponse.ComplexSignedInt)
+ private:
+  inline void set_has_real();
+  inline void clear_has_real();
+  inline void set_has_imaginary();
+  inline void clear_has_imaginary();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 real_;
+  ::google::protobuf::int32 imaginary_;
+  friend void  protobuf_AddDesc_message_2eproto();
+  friend void protobuf_AssignDesc_message_2eproto();
+  friend void protobuf_ShutdownFile_message_2eproto();
+
+  void InitAsDefaultInstance();
+  static ChannelisedDataResponse_ComplexSignedInt* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ChannelisedDataResponse : public ::google::protobuf::Message {
+ public:
+  ChannelisedDataResponse();
+  virtual ~ChannelisedDataResponse();
+
+  ChannelisedDataResponse(const ChannelisedDataResponse& from);
+
+  inline ChannelisedDataResponse& operator=(const ChannelisedDataResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ChannelisedDataResponse& default_instance();
+
+  void Swap(ChannelisedDataResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  ChannelisedDataResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ChannelisedDataResponse& from);
+  void MergeFrom(const ChannelisedDataResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  typedef ChannelisedDataResponse_ComplexSignedInt ComplexSignedInt;
+
+  typedef ChannelisedDataResponse_Polarization Polarization;
+  static const Polarization X = ChannelisedDataResponse_Polarization_X;
+  static const Polarization Y = ChannelisedDataResponse_Polarization_Y;
+  static const Polarization XY = ChannelisedDataResponse_Polarization_XY;
+  static inline bool Polarization_IsValid(int value) {
+    return ChannelisedDataResponse_Polarization_IsValid(value);
+  }
+  static const Polarization Polarization_MIN =
+    ChannelisedDataResponse_Polarization_Polarization_MIN;
+  static const Polarization Polarization_MAX =
+    ChannelisedDataResponse_Polarization_Polarization_MAX;
+  static const int Polarization_ARRAYSIZE =
+    ChannelisedDataResponse_Polarization_Polarization_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  Polarization_descriptor() {
+    return ChannelisedDataResponse_Polarization_descriptor();
+  }
+  static inline const ::std::string& Polarization_Name(Polarization value) {
+    return ChannelisedDataResponse_Polarization_Name(value);
+  }
+  static inline bool Polarization_Parse(const ::std::string& name,
+      Polarization* value) {
+    return ChannelisedDataResponse_Polarization_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  // repeated .ChannelisedDataResponse.ComplexSignedInt Csi = 1;
+  inline int csi_size() const;
+  inline void clear_csi();
+  static const int kCsiFieldNumber = 1;
+  inline const ::ChannelisedDataResponse_ComplexSignedInt& csi(int index) const;
+  inline ::ChannelisedDataResponse_ComplexSignedInt* mutable_csi(int index);
+  inline ::ChannelisedDataResponse_ComplexSignedInt* add_csi();
+  inline const ::google::protobuf::RepeatedPtrField< ::ChannelisedDataResponse_ComplexSignedInt >&
+      csi() const;
+  inline ::google::protobuf::RepeatedPtrField< ::ChannelisedDataResponse_ComplexSignedInt >*
+      mutable_csi();
+
+  // required int32 AntennaId = 2;
+  inline bool has_antennaid() const;
+  inline void clear_antennaid();
+  static const int kAntennaIdFieldNumber = 2;
+  inline ::google::protobuf::int32 antennaid() const;
+  inline void set_antennaid(::google::protobuf::int32 value);
+
+  // required .ChannelisedDataResponse.Polarization pol = 3;
+  inline bool has_pol() const;
+  inline void clear_pol();
+  static const int kPolFieldNumber = 3;
+  inline ::ChannelisedDataResponse_Polarization pol() const;
+  inline void set_pol(::ChannelisedDataResponse_Polarization value);
+
+  // required int32 SampleCount = 4;
+  inline bool has_samplecount() const;
+  inline void clear_samplecount();
+  static const int kSampleCountFieldNumber = 4;
+  inline ::google::protobuf::int32 samplecount() const;
+  inline void set_samplecount(::google::protobuf::int32 value);
+
+  // required int32 BitsPerSample = 5;
+  inline bool has_bitspersample() const;
+  inline void clear_bitspersample();
+  static const int kBitsPerSampleFieldNumber = 5;
+  inline ::google::protobuf::int32 bitspersample() const;
+  inline void set_bitspersample(::google::protobuf::int32 value);
+
+  // @@protoc_insertion_point(class_scope:ChannelisedDataResponse)
+ private:
+  inline void set_has_antennaid();
+  inline void clear_has_antennaid();
+  inline void set_has_pol();
+  inline void clear_has_pol();
+  inline void set_has_samplecount();
+  inline void clear_has_samplecount();
+  inline void set_has_bitspersample();
+  inline void clear_has_bitspersample();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::ChannelisedDataResponse_ComplexSignedInt > csi_;
+  ::google::protobuf::int32 antennaid_;
+  int pol_;
+  ::google::protobuf::int32 samplecount_;
+  ::google::protobuf::int32 bitspersample_;
+  friend void  protobuf_AddDesc_message_2eproto();
+  friend void protobuf_AssignDesc_message_2eproto();
+  friend void protobuf_ShutdownFile_message_2eproto();
+
+  void InitAsDefaultInstance();
+  static ChannelisedDataResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class RawDataRequest : public ::google::protobuf::Message {
+ public:
+  RawDataRequest();
+  virtual ~RawDataRequest();
+
+  RawDataRequest(const RawDataRequest& from);
+
+  inline RawDataRequest& operator=(const RawDataRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const RawDataRequest& default_instance();
+
+  void Swap(RawDataRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  RawDataRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const RawDataRequest& from);
+  void MergeFrom(const RawDataRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required int32 SampleCount = 1;
+  inline bool has_samplecount() const;
+  inline void clear_samplecount();
+  static const int kSampleCountFieldNumber = 1;
+  inline ::google::protobuf::int32 samplecount() const;
+  inline void set_samplecount(::google::protobuf::int32 value);
+
+  // @@protoc_insertion_point(class_scope:RawDataRequest)
+ private:
+  inline void set_has_samplecount();
+  inline void clear_has_samplecount();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 samplecount_;
+  friend void  protobuf_AddDesc_message_2eproto();
+  friend void protobuf_AssignDesc_message_2eproto();
+  friend void protobuf_ShutdownFile_message_2eproto();
+
+  void InitAsDefaultInstance();
+  static RawDataRequest* default_instance_;
 };
 // ===================================================================
 
@@ -1581,6 +2271,113 @@ inline void Request::set_board(::Request_BoardMake value) {
   // @@protoc_insertion_point(field_set:Request.board)
 }
 
+// optional .Request.ProcessingPhase processingPhase = 14;
+inline bool Request::has_processingphase() const {
+  return (_has_bits_[0] & 0x00001000u) != 0;
+}
+inline void Request::set_has_processingphase() {
+  _has_bits_[0] |= 0x00001000u;
+}
+inline void Request::clear_has_processingphase() {
+  _has_bits_[0] &= ~0x00001000u;
+}
+inline void Request::clear_processingphase() {
+  processingphase_ = 1;
+  clear_has_processingphase();
+}
+inline ::Request_ProcessingPhase Request::processingphase() const {
+  // @@protoc_insertion_point(field_get:Request.processingPhase)
+  return static_cast< ::Request_ProcessingPhase >(processingphase_);
+}
+inline void Request::set_processingphase(::Request_ProcessingPhase value) {
+  assert(::Request_ProcessingPhase_IsValid(value));
+  set_has_processingphase();
+  processingphase_ = value;
+  // @@protoc_insertion_point(field_set:Request.processingPhase)
+}
+
+// optional .ChannelisedDataRequest channelisedDataRequest = 15;
+inline bool Request::has_channeliseddatarequest() const {
+  return (_has_bits_[0] & 0x00002000u) != 0;
+}
+inline void Request::set_has_channeliseddatarequest() {
+  _has_bits_[0] |= 0x00002000u;
+}
+inline void Request::clear_has_channeliseddatarequest() {
+  _has_bits_[0] &= ~0x00002000u;
+}
+inline void Request::clear_channeliseddatarequest() {
+  if (channeliseddatarequest_ != NULL) channeliseddatarequest_->::ChannelisedDataRequest::Clear();
+  clear_has_channeliseddatarequest();
+}
+inline const ::ChannelisedDataRequest& Request::channeliseddatarequest() const {
+  // @@protoc_insertion_point(field_get:Request.channelisedDataRequest)
+  return channeliseddatarequest_ != NULL ? *channeliseddatarequest_ : *default_instance_->channeliseddatarequest_;
+}
+inline ::ChannelisedDataRequest* Request::mutable_channeliseddatarequest() {
+  set_has_channeliseddatarequest();
+  if (channeliseddatarequest_ == NULL) channeliseddatarequest_ = new ::ChannelisedDataRequest;
+  // @@protoc_insertion_point(field_mutable:Request.channelisedDataRequest)
+  return channeliseddatarequest_;
+}
+inline ::ChannelisedDataRequest* Request::release_channeliseddatarequest() {
+  clear_has_channeliseddatarequest();
+  ::ChannelisedDataRequest* temp = channeliseddatarequest_;
+  channeliseddatarequest_ = NULL;
+  return temp;
+}
+inline void Request::set_allocated_channeliseddatarequest(::ChannelisedDataRequest* channeliseddatarequest) {
+  delete channeliseddatarequest_;
+  channeliseddatarequest_ = channeliseddatarequest;
+  if (channeliseddatarequest) {
+    set_has_channeliseddatarequest();
+  } else {
+    clear_has_channeliseddatarequest();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Request.channelisedDataRequest)
+}
+
+// optional .RawDataRequest rawDataRequest = 16;
+inline bool Request::has_rawdatarequest() const {
+  return (_has_bits_[0] & 0x00004000u) != 0;
+}
+inline void Request::set_has_rawdatarequest() {
+  _has_bits_[0] |= 0x00004000u;
+}
+inline void Request::clear_has_rawdatarequest() {
+  _has_bits_[0] &= ~0x00004000u;
+}
+inline void Request::clear_rawdatarequest() {
+  if (rawdatarequest_ != NULL) rawdatarequest_->::RawDataRequest::Clear();
+  clear_has_rawdatarequest();
+}
+inline const ::RawDataRequest& Request::rawdatarequest() const {
+  // @@protoc_insertion_point(field_get:Request.rawDataRequest)
+  return rawdatarequest_ != NULL ? *rawdatarequest_ : *default_instance_->rawdatarequest_;
+}
+inline ::RawDataRequest* Request::mutable_rawdatarequest() {
+  set_has_rawdatarequest();
+  if (rawdatarequest_ == NULL) rawdatarequest_ = new ::RawDataRequest;
+  // @@protoc_insertion_point(field_mutable:Request.rawDataRequest)
+  return rawdatarequest_;
+}
+inline ::RawDataRequest* Request::release_rawdatarequest() {
+  clear_has_rawdatarequest();
+  ::RawDataRequest* temp = rawdatarequest_;
+  rawdatarequest_ = NULL;
+  return temp;
+}
+inline void Request::set_allocated_rawdatarequest(::RawDataRequest* rawdatarequest) {
+  delete rawdatarequest_;
+  rawdatarequest_ = rawdatarequest;
+  if (rawdatarequest) {
+    set_has_rawdatarequest();
+  } else {
+    clear_has_rawdatarequest();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Request.rawDataRequest)
+}
+
 // -------------------------------------------------------------------
 
 // Reply_RegisterInfoType
@@ -2014,6 +2811,74 @@ inline void Reply_SPIInfoType::set_spi_en(::google::protobuf::uint32 value) {
 
 // -------------------------------------------------------------------
 
+// Reply_RawDataReply_AdcPower
+
+// repeated int32 powerSamples = 1;
+inline int Reply_RawDataReply_AdcPower::powersamples_size() const {
+  return powersamples_.size();
+}
+inline void Reply_RawDataReply_AdcPower::clear_powersamples() {
+  powersamples_.Clear();
+}
+inline ::google::protobuf::int32 Reply_RawDataReply_AdcPower::powersamples(int index) const {
+  // @@protoc_insertion_point(field_get:Reply.RawDataReply.AdcPower.powerSamples)
+  return powersamples_.Get(index);
+}
+inline void Reply_RawDataReply_AdcPower::set_powersamples(int index, ::google::protobuf::int32 value) {
+  powersamples_.Set(index, value);
+  // @@protoc_insertion_point(field_set:Reply.RawDataReply.AdcPower.powerSamples)
+}
+inline void Reply_RawDataReply_AdcPower::add_powersamples(::google::protobuf::int32 value) {
+  powersamples_.Add(value);
+  // @@protoc_insertion_point(field_add:Reply.RawDataReply.AdcPower.powerSamples)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::int32 >&
+Reply_RawDataReply_AdcPower::powersamples() const {
+  // @@protoc_insertion_point(field_list:Reply.RawDataReply.AdcPower.powerSamples)
+  return powersamples_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::int32 >*
+Reply_RawDataReply_AdcPower::mutable_powersamples() {
+  // @@protoc_insertion_point(field_mutable_list:Reply.RawDataReply.AdcPower.powerSamples)
+  return &powersamples_;
+}
+
+// -------------------------------------------------------------------
+
+// Reply_RawDataReply
+
+// repeated .Reply.RawDataReply.AdcPower adcChannels = 1;
+inline int Reply_RawDataReply::adcchannels_size() const {
+  return adcchannels_.size();
+}
+inline void Reply_RawDataReply::clear_adcchannels() {
+  adcchannels_.Clear();
+}
+inline const ::Reply_RawDataReply_AdcPower& Reply_RawDataReply::adcchannels(int index) const {
+  // @@protoc_insertion_point(field_get:Reply.RawDataReply.adcChannels)
+  return adcchannels_.Get(index);
+}
+inline ::Reply_RawDataReply_AdcPower* Reply_RawDataReply::mutable_adcchannels(int index) {
+  // @@protoc_insertion_point(field_mutable:Reply.RawDataReply.adcChannels)
+  return adcchannels_.Mutable(index);
+}
+inline ::Reply_RawDataReply_AdcPower* Reply_RawDataReply::add_adcchannels() {
+  // @@protoc_insertion_point(field_add:Reply.RawDataReply.adcChannels)
+  return adcchannels_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::Reply_RawDataReply_AdcPower >&
+Reply_RawDataReply::adcchannels() const {
+  // @@protoc_insertion_point(field_list:Reply.RawDataReply.adcChannels)
+  return adcchannels_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::Reply_RawDataReply_AdcPower >*
+Reply_RawDataReply::mutable_adcchannels() {
+  // @@protoc_insertion_point(field_mutable_list:Reply.RawDataReply.adcChannels)
+  return &adcchannels_;
+}
+
+// -------------------------------------------------------------------
+
 // Reply
 
 // required .Reply.ResultType result = 1;
@@ -2329,6 +3194,310 @@ Reply::mutable_firmware() {
   return &firmware_;
 }
 
+// optional .Reply.RawDataReply rawData = 10;
+inline bool Reply::has_rawdata() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void Reply::set_has_rawdata() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void Reply::clear_has_rawdata() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void Reply::clear_rawdata() {
+  if (rawdata_ != NULL) rawdata_->::Reply_RawDataReply::Clear();
+  clear_has_rawdata();
+}
+inline const ::Reply_RawDataReply& Reply::rawdata() const {
+  // @@protoc_insertion_point(field_get:Reply.rawData)
+  return rawdata_ != NULL ? *rawdata_ : *default_instance_->rawdata_;
+}
+inline ::Reply_RawDataReply* Reply::mutable_rawdata() {
+  set_has_rawdata();
+  if (rawdata_ == NULL) rawdata_ = new ::Reply_RawDataReply;
+  // @@protoc_insertion_point(field_mutable:Reply.rawData)
+  return rawdata_;
+}
+inline ::Reply_RawDataReply* Reply::release_rawdata() {
+  clear_has_rawdata();
+  ::Reply_RawDataReply* temp = rawdata_;
+  rawdata_ = NULL;
+  return temp;
+}
+inline void Reply::set_allocated_rawdata(::Reply_RawDataReply* rawdata) {
+  delete rawdata_;
+  rawdata_ = rawdata;
+  if (rawdata) {
+    set_has_rawdata();
+  } else {
+    clear_has_rawdata();
+  }
+  // @@protoc_insertion_point(field_set_allocated:Reply.rawData)
+}
+
+// -------------------------------------------------------------------
+
+// ChannelisedDataRequest
+
+// required int32 AntennaId = 1;
+inline bool ChannelisedDataRequest::has_antennaid() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ChannelisedDataRequest::set_has_antennaid() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ChannelisedDataRequest::clear_has_antennaid() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ChannelisedDataRequest::clear_antennaid() {
+  antennaid_ = 0;
+  clear_has_antennaid();
+}
+inline ::google::protobuf::int32 ChannelisedDataRequest::antennaid() const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataRequest.AntennaId)
+  return antennaid_;
+}
+inline void ChannelisedDataRequest::set_antennaid(::google::protobuf::int32 value) {
+  set_has_antennaid();
+  antennaid_ = value;
+  // @@protoc_insertion_point(field_set:ChannelisedDataRequest.AntennaId)
+}
+
+// optional int32 SampleCount = 2;
+inline bool ChannelisedDataRequest::has_samplecount() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ChannelisedDataRequest::set_has_samplecount() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ChannelisedDataRequest::clear_has_samplecount() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ChannelisedDataRequest::clear_samplecount() {
+  samplecount_ = 0;
+  clear_has_samplecount();
+}
+inline ::google::protobuf::int32 ChannelisedDataRequest::samplecount() const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataRequest.SampleCount)
+  return samplecount_;
+}
+inline void ChannelisedDataRequest::set_samplecount(::google::protobuf::int32 value) {
+  set_has_samplecount();
+  samplecount_ = value;
+  // @@protoc_insertion_point(field_set:ChannelisedDataRequest.SampleCount)
+}
+
+// -------------------------------------------------------------------
+
+// ChannelisedDataResponse_ComplexSignedInt
+
+// required int32 Real = 1;
+inline bool ChannelisedDataResponse_ComplexSignedInt::has_real() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ChannelisedDataResponse_ComplexSignedInt::set_has_real() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ChannelisedDataResponse_ComplexSignedInt::clear_has_real() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ChannelisedDataResponse_ComplexSignedInt::clear_real() {
+  real_ = 0;
+  clear_has_real();
+}
+inline ::google::protobuf::int32 ChannelisedDataResponse_ComplexSignedInt::real() const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataResponse.ComplexSignedInt.Real)
+  return real_;
+}
+inline void ChannelisedDataResponse_ComplexSignedInt::set_real(::google::protobuf::int32 value) {
+  set_has_real();
+  real_ = value;
+  // @@protoc_insertion_point(field_set:ChannelisedDataResponse.ComplexSignedInt.Real)
+}
+
+// required int32 Imaginary = 2;
+inline bool ChannelisedDataResponse_ComplexSignedInt::has_imaginary() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ChannelisedDataResponse_ComplexSignedInt::set_has_imaginary() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ChannelisedDataResponse_ComplexSignedInt::clear_has_imaginary() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ChannelisedDataResponse_ComplexSignedInt::clear_imaginary() {
+  imaginary_ = 0;
+  clear_has_imaginary();
+}
+inline ::google::protobuf::int32 ChannelisedDataResponse_ComplexSignedInt::imaginary() const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataResponse.ComplexSignedInt.Imaginary)
+  return imaginary_;
+}
+inline void ChannelisedDataResponse_ComplexSignedInt::set_imaginary(::google::protobuf::int32 value) {
+  set_has_imaginary();
+  imaginary_ = value;
+  // @@protoc_insertion_point(field_set:ChannelisedDataResponse.ComplexSignedInt.Imaginary)
+}
+
+// -------------------------------------------------------------------
+
+// ChannelisedDataResponse
+
+// repeated .ChannelisedDataResponse.ComplexSignedInt Csi = 1;
+inline int ChannelisedDataResponse::csi_size() const {
+  return csi_.size();
+}
+inline void ChannelisedDataResponse::clear_csi() {
+  csi_.Clear();
+}
+inline const ::ChannelisedDataResponse_ComplexSignedInt& ChannelisedDataResponse::csi(int index) const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataResponse.Csi)
+  return csi_.Get(index);
+}
+inline ::ChannelisedDataResponse_ComplexSignedInt* ChannelisedDataResponse::mutable_csi(int index) {
+  // @@protoc_insertion_point(field_mutable:ChannelisedDataResponse.Csi)
+  return csi_.Mutable(index);
+}
+inline ::ChannelisedDataResponse_ComplexSignedInt* ChannelisedDataResponse::add_csi() {
+  // @@protoc_insertion_point(field_add:ChannelisedDataResponse.Csi)
+  return csi_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::ChannelisedDataResponse_ComplexSignedInt >&
+ChannelisedDataResponse::csi() const {
+  // @@protoc_insertion_point(field_list:ChannelisedDataResponse.Csi)
+  return csi_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::ChannelisedDataResponse_ComplexSignedInt >*
+ChannelisedDataResponse::mutable_csi() {
+  // @@protoc_insertion_point(field_mutable_list:ChannelisedDataResponse.Csi)
+  return &csi_;
+}
+
+// required int32 AntennaId = 2;
+inline bool ChannelisedDataResponse::has_antennaid() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ChannelisedDataResponse::set_has_antennaid() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ChannelisedDataResponse::clear_has_antennaid() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ChannelisedDataResponse::clear_antennaid() {
+  antennaid_ = 0;
+  clear_has_antennaid();
+}
+inline ::google::protobuf::int32 ChannelisedDataResponse::antennaid() const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataResponse.AntennaId)
+  return antennaid_;
+}
+inline void ChannelisedDataResponse::set_antennaid(::google::protobuf::int32 value) {
+  set_has_antennaid();
+  antennaid_ = value;
+  // @@protoc_insertion_point(field_set:ChannelisedDataResponse.AntennaId)
+}
+
+// required .ChannelisedDataResponse.Polarization pol = 3;
+inline bool ChannelisedDataResponse::has_pol() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ChannelisedDataResponse::set_has_pol() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ChannelisedDataResponse::clear_has_pol() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void ChannelisedDataResponse::clear_pol() {
+  pol_ = 1;
+  clear_has_pol();
+}
+inline ::ChannelisedDataResponse_Polarization ChannelisedDataResponse::pol() const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataResponse.pol)
+  return static_cast< ::ChannelisedDataResponse_Polarization >(pol_);
+}
+inline void ChannelisedDataResponse::set_pol(::ChannelisedDataResponse_Polarization value) {
+  assert(::ChannelisedDataResponse_Polarization_IsValid(value));
+  set_has_pol();
+  pol_ = value;
+  // @@protoc_insertion_point(field_set:ChannelisedDataResponse.pol)
+}
+
+// required int32 SampleCount = 4;
+inline bool ChannelisedDataResponse::has_samplecount() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void ChannelisedDataResponse::set_has_samplecount() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void ChannelisedDataResponse::clear_has_samplecount() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void ChannelisedDataResponse::clear_samplecount() {
+  samplecount_ = 0;
+  clear_has_samplecount();
+}
+inline ::google::protobuf::int32 ChannelisedDataResponse::samplecount() const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataResponse.SampleCount)
+  return samplecount_;
+}
+inline void ChannelisedDataResponse::set_samplecount(::google::protobuf::int32 value) {
+  set_has_samplecount();
+  samplecount_ = value;
+  // @@protoc_insertion_point(field_set:ChannelisedDataResponse.SampleCount)
+}
+
+// required int32 BitsPerSample = 5;
+inline bool ChannelisedDataResponse::has_bitspersample() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void ChannelisedDataResponse::set_has_bitspersample() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void ChannelisedDataResponse::clear_has_bitspersample() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void ChannelisedDataResponse::clear_bitspersample() {
+  bitspersample_ = 0;
+  clear_has_bitspersample();
+}
+inline ::google::protobuf::int32 ChannelisedDataResponse::bitspersample() const {
+  // @@protoc_insertion_point(field_get:ChannelisedDataResponse.BitsPerSample)
+  return bitspersample_;
+}
+inline void ChannelisedDataResponse::set_bitspersample(::google::protobuf::int32 value) {
+  set_has_bitspersample();
+  bitspersample_ = value;
+  // @@protoc_insertion_point(field_set:ChannelisedDataResponse.BitsPerSample)
+}
+
+// -------------------------------------------------------------------
+
+// RawDataRequest
+
+// required int32 SampleCount = 1;
+inline bool RawDataRequest::has_samplecount() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void RawDataRequest::set_has_samplecount() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void RawDataRequest::clear_has_samplecount() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void RawDataRequest::clear_samplecount() {
+  samplecount_ = 0;
+  clear_has_samplecount();
+}
+inline ::google::protobuf::int32 RawDataRequest::samplecount() const {
+  // @@protoc_insertion_point(field_get:RawDataRequest.SampleCount)
+  return samplecount_;
+}
+inline void RawDataRequest::set_samplecount(::google::protobuf::int32 value) {
+  set_has_samplecount();
+  samplecount_ = value;
+  // @@protoc_insertion_point(field_set:RawDataRequest.SampleCount)
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -2356,6 +3525,11 @@ template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Request_BoardMake>() {
   return ::Request_BoardMake_descriptor();
 }
+template <> struct is_proto_enum< ::Request_ProcessingPhase> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Request_ProcessingPhase>() {
+  return ::Request_ProcessingPhase_descriptor();
+}
 template <> struct is_proto_enum< ::Reply_ResultType> : ::google::protobuf::internal::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Reply_ResultType>() {
@@ -2380,6 +3554,11 @@ template <> struct is_proto_enum< ::Reply_RegisterType> : ::google::protobuf::in
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Reply_RegisterType>() {
   return ::Reply_RegisterType_descriptor();
+}
+template <> struct is_proto_enum< ::ChannelisedDataResponse_Polarization> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::ChannelisedDataResponse_Polarization>() {
+  return ::ChannelisedDataResponse_Polarization_descriptor();
 }
 
 }  // namespace google

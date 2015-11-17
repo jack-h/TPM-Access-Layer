@@ -12,7 +12,9 @@ message Request
         GET_REGISTER_VALUES = 8;
         SET_REGISTER_VALUES = 9;
         LOAD_FIRMWARE = 10;
-        LOAD_FIRMWARE_BLOCKING = 11
+        LOAD_FIRMWARE_BLOCKING = 11;
+        GET_CHANNELISED_DATA = 12;
+        GET_RAW_DATA = 13;
     }
 
     enum DeviceType
@@ -31,10 +33,15 @@ message Request
 
     enum BoardMake
     {
-        TPM_BOARD = 1;
-        ROACH_BAORD = 2;
-        ROACH2_BOARD = 3;
-        UNIBOARD_BOARD = 4;
+        TPM = 1;
+        ROACH = 2;
+        UNIBOARD = 3;
+    }
+
+    enum ProcessingPhase
+    {
+        DSP = 1;
+        CSP = 2;
     }
 
     required CommandType command = 1;
@@ -50,6 +57,9 @@ message Request
     optional uint32 value = 11;
     repeated uint32 values = 12;
     optional BoardMake board = 13;
+    optional ProcessingPhase processingPhase = 14;
+    optional ChannelisedDataRequest channelisedDataRequest = 15;
+    optional RawDataRequest rawDataRequest = 16;
 }
 
 message Reply
@@ -113,6 +123,16 @@ message Reply
         COMPONENT = 5;
     }
 
+    message RawDataReply
+    {
+        message AdcPower
+        {
+            repeated int32 powerSamples = 1;
+        }
+
+        repeated AdcPower adcChannels = 1;
+    }
+
     required ResultType result = 1;
     optional PermissionType permission = 2;
     optional TpmStatus status = 3;
@@ -122,5 +142,39 @@ message Reply
     optional string message = 7;
     optional int32 id = 8;
     repeated string firmware = 9;
+    optional RawDataReply rawData = 10;
+}
 
+message ChannelisedDataRequest
+{
+    required int32 AntennaId   = 1;
+    optional int32 SampleCount = 2;
+}
+
+
+message ChannelisedDataResponse
+{
+    enum Polarization
+    {
+        X  = 1;
+        Y  = 2;
+        XY = 3;
+    }
+
+    message ComplexSignedInt
+    {
+        required int32 Real = 1;
+        required int32 Imaginary = 2;
+    }
+
+    repeated ComplexSignedInt Csi = 1;
+    required int32 AntennaId  = 2;
+    required Polarization pol = 3;
+    required int32 SampleCount = 4;
+    required int32 BitsPerSample = 5;
+}
+
+message RawDataRequest
+{
+    required int32 SampleCount = 1;
 }

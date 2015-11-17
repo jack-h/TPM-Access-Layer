@@ -10,6 +10,25 @@
 
 #include "message.pb.h"
 
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/io/coded_stream.h>
+
+// Structure for handling signed 8-bit data 
+struct Complex
+{
+    signed char real;
+    signed char imag;
+};
+
+// ---- GLOBAL - Ghax Hekk --------------------
+
+// 0MQ Connection string
+std::string connectionString("tcp://*:5555");
+
+// Prepare context and publisher
+zmq::context_t context(1);
+zmq::socket_t  socket(context, ZMQ_REP);
+
 // --------------------- REQUEST HANDLING FUNCTIONS ------------------------
 
 // Process connect to board request
@@ -18,10 +37,11 @@ void processConnectBoard(Request *message, Reply *replyMessage)
     std::cout << "Received connect request to " << message -> ip()  << std::endl;
 
     // Call library connectBoard
-    ID id = connectBoard(message -> ip().c_str(), message -> port());
+    BOARD_MAKE board = convertBoardEnum(message -> board());
+    ID id = connectBoard(board, message -> ip().c_str(), message -> port());
 
     // TEMPORARY: Load firmware
-    loadFirmwareBlocking(id, FPGA_1, "/home/lessju/map.xml");
+    loadFirmware(id, FPGA_1, "/home/lessju/map.xml");
 
     // Check if call failed
     if (id > 0)
@@ -137,7 +157,7 @@ void processSetRegisterValue(Request *message, Reply *replyMessage)
     // Call library function
     REGISTER regName = message -> registername().c_str();
     uint32_t value = message -> value();
-    RETURN err = writeRegister(message -> id(), dev, regName, 1, &value);
+    RETURN err = writeRegister(message -> id(), dev, regName, &value, 1, 0);
 
     // Check if call succeeded
     replyMessage -> set_result(convertErrorEnum(err));
@@ -153,28 +173,11 @@ void processSetRegisterValues(Request *message, Reply *replyMessage)
 
     // Call library function
     REGISTER regName = message -> registername().c_str();
-    RETURN err = writeRegister(message -> id(), dev, regName, message -> n(), 
-                              message -> mutable_values() -> mutable_data());
+    RETURN err = writeRegister(message -> id(), dev, regName,
+                              message -> mutable_values() -> mutable_data(),
+                              message -> n(), 0);
 
     // Check if call succeeded
-    replyMessage -> set_result(convertErrorEnum(err));
-}
-
-// Process load firmware blocking
-void processLoadFirmwareBlocking(Request *message, Reply *replyMessage)
-{
-    std::cout << "Received load firmware blocking request" << std::endl;
-
-    // Convert device type
-    DEVICE dev = convertDeviceEnum(message -> device());
-
-    std::cout << "ID: " << message -> id() << ", file: " << message -> file() << std::endl;
-
-    RETURN err = loadFirmwareBlocking(message -> id(), dev,
-                                     "/home/lessju/map.xml");
-                                    // message -> file().c_str());
-
-    // Check if call failed and send result
     replyMessage -> set_result(convertErrorEnum(err));
 }
 
@@ -188,7 +191,7 @@ void processLoadFirmware(Request *message, Reply *replyMessage)
 
     std::cout << "ID: " << message -> id() << ", file: " << message -> file() << std::endl;
 
-    RETURN err = loadFirmwareBlocking(message -> id(), dev,
+    RETURN err = loadFirmware(message -> id(), dev,
                                      "/home/lessju/map.xml");
 //                                     message -> file().c_str());
 
@@ -196,10 +199,70 @@ void processLoadFirmware(Request *message, Reply *replyMessage)
     replyMessage -> set_result(convertErrorEnum(err));
 }
 
-// ------------------------------------------------------------------------
+void processGetChannelisedData(Request *message)
+{
+    std::cout << "Received get channelised data request" << std::endl;
+    
+    // Get channelised data request message from request
+    ChannelisedDataRequest *dataRequest = message -> mutable_channeliseddatarequest();
 
-// 0MQ Connection string
-std::string connectionString("tcp://*:5555");
+    // TEMPORARY: Create some fake data to test
+    unsigned int nof_chans = 512;
+    struct Complex *data = (struct Complex *) malloc(nof_chans * dataRequest -> samplecount() * sizeof(Complex));
+    for(unsigned int i = 0; i < nof_chans; i++)
+        for(int j = 0; j < dataRequest -> samplecount(); j++)
+        {
+            data[i * dataRequest -> samplecount() + j].real = (signed char) i;
+            data[i * dataRequest -> samplecount() + j].imag = (signed char) j;
+        }
+
+    std::string coolString;
+    coolString.reserve(512);
+    google::protobuf::io::StringOutputStream *stringStream = 
+        new google::protobuf::io::StringOutputStream(&coolString);
+    google::protobuf::io::CodedOutputStream *codedOutput = 
+        new google::protobuf::io::CodedOutputStream(stringStream);
+
+    // Send a message per channel
+    for(unsigned i = 0; i < nof_chans; i++)
+    {
+        ChannelisedDataResponse replyMessage;
+
+        // Compose reply message
+        replyMessage.set_antennaid(dataRequest -> antennaid());
+        replyMessage.set_pol(ChannelisedDataResponse::X);
+        replyMessage.set_samplecount(dataRequest -> samplecount());
+        replyMessage.set_bitspersample(8);
+        
+        for(int i = 0; i < dataRequest -> samplecount(); i++)
+        {
+            // Create new RegisterInfoType instance and populate
+            ChannelisedDataResponse::ComplexSignedInt *value = replyMessage.add_csi();
+            value -> set_real(data[i].real);
+            value -> set_imaginary(data[i].imag);
+        }
+
+//        codedOutput -> WriteLittleEndian32(1);
+//        codedOutput -> WriteLittleEndian32(replyMessage.ByteSize());
+        replyMessage.SerializeToCodedStream(codedOutput);
+        printf("%d %d\n", i, coolString.size());
+   }
+
+//    std::string replyString;
+//    codedOutput -> SerializeToString(&replyString);
+
+//    // Send reply back to client
+    printf("Size of string: %d %s\n", coolString.size(), coolString.c_str());
+    zmq::message_t reply(coolString.size());
+    memcpy((void *) reply.data(), coolString.c_str(), coolString.size());
+    socket.send(reply);
+}
+
+void processGetRawData(Request *message, Reply *reply)
+{
+}
+
+// ------------------------------------------------------------------------
 
 // Main server entry point
 int main(int argc, char *argv[])
@@ -207,9 +270,6 @@ int main(int argc, char *argv[])
     // Verify protobuf version
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    // Prepare context and publisher
-    zmq::context_t context(1);
-    zmq::socket_t  socket(context, ZMQ_REP);
     socket.bind(connectionString.c_str());
 
     // Wait for requests
@@ -231,6 +291,7 @@ int main(int argc, char *argv[])
         Reply replyMessage;
 
         // Switch on request type
+        bool sendReply = true;
         switch(message.command())
         {
             // Connect to board
@@ -307,13 +368,6 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            // Load firmware blocking
-            case Request::LOAD_FIRMWARE_BLOCKING:
-            {
-                processLoadFirmwareBlocking(&message, &replyMessage);
-                break;
-            }
-
             // Load firmware
             case Request::LOAD_FIRMWARE:
             {
@@ -321,20 +375,40 @@ int main(int argc, char *argv[])
                 break;
             }
 
+            // Raw Data request
+            case Request::GET_CHANNELISED_DATA:
+            {
+                processGetChannelisedData(&message);
+                sendReply = false;
+                break;
+            }
+
+            case Request::GET_RAW_DATA:
+            {
+                processGetRawData(&message, &replyMessage);
+                break;
+            }
+
             default:
                 std::cout << "Unsupported command" << std::endl;
         }
         
-        // Serialise message
-        std::string replyString;
-        replyMessage.SerializeToString(&replyString);
+        if (sendReply)
+        {
+            std::string replyString;
 
-        // Send reply back to client
-        zmq::message_t reply(replyString.size());
-        memcpy((void *) reply.data(), replyString.c_str(), replyString.size());
-        socket.send(reply);
+            // Serialise message
+            replyMessage.SerializeToString(&replyString);
 
-        printf("Sent reply to client\n");
+            // Send reply back to client
+            zmq::message_t reply(replyString.size());
+            memcpy((void *) reply.data(), replyString.c_str(), replyString.size());
+            socket.send(reply);
+
+            printf("Sent reply to client\n");
+        }
+
+        sendReply = true;
     }
 
     return 0;

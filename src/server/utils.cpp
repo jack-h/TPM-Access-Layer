@@ -75,5 +75,16 @@ Reply::PermissionType convertPermissionEnum(PERMISSION per)
         return Reply::READWRITE;
 }
 
+// Convert BoardMake enum
+BOARD_MAKE convertBoardEnum(Request::BoardMake board)
+{
+    if (board == Request::TPM)
+        return TPM_BOARD;
+    else if (board == Request::ROACH)
+        return ROACH2_BOARD;
+    else 
+        return UNIBOARD_BOARD;
+}
+
 // Re-enable return type warning
 #pragma GCC diagnostic pop

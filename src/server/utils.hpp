@@ -22,4 +22,7 @@ Reply::RegisterType convertTypeEnum(REGISTER_TYPE type);
 // Convert Permission enum
 Reply::PermissionType convertPermissionEnum(PERMISSION per);
 
+// Convert BoardMake enum
+BOARD_MAKE convertBoardEnum(Request::BoardMake board);
+
 #endif // UTILS_HEADER
