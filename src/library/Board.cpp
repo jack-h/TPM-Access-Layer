@@ -17,8 +17,14 @@ void Board::initialiseRegisterValues(REGISTER_INFO *regInfo, int num_registers)
 	for(int i = 0; i < num_registers; i++)
 	{
 		VALUES values = this -> readRegister(regInfo[i].device, regInfo[i].name);
-		if (values.error == SUCCESS)
+		if (values.error == SUCCESS) {
 			regInfo[i].value = values.values[0];
+
+			if (values.values[0] != 0)
+			{
+				std::cout << "Read value " << values.values[0] << " from register " << regInfo[i].name << std::endl;
+			}
+		}
 		else
 			regInfo[i].value = 0;
 	}

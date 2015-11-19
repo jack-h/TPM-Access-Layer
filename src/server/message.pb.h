@@ -76,7 +76,7 @@ inline bool Request_CommandType_Parse(
 enum Request_DeviceType {
   Request_DeviceType_BOARD = 1,
   Request_DeviceType_FPGA_1 = 2,
-  Request_DeviceType_FPGA_2 = 3
+  Request_DeviceType_FPGA_2 = 4
 };
 bool Request_DeviceType_IsValid(int value);
 const Request_DeviceType Request_DeviceType_DeviceType_MIN = Request_DeviceType_BOARD;

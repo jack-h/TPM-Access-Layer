@@ -21,7 +21,7 @@ message Request
     {
         BOARD = 1;
         FPGA_1 = 2;
-        FPGA_2 = 3;
+        FPGA_2 = 4;
     }
 
     enum RegisterType

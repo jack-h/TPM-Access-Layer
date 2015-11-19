@@ -353,7 +353,7 @@ void protobuf_AddDesc_message_2eproto() {
     "_VALUES\020\t\022\021\n\rLOAD_FIRMWARE\020\n\022\032\n\026LOAD_FIR"
     "MWARE_BLOCKING\020\013\022\030\n\024GET_CHANNELISED_DATA"
     "\020\014\022\020\n\014GET_RAW_DATA\020\r\"/\n\nDeviceType\022\t\n\005BO"
-    "ARD\020\001\022\n\n\006FPGA_1\020\002\022\n\n\006FPGA_2\020\003\"E\n\014Registe"
+    "ARD\020\001\022\n\n\006FPGA_1\020\002\022\n\n\006FPGA_2\020\004\"E\n\014Registe"
     "rType\022\n\n\006SENSOR\020\001\022\022\n\016BOARD_REGISTER\020\002\022\025\n"
     "\021FIRMWARE_REGISTER\020\003\"-\n\tBoardMake\022\007\n\003TPM"
     "\020\001\022\t\n\005ROACH\020\002\022\014\n\010UNIBOARD\020\003\"#\n\017Processin"
@@ -481,7 +481,7 @@ bool Request_DeviceType_IsValid(int value) {
   switch(value) {
     case 1:
     case 2:
-    case 3:
+    case 4:
       return true;
     default:
       return false;

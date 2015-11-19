@@ -169,7 +169,7 @@ REGISTER_INFO* getRegisterList(ID id, UINT *num_registers, bool load_values)
     Board *board = it -> second;
 
     // Return register list
-    return board->getRegisterList(num_registers, false);
+    return board->getRegisterList(num_registers, load_values);
 }
 
 // Load SPI device file

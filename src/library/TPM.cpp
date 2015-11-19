@@ -52,7 +52,7 @@ REGISTER_INFO * TPM::getRegisterList(UINT *num_registers, bool load_values)
 	
 	// Populate structure with register values
     if (load_values)
-	    this -> initialiseRegisterValues(regInfo, *num_registers);
+        this->initialiseRegisterValues(regInfo, *num_registers);
 	
 	// All done, return
 	return regInfo;
@@ -280,6 +280,8 @@ RETURN TPM::loadFirmware(DEVICE device, const char *bitstream, uint32_t base_add
 
     // Get XML file and re-create the memory map
     char *xml_file = extractXMLFile(bitstream);
+
+    printf("Wasal hawn %s\n", xml_file);
 
     // Update memory map with XML file. Memory map will automatically remove existing map
     // if FPGA had already been loaded

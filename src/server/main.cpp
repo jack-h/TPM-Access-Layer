@@ -40,9 +40,6 @@ void processConnectBoard(Request *message, Reply *replyMessage)
     BOARD_MAKE board = convertBoardEnum(message -> board());
     ID id = connectBoard(board, message -> ip().c_str(), message -> port());
 
-    // TEMPORARY: Load firmware
-    loadFirmware(id, FPGA_1, "/home/lessju/map.xml");
-
     // Check if call failed
     if (id > 0)
     {
@@ -72,7 +69,7 @@ void processGetRegisterList(Request *message, Reply *replyMessage)
 
     // Call library function
     unsigned int num_registers;
-    REGISTER_INFO *list = getRegisterList(message -> id(), &num_registers);
+    REGISTER_INFO *list = getRegisterList(message -> id(), &num_registers, true);
 
     // Check if any registers available (or call failed)
     if (num_registers == 0 || list == NULL)
@@ -93,6 +90,7 @@ void processGetRegisterList(Request *message, Reply *replyMessage)
             regInfo -> set_permission(convertPermissionEnum(list[i].permission));
             regInfo -> set_type(convertTypeEnum(list[i].type));
             regInfo -> set_device(convertDeviceEnum(list[i].device));
+            regInfo -> set_value(list[i].value);
         }
     }
 
@@ -184,16 +182,42 @@ void processSetRegisterValues(Request *message, Reply *replyMessage)
 // Process load firmware
 void processLoadFirmware(Request *message, Reply *replyMessage)
 {
-    std::cout << "Received load firmware request" << std::endl;
+    std::cout << "Received load firmware request " << message -> device() << std::endl;
 
     // Convert device type
     DEVICE dev = convertDeviceEnum(message -> device());
 
-    std::cout << "ID: " << message -> id() << ", file: " << message -> file() << std::endl;
+    RETURN err;
+    switch(dev)
+    {
+        case BOARD:
+        {
+            printf("Get board registers\n");
+            err = loadFirmware(message -> id(), dev,
+                                      "/home/lessju/Code/TPM-Access-Layer/src/server/xml/cpld.xml");
+            break;
+        }
+        case FPGA_1:
+        {
+            printf("Get fpga1 registers\n");
+            err = loadFirmware(message -> id(), dev,
+                                      "/home/lessju/Code/TPM-Access-Layer/src/server/xml/fpga.xml");
+            break;
+        }
+        case FPGA_2:
+        {
+            printf("Get fpga2 registers\n");
+            err = loadFirmware(message -> id(), dev,
+                                      "/home/lessju/Code/TPM-Access-Layer/src/server/xml/fpga.xml", 0x50000000);
+            break;
+        }
+        default:
+        {
+            printf("Invalid device\n");
+            err = FAILURE;
+        }
+    }
 
-    RETURN err = loadFirmware(message -> id(), dev,
-                                     "/home/lessju/map.xml");
-//                                     message -> file().c_str());
 
     // Check if call failed and send result
     replyMessage -> set_result(convertErrorEnum(err));
@@ -216,46 +240,67 @@ void processGetChannelisedData(Request *message)
             data[i * dataRequest -> samplecount() + j].imag = (signed char) j;
         }
 
-    std::string coolString;
-    coolString.reserve(512);
-    google::protobuf::io::StringOutputStream *stringStream = 
-        new google::protobuf::io::StringOutputStream(&coolString);
-    google::protobuf::io::CodedOutputStream *codedOutput = 
-        new google::protobuf::io::CodedOutputStream(stringStream);
+    size_t buffer_size = nof_chans * dataRequest->samplecount() * 2 * (sizeof(Complex) + 16);
+    unsigned char *buffer = (unsigned char *) malloc(buffer_size);
 
-    // Send a message per channel
+    google::protobuf::io::ArrayOutputStream *arrayStream = new
+            google::protobuf::io::ArrayOutputStream(buffer, (int) buffer_size);
+    google::protobuf::io::CodedOutputStream *codedOutput =
+            new google::protobuf::io::CodedOutputStream(arrayStream);
+
+    // Send a message per channel (Pol X)
     for(unsigned i = 0; i < nof_chans; i++)
     {
-        ChannelisedDataResponse replyMessage;
+        ChannelisedDataResponse *replyMessage = new ChannelisedDataResponse;
 
         // Compose reply message
-        replyMessage.set_antennaid(dataRequest -> antennaid());
-        replyMessage.set_pol(ChannelisedDataResponse::X);
-        replyMessage.set_samplecount(dataRequest -> samplecount());
-        replyMessage.set_bitspersample(8);
+        replyMessage ->set_antennaid(dataRequest -> antennaid());
+        replyMessage -> set_pol(ChannelisedDataResponse::X);
+        replyMessage -> set_samplecount(dataRequest -> samplecount());
+        replyMessage -> set_bitspersample(8);
         
-        for(int i = 0; i < dataRequest -> samplecount(); i++)
+        for(int j = 0; j < dataRequest -> samplecount(); j++)
         {
             // Create new RegisterInfoType instance and populate
-            ChannelisedDataResponse::ComplexSignedInt *value = replyMessage.add_csi();
-            value -> set_real(data[i].real);
-            value -> set_imaginary(data[i].imag);
+            ChannelisedDataResponse::ComplexSignedInt *value = replyMessage -> add_csi();
+            value -> set_real(data[j].real);
+            value -> set_imaginary(data[j].imag);
         }
 
-//        codedOutput -> WriteLittleEndian32(1);
-//        codedOutput -> WriteLittleEndian32(replyMessage.ByteSize());
-        replyMessage.SerializeToCodedStream(codedOutput);
-        printf("%d %d\n", i, coolString.size());
+        codedOutput -> WriteLittleEndian32((uint32_t) replyMessage -> ByteSize());
+        replyMessage -> SerializeToCodedStream(codedOutput);
    }
 
-//    std::string replyString;
-//    codedOutput -> SerializeToString(&replyString);
+    // Send a message per channel (Pol Y)
+    for(unsigned i = 0; i < nof_chans; i++)
+    {
+        ChannelisedDataResponse *replyMessage = new ChannelisedDataResponse;
 
-//    // Send reply back to client
-    printf("Size of string: %d %s\n", coolString.size(), coolString.c_str());
-    zmq::message_t reply(coolString.size());
-    memcpy((void *) reply.data(), coolString.c_str(), coolString.size());
+        // Compose reply message
+        replyMessage ->set_antennaid(dataRequest -> antennaid());
+        replyMessage -> set_pol(ChannelisedDataResponse::Y);
+        replyMessage -> set_samplecount(dataRequest -> samplecount());
+        replyMessage -> set_bitspersample(8);
+
+        for(int j = 0; j < dataRequest -> samplecount(); j++)
+        {
+            // Create new RegisterInfoType instance and populate
+            ChannelisedDataResponse::ComplexSignedInt *value = replyMessage -> add_csi();
+            value -> set_real(data[j].real);
+            value -> set_imaginary(data[j].imag);
+        }
+
+        codedOutput -> WriteLittleEndian32((uint32_t) replyMessage -> ByteSize());
+        replyMessage -> SerializeToCodedStream(codedOutput);
+    }
+
+    // Send reply back to client
+    zmq::message_t reply((size_t) codedOutput -> ByteCount());
+    memcpy(reply.data(), buffer, (size_t) codedOutput -> ByteCount());
     socket.send(reply);
+
+    // Free up buffer
+    free(buffer);
 }
 
 void processGetRawData(Request *message, Reply *reply)
@@ -402,7 +447,7 @@ int main(int argc, char *argv[])
 
             // Send reply back to client
             zmq::message_t reply(replyString.size());
-            memcpy((void *) reply.data(), replyString.c_str(), replyString.size());
+            memcpy(reply.data(), replyString.c_str(), replyString.size());
             socket.send(reply);
 
             printf("Sent reply to client\n");
@@ -410,6 +455,4 @@ int main(int argc, char *argv[])
 
         sendReply = true;
     }
-
-    return 0;
 }

@@ -51,13 +51,9 @@ def run():
     # Check FPGA syncrhonisation
     sync_fpgas(tpm)
 
-    # Start streaming
-    # tpm["board.regfile.c2c_stream_enable"] = 0x1
-
     # To send data
     #tpm.tpm_test_firmware.send_raw_data()
 
-    print tpm
 
 def download():
     tpm = TPM(ip = "10.0.10.2", port = 10000, simulator = True)
