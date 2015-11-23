@@ -1,0 +1,13 @@
+#define FIXED_POINT can be used for calibration, since the data format
+received by the TPM is 16-bit complex
+
+ntimepipe is the number of per-channel time samples per transfer to GPU.
+So if number of times per integration is equal to the total number of
+time samples in the buffer, then NTIME_PIPE=NTIME. Must be a multiple of 4
+
+
+Data ordering for input vectors is (running from slowest to fastest)
+[time][channel][station][polarization][complexity]
+
+Output matrix has ordering
+[channel][station][station][polarization][polarization][complexity]

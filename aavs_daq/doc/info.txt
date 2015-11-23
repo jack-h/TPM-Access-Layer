@@ -1,0 +1,41 @@
+Hi Lin.  A few things to watch for when trying this out:
+
+You have to use jumbo packets to get near to the line rate (~9.6 Gb/sec).
+
+You have to tune the kernel to increase the buffer sizes, and other
+parameters.  See below for specifics for our systems and our Mellanox and
+solar flare NICs.  Your best results may need different settings.
+
+You also have to set the CPU and IRQ affinities to keep the drivers and
+your applications from moving around the CPU.  If you have a dual CPU
+machine, you have to make sure to set up the affinities to eliminate any
+NUMA problems of applications being in the "wrong" memory banks.
+
+John
+
+
+
+# NRAO additions to network settings
+net.ipv4.tcp_tw_recycle = 1
+net.ipv4.tcp_fin_timeout = 10
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+#net.ipv4.tcp_sack = 0
+net.ipv4.tcp_no_metrics_save = 1
+net.core.netdev_max_backlog = 3000
+
+# VEGAS/DIBAS shared memory
+kernel.sem = 1024 32000 32 32767
+
+# Mellanox recommends the following
+net.ipv4.tcp_timestamps = 0
+net.ipv4.tcp_sack = 0
+net.core.netdev_max_backlog = 250000
+
+net.core.rmem_default = 16777216
+net.core.wmem_default = 16777216
+net.core.optmem_max = 16777216
+net.ipv4.tcp_mem = 16777216 16777216 16777216
+net.ipv4.tcp_low_latency = 1
