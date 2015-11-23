@@ -162,7 +162,8 @@ class TPM(FPGABoard):
                 f.flush()
 
                 # Call superclass with this file
-                super(TPM, self).load_firmware(device = device, filepath = filepath, base_address = base_address)
+                super(TPM, self).load_firmware(device = device, filepath = filepath,
+                                               base_address = base_address, load_values = load_values)
         else:
             # Check if file exists
             if not os.path.exists(filepath):
@@ -177,7 +178,7 @@ class TPM(FPGABoard):
                     raise LibraryError("Can only program TPM devices FPGA_1 and FPGA_2")
 
             # Call load firmware method on super class
-            super(TPM, self).load_firmware(device = device, filepath = filepath)
+            super(TPM, self).load_firmware(device = device, filepath = filepath, load_values = load_values)
 
     def _initialise_board(self):
         """ Initialise the TPM board """

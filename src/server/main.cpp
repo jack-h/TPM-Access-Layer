@@ -1,10 +1,13 @@
 #include <zmq.hpp>
-#include <iostream>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
 
+#include <iostream>
+#include <string>
+
+#include "ChannelisedDataReader.h"
 #include "AccessLayer.hpp"
 #include "utils.hpp"
 
@@ -28,6 +31,16 @@ std::string connectionString("tcp://*:5555");
 // Prepare context and publisher
 zmq::context_t context(1);
 zmq::socket_t  socket(context, ZMQ_REP);
+
+// XML and Data files directories
+std::string data_directory = "/home/lessju/Code/AAVS/aavs_daq/python/";
+std::string xml_directory = "/home/lessju/Code/TPM-Access-Layer/src/server/xml/";
+
+// Channelised data reader for reading channel data hdf5
+ChannelisedDataReader *reader;
+
+// Number of channels
+unsigned nof_chans = 512;
 
 // --------------------- REQUEST HANDLING FUNCTIONS ------------------------
 
@@ -208,7 +221,7 @@ void processLoadFirmware(Request *message, Reply *replyMessage)
         {
             printf("Get fpga2 registers\n");
             err = loadFirmware(message -> id(), dev,
-                                      "/home/lessju/Code/TPM-Access-Layer/src/server/xml/fpga.xml", 0x50000000);
+                                      "/home/lessju/Code/TPM-Access-Layer/src/server/xml/fpga.xml", 0x10000000);
             break;
         }
         default:
@@ -230,16 +243,6 @@ void processGetChannelisedData(Request *message)
     // Get channelised data request message from request
     ChannelisedDataRequest *dataRequest = message -> mutable_channeliseddatarequest();
 
-    // TEMPORARY: Create some fake data to test
-    unsigned int nof_chans = 512;
-    struct Complex *data = (struct Complex *) malloc(nof_chans * dataRequest -> samplecount() * sizeof(Complex));
-    for(unsigned int i = 0; i < nof_chans; i++)
-        for(int j = 0; j < dataRequest -> samplecount(); j++)
-        {
-            data[i * dataRequest -> samplecount() + j].real = (signed char) i;
-            data[i * dataRequest -> samplecount() + j].imag = (signed char) j;
-        }
-
     size_t buffer_size = nof_chans * dataRequest->samplecount() * 2 * (sizeof(Complex) + 16);
     unsigned char *buffer = (unsigned char *) malloc(buffer_size);
 
@@ -248,13 +251,29 @@ void processGetChannelisedData(Request *message)
     google::protobuf::io::CodedOutputStream *codedOutput =
             new google::protobuf::io::CodedOutputStream(arrayStream);
 
+//    if (0)
+//    {
+        complex_t *c_buffer = (complex_t *) malloc(dataRequest -> samplecount() * nof_chans * sizeof(complex_t));
+        reader = new ChannelisedDataReader("/home/lessju/Code/AAVS/aavs_daq/python/channel_data.hdf5");
+        for(unsigned i = 0; i < 16; i++)
+            if (reader->getData(c_buffer, i, 0, dataRequest->samplecount(), nof_chans))
+            {
+                printf("Infaqa haqq alla\n");
+            }
+            else
+            {
+                printf("woohoo\n");
+            }
+
+//    }
+
     // Send a message per channel (Pol X)
     for(unsigned i = 0; i < nof_chans; i++)
     {
         ChannelisedDataResponse *replyMessage = new ChannelisedDataResponse;
 
         // Compose reply message
-        replyMessage ->set_antennaid(dataRequest -> antennaid());
+        replyMessage -> set_antennaid(dataRequest -> antennaid());
         replyMessage -> set_pol(ChannelisedDataResponse::X);
         replyMessage -> set_samplecount(dataRequest -> samplecount());
         replyMessage -> set_bitspersample(8);
@@ -263,12 +282,14 @@ void processGetChannelisedData(Request *message)
         {
             // Create new RegisterInfoType instance and populate
             ChannelisedDataResponse::ComplexSignedInt *value = replyMessage -> add_csi();
-            value -> set_real(data[j].real);
-            value -> set_imaginary(data[j].imag);
+            value -> set_real((uint8_t) i);
+            value -> set_imaginary((uint8_t) j);
         }
 
         codedOutput -> WriteLittleEndian32((uint32_t) replyMessage -> ByteSize());
         replyMessage -> SerializeToCodedStream(codedOutput);
+
+        delete replyMessage;
    }
 
     // Send a message per channel (Pol Y)
@@ -286,12 +307,14 @@ void processGetChannelisedData(Request *message)
         {
             // Create new RegisterInfoType instance and populate
             ChannelisedDataResponse::ComplexSignedInt *value = replyMessage -> add_csi();
-            value -> set_real(data[j].real);
-            value -> set_imaginary(data[j].imag);
+            value -> set_real((uint8_t) i);
+            value -> set_imaginary((uint8_t) j);
         }
 
         codedOutput -> WriteLittleEndian32((uint32_t) replyMessage -> ByteSize());
         replyMessage -> SerializeToCodedStream(codedOutput);
+
+        delete replyMessage;
     }
 
     // Send reply back to client
@@ -300,6 +323,8 @@ void processGetChannelisedData(Request *message)
     socket.send(reply);
 
     // Free up buffer
+    delete codedOutput;
+    delete arrayStream;
     free(buffer);
 }
 

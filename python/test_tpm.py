@@ -5,6 +5,8 @@ __author__ = 'lessju'
 
 from pyfabil import TPM, Device
 
+tpm = None
+
 def sync_fpgas(tpm):
     devices = ["fpga1", "fpga2"]
     print "Syncing FPGAs"
@@ -34,9 +36,9 @@ def check_synchornisation(tpm):
         print "Decrementing %s by 1" % fpga
         tpm["%s.pps_manager.sync_time_cmd.down_req" % fpga] = 0x1
 
-
 def run():
     # Connect and initliase
+    global tpm
     tpm = TPM(ip = "10.0.10.2", port = 10000)
 
     ###### ------ Kcu Dev Board ----- ######
@@ -56,9 +58,10 @@ def run():
 
 
 def download():
+    global tpm
     tpm = TPM(ip = "10.0.10.2", port = 10000, simulator = True)
     tpm.download_firmware(Device.FPGA_1, "/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_test_gen.bit")
 
 if __name__ == "__main__":
-    download()
+  #  download()
     run()
