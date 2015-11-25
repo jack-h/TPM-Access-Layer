@@ -220,7 +220,7 @@ class TPM(FPGABoard):
                 self.get_device_list(reset = True)
 
         # Update firmware information
-        [info.update_information() for info in self.tpm_firmware_information ]
+        [info.update_information() for info in self.tpm_firmware_information]
 
         # Initialise devices
         self._initialise_devices()

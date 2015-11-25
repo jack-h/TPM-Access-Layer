@@ -7,7 +7,7 @@
 
 // Definitions to control network receiver execution
 #define DEBUG
-#define STATISTICS
+#define STATISTICS 
 #define MAX_CONSUMERS 4
 
 // Project includes

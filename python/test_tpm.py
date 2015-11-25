@@ -48,7 +48,7 @@ def run():
 
     # Load tpm test firmware for both FPGAs
     tpm.load_plugin("TpmTestFirmware", device = Device.FPGA_1)
-    tpm.load_plugin("TpmTestFirmware", device = Device.FPGA_2)
+#    tpm.load_plugin("TpmTestFirmware", device = Device.FPGA_2)
 
     # Check FPGA syncrhonisation
     sync_fpgas(tpm)
@@ -63,5 +63,5 @@ def download():
     tpm.download_firmware(Device.FPGA_1, "/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_test_gen.bit")
 
 if __name__ == "__main__":
-  #  download()
+    download()
     run()

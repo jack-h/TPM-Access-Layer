@@ -46,6 +46,16 @@ public:
 
         // Reset antenna information
         clear();
+
+        // Create output file
+        // TODO: Make this proper
+        output_fd = open("beam_output.dat", O_RDWR | O_CREAT | O_SYNC, S_IRUSR | S_IRGRP | S_IROTH);
+
+        if (output_fd < 0)
+        {
+            perror("Could not create file\n");
+            return;
+        }
     }
 
 public:
@@ -105,12 +115,13 @@ public:
             return;
         }
 
-        printf("%d %d %d %d\n", nof_channels, nof_samples, nof_tiles, nof_pols);
-        write(fd, buffer_ptr, sizeof(T) * nof_channels * nof_samples * nof_tiles * nof_pols);
-        fsync(fd);
-        close(fd);
+        write(output_fd, buffer_ptr, sizeof(T) * nof_channels * nof_samples * nof_tiles * nof_pols);
+        fsync(output_fd);
 
         printf("Written to file\n");
+
+        // Clear container after persisting
+        clear();
     }
 
 
@@ -130,6 +141,9 @@ private:
 
     // Timestamps for each beam
     BeamInfo *beam_info;
+
+    // File descriptor
+    int output_fd;
 };
 
 /* This class is responsible for consuming beam SPEAD packets coming out of TPMs
@@ -177,6 +191,12 @@ private:
 
     // AntennaInformation object
     BeamDataContainer<complex_8t> *container;
+
+    // Two conditions will result in the buffering process exiting:
+    // 1. Ring buffer timeout, which means that we reached the end of the data stream
+    // 2. Packet index of this packet is greater than the number of samples in the buffer
+    double reference_time = 0;
+    uint32_t current_packet_index = 0;
 };
 
 #endif // BEAMFORMEDDATA_H

@@ -64,6 +64,16 @@ public:
 
         // Reset antenna information
         clear();
+
+        // Create output file
+        // TODO: Make this proper
+        output_fd = open("channel_output.dat", O_RDWR | O_CREAT | O_SYNC, S_IRUSR | S_IRGRP | S_IROTH);
+
+        if (output_fd < 0)
+        {
+            perror("Could not create file\n");
+            return;
+        }
     }
 
 public:
@@ -125,20 +135,13 @@ public:
             return;
         }
 
-        // TODO: Make this proper
-        int fd = open("channel_output.dat", O_RDWR | O_CREAT | O_SYNC, S_IRUSR | S_IRGRP | S_IROTH);
-
-        if (fd < 0)
-        {
-            perror("Could not create file\n");
-            return;
-        }
-
-        write(fd, buffer_ptr, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
-        fsync(fd);
-        close(fd);
+        write(output_fd, buffer_ptr, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
+        fsync(output_fd);
 
         printf("Written to file (%ld bytes)\n", nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
+
+        // Clear container after persisting
+        clear();
     }
 
 
@@ -160,6 +163,9 @@ private:
 
     // Timestamps for each station/tile/antenna
     ChannelInfo ***channel_info;
+
+    // File descriptor
+    int output_fd;
 };
 
 /* This class is responsible for consuming channel SPEAD packets coming out of TPMs to be used
@@ -204,6 +210,12 @@ private:
 
     // AntennaInformation object
     ChannelDataContainer<complex_8t> *container;
+
+    // Two conditions will result in the buffering process exiting:
+    // 1. Ring buffer timeout, which means that we reached the end of the data stream
+    // 2. Packet index of this packet is greater than the number of samples in the buffer
+    double reference_time = 0;
+    uint32_t current_packet_index = 0;
 };
 
 

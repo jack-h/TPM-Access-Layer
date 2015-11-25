@@ -140,16 +140,6 @@ RESULT startChannelConsumer(uint32_t nof_samples, uint16_t channels_per_packet,
 
     try {
         // Create consumer instance
-        printf("%d %d %d %d %d %d %d %d %d %d\n", configuration.nof_stations,
-               configuration.tile_per_station,
-               configuration.nof_channels,
-               nof_samples,
-               configuration.nof_antennas,
-               configuration.nof_polarisations,
-               channels_per_packet,
-               antennas_per_packet,
-               samples_per_packet,
-               configuration.start_station_id);
         ChannelisedData *channel_data = new ChannelisedData(configuration.nof_stations,
                                                             configuration.tile_per_station,
                                                             configuration.nof_channels,

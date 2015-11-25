@@ -34,7 +34,7 @@ ChannelisedData::ChannelisedData(uint16_t nof_stations, uint16_t nof_tiles, uint
     // Note that this assumes complex values with 8-bit components
     size_t packet_size = (size_t) (nof_antennas * channels_per_packet *
                                   samples_per_packet * sizeof(complex_8t) +
-                                  16 + 10 * 8 + 8)*2;
+                                  16 + 10 * 8 + 8) * 2;
 
     // Create ring buffer
     initialiseRingBuffer(packet_size, (size_t) 128e6 / packet_size);
@@ -245,9 +245,34 @@ bool ChannelisedData::getPacket()
     uint32_t nof_samples = (uint32_t) ((payload_length - payload_offset) /
                                        (nof_included_antennas * nof_included_channels * sizeof(complex_8t)));
 
+    double packet_time = sync_time + timestamp * timestamp_scale;
+
+    // Check if packet belongs to current buffer
+    if (reference_time == 0)
+        reference_time = packet_time;
+
+    if (packet_time < reference_time)
+        // This packet belongs to the previous buffer, ignore
+        return true;
+
+    // Check if packet index is smaller than stored packet index
+    if (start_channel_id == 0    &&
+        current_packet_index > 2 &&
+        packet_index < (current_packet_index - 2))
+    {
+        // New buffer detected, persist current container
+        container -> persist_container();
+
+        // Update timestamp
+        reference_time = packet_time;
+    }
+
+    // Update packet index
+    current_packet_index = packet_index;
+
     // We have processed the packet items, now comes the data
     container -> add_data(station_id - start_station_id, tile_id, start_channel_id, packet_index * nof_samples,
-                          nof_samples, pol_id, (complex_8t *) payload + payload_offset, sync_time + timestamp * timestamp_scale);
+                          nof_samples, pol_id, (complex_8t *) payload + payload_offset, packet_time);
 
     // All done, return
     return true;

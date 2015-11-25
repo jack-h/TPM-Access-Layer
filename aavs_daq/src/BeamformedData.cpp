@@ -234,7 +234,32 @@ bool BeamformedData::getPacket()
     station_id = 0;
     tile_id    = 0;
 
+    double packet_time = sync_time + timestamp * timestamp_scale;
+
+    // Check if packet belongs to current buffer
+    if (reference_time == 0)
+        reference_time = packet_time;
+
+    if (packet_time < reference_time)
+        // This packet belongs to the previous buffer, ignore
+        return true;
+
     // Each packet contains one polarisations, all channels, one beam, one time sample
+
+    // Check if packet index is smaller than stored packet index
+    if (current_packet_index > 2 &&
+        packet_index < (current_packet_index - 2))
+    {
+        // New buffer detected, persist current container
+        container -> persist_container();
+
+        // Update timestamp
+        reference_time = packet_time;
+    }
+
+    // Update packet index
+    current_packet_index = packet_index;
+
 
     // We have processed the packet items, now comes the data
     container -> add_data(nof_pols * ((station_id - start_station_id) * tiles_per_station + tile_id), beam_id,

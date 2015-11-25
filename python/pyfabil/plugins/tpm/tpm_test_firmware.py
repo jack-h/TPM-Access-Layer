@@ -34,6 +34,7 @@ class TpmTestFirmware(FirmwareBlock):
         # Initialise JESD core (try multiple times)
         max_retries = 4
         retries = 0
+	print self.board
         while self.board['%s.jesd204_if.regfile_status' % self._device_name] & 0x1F != 0x1C and retries < max_retries:
             jesd1.jesd_core_start()
             jesd2.jesd_core_start()
