@@ -672,7 +672,7 @@ class FPGABoard(object):
             print string
 
         # Return matches
-        return matches
+        # return matches
 
     def find_device(self, string, display = False):
         """ Return SPI device information for provided search string
@@ -699,7 +699,7 @@ class FPGABoard(object):
             print string
 
         # Return matches
-        return matches
+        # return matches
 
     def __len__(self):
         """ Override __len__, return number of registers """

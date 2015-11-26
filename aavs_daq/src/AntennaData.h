@@ -127,7 +127,7 @@ public:
         }
 
         // TODO: Make this proper
-        int fd = open("antenna_output.dat", O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
+        int fd = open("antenna_output.dat", O_WRONLY | O_CREAT | O_SYNC | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH);
 
         if (fd < 0)
         {

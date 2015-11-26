@@ -126,7 +126,7 @@ RESULT startRawConsumer(uint32_t samples_per_buffer)
 
 // Add and start channel data consumer
 RESULT startChannelConsumer(uint32_t nof_samples, uint16_t channels_per_packet,
-                              uint16_t antennas_per_packet, uint16_t samples_per_packet)
+                            uint16_t antennas_per_packet, uint16_t samples_per_packet)
 {
     // Check if receiver is initialised
     if (receiver == NULL)

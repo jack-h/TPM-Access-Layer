@@ -53,6 +53,9 @@ def run():
     # Check FPGA syncrhonisation
     sync_fpgas(tpm)
 
+    # Temporary
+    tpm[0x30000024] = 0x0
+
     # To send data
     #tpm.tpm_test_firmware.send_raw_data()
 
@@ -60,7 +63,7 @@ def run():
 def download():
     global tpm
     tpm = TPM(ip = "10.0.10.2", port = 10000, simulator = True)
-    tpm.download_firmware(Device.FPGA_1, "/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_test_gen.bit")
+    tpm.download_firmware(Device.FPGA_1, "/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap.bit")
 
 if __name__ == "__main__":
     download()

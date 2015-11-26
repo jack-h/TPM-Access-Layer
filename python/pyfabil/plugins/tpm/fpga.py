@@ -115,6 +115,12 @@ class TpmFpga(FirmwareBlock):
         self.board['%s.jesd204_if.regfile_ctrl' % self._device] = 0x0
         time.sleep(1)
 
+    def fpga_reset(self):
+        """ Reset FPGA """
+        self.board["%s.regfile.reset.global_rst" % self._device] = 0x1
+        self.board["%s.regfile.reset.global_rst" % self._device] = 0x0
+
+
     def fpga_sync_status(self):
         """ Read FPGA0, FPGA1, FPGA0. If x0 == x2 then within same PPS, then if x1 != x1 FPGAs are out of sync,
             calculate difference and update fpga sync register

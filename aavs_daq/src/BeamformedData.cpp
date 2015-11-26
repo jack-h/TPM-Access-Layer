@@ -113,7 +113,7 @@ void BeamformedData::threadEntry()
                 started_processing = true;
             else if (started_processing)
             {
-                printf("Finished processing beamformed data\n");
+              //  printf("Finished processing beamformed data\n");
                 break;
             }
         }

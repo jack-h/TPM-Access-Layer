@@ -114,7 +114,7 @@ void AntennaData::threadEntry()
                 started_processing = true;
             else if (started_processing)
             {
-                printf("Finished processing raw data\n");
+           //     printf("Finished processing raw data\n");
                 break;
             }
         }

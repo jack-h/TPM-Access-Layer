@@ -67,7 +67,7 @@ public:
 
         // Create output file
         // TODO: Make this proper
-        output_fd = open("channel_output.dat", O_RDWR | O_CREAT | O_SYNC, S_IRUSR | S_IRGRP | S_IROTH);
+        output_fd = open("channel_output.dat", O_WRONLY | O_CREAT | O_SYNC | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH);
 
         if (output_fd < 0)
         {

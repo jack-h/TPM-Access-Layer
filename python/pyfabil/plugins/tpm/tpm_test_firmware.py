@@ -34,8 +34,12 @@ class TpmTestFirmware(FirmwareBlock):
         # Initialise JESD core (try multiple times)
         max_retries = 4
         retries = 0
-	print self.board
+
         while self.board['%s.jesd204_if.regfile_status' % self._device_name] & 0x1F != 0x1C and retries < max_retries:
+            # Reset FPGA
+            self._fpga.fpga_reset()
+
+            # Start JESD cores
             jesd1.jesd_core_start()
             jesd2.jesd_core_start()
 
@@ -57,7 +61,7 @@ class TpmTestFirmware(FirmwareBlock):
     def initialize_spead(self):
         """ Initialize SPEAD  """
         self.board["board.regfile.c2c_stream_enable"] = 0x1
-        self.board["%s.spead_tx.control" % self._device_name] = 0x0400100C
+        self.board["%s.lmc_spead_tx.control" % self._device_name] = 0x0400100C
 
     def send_raw_data(self):
         """ Send raw data from the TPM """
@@ -67,6 +71,19 @@ class TpmTestFirmware(FirmwareBlock):
         """ Send channelized data from the TPM """
         self.board["%s.lmc_gen.channelized_pkt_length" % self._device_name] = number_of_samples - 1
         self.board["%s.lmc_gen.request.channelized_data" % self._device_name] = 0x1
+
+    def send_channelised_data_continuous(self, channel_id, number_of_samples = 128):
+        """ Continuously send channelised data from a single channel
+        :param channel_id: Channel ID
+        """
+        self.board["%s.lmc_gen.single_channel_mode.enable" % self._device_name] = 1
+        self.board["%s.lmc_gen.single_channel_mode.id" % self._device_name] = channel_id
+        self.board["%s.lmc_gen.channelized_pkt_length" % self._device_name] = number_of_samples - 1
+        self.board["%s.lmc_gen.request.channelized_data" % self._device_name] = 0x1
+
+    def stop_channelised_data_continuous(self):
+        """ Stop sending channelised data """
+        self.board["%s.lmc_gen.single_channel_mode.enable" % self._device_name] = 0
 
     def send_beam_data(self):
         """ Send beam data from the TPM """

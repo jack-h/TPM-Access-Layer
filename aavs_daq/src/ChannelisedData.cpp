@@ -117,7 +117,7 @@ void ChannelisedData::threadEntry()
                 started_processing = true;
             else if (started_processing)
             {
-                printf("Finished processing channelised data\n");
+              //  printf("Finished processing channelised data\n");
                 break;
             }
         }
@@ -247,28 +247,38 @@ bool ChannelisedData::getPacket()
 
     double packet_time = sync_time + timestamp * timestamp_scale;
 
-    // Check if packet belongs to current buffer
-    if (reference_time == 0)
-        reference_time = packet_time;
 
-    if (packet_time < reference_time)
-        // This packet belongs to the previous buffer, ignore
-        return true;
-
-    // Check if packet index is smaller than stored packet index
-    if (start_channel_id == 0    &&
-        current_packet_index > 2 &&
-        packet_index < (current_packet_index - 2))
+    // If in continuous streaming mode (number of channels is one), the start channel ID
+    // must always be one. We also have to segment buffers
+    if (nof_channels == 1)
     {
-        // New buffer detected, persist current container
-        container -> persist_container();
+        // Set start channel ID to 1 (otherwise it will mess with buffer indexing
+        start_channel_id = 0;
 
-        // Update timestamp
-        reference_time = packet_time;
+        // Check if packet belongs to current buffer
+        if (reference_time == 0)
+            reference_time = packet_time;
+
+        if (packet_time < reference_time)
+            // This packet belongs to the previous buffer, ignore
+            return true;
+
+        // Check if packet index is smaller than stored packet index
+        if (current_packet_index > 2 &&
+            packet_index < (current_packet_index - 2))
+        {
+            // New buffer detected, persist current container
+            container->persist_container();
+
+            // Update timestamp
+            reference_time = packet_time;
+
+          //  exit(-1);
+        }
+
+        // Update packet index
+        current_packet_index = packet_index;
     }
-
-    // Update packet index
-    current_packet_index = packet_index;
 
     // We have processed the packet items, now comes the data
     container -> add_data(station_id - start_station_id, tile_id, start_channel_id, packet_index * nof_samples,

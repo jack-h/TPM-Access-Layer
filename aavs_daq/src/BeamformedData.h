@@ -49,7 +49,7 @@ public:
 
         // Create output file
         // TODO: Make this proper
-        output_fd = open("beam_output.dat", O_RDWR | O_CREAT | O_SYNC, S_IRUSR | S_IRGRP | S_IROTH);
+        output_fd = open("beam_output.dat", O_WRONLY | O_CREAT | O_SYNC | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH);
 
         if (output_fd < 0)
         {
@@ -103,15 +103,6 @@ public:
         if (this->callback != NULL)
         {
             callback((int8_t *) buffer_ptr, beam_info[0].timestamp);
-            return;
-        }
-
-        // TODO: Make this proper
-        int fd = open("beam_output.dat", O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
-
-        if (fd < 0)
-        {
-            perror("Could not create file\n");
             return;
         }
 

@@ -255,6 +255,27 @@ void daq_service_library()
     sleep(1000);
 }
 
+void test_continuous_channel()
+{
+    // Telescope information
+    uint16_t nant     = 16;
+    uint32_t nsamp    = 1024*1024;
+    uint8_t  ntiles   = 1;
+    uint8_t  nstation = 1;
+    uint8_t  npols    = 2;
+    uint16_t nchans   = 1;
+    uint8_t  nbeams   = 1;
+
+    setReceiverConfiguration(nant, nchans, nbeams, npols, nstation, ntiles, 0);
+    startReceiver("eth1", 2048, 32, 128);
+    addReceiverPort(4660);
+    addReceiverPort(4661);
+
+    startChannelConsumer(nsamp, 1, 1, 32);
+
+    sleep(1000);
+}
+
 int main()
 {
 //    test_beam();
@@ -262,6 +283,7 @@ int main()
 //    test_receiver();
 //    test_antenna_data();
 //    daq_service();
-    daq_service_library();
+//    daq_service_library();
+    test_continuous_channel();
 }
 
