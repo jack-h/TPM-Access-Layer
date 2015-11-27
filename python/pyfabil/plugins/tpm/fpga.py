@@ -110,7 +110,6 @@ class TpmFpga(FirmwareBlock):
 
     def fpga_stop(self):
         """ Stop FPGA acquisition and data downloading through 1Gbit Ethernet """
-        self.board['board.regfile.c2c_stream_enable'] = 0x0
         self.board['%s.jesd_buffer.test_pattern_enable' % self._device] = 0x0
         self.board['%s.jesd204_if.regfile_ctrl' % self._device] = 0x0
         time.sleep(1)
@@ -120,13 +119,17 @@ class TpmFpga(FirmwareBlock):
         self.board["%s.regfile.reset.global_rst" % self._device] = 0x1
         self.board["%s.regfile.reset.global_rst" % self._device] = 0x0
 
+    def fpga_arm_force(self):
+        """ Arm FPGA for synchronous operation """
+        self.board["%s.pps_manager.sync_time_arm_force" % self._device] = 0x0
 
-    def fpga_sync_status(self):
-        """ Read FPGA0, FPGA1, FPGA0. If x0 == x2 then within same PPS, then if x1 != x1 FPGAs are out of sync,
-            calculate difference and update fpga sync register
-        """
-        #TODO: Implement syncing mechanism
-        pass
+    def fpga_disarm_force(self):
+        """ Disarm FPGA synchronous operation """
+        self.board["%s.pps_manager.sync_time_arm_force" % self._device] = 0x1
+
+    def fpga_apply_sync_delay(self, delay):
+        """ Apply synchronous operation delay """
+        self.board["%s.pps_manager.sync_time_arm_val" % self._device] = delay
 
     ##################### Superclass method implementations #################################
 

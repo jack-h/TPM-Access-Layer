@@ -18,7 +18,7 @@ struct complex_8t
 // Define function pointer template for callbacks
 // First parameter is pointer to data type
 // Second parameter is the timestamp of the first sample in the buffer
-typedef void (*DataCallback)(int8_t * data, double timestamp);
+typedef void (*DataCallback)(void * data, double timestamp);
 
 // Data Consumer abstract class
 class DataConsumer: public RealTimeThread

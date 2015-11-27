@@ -62,7 +62,8 @@ RESULT startRawConsumer(uint32_t samples_per_buffer);
 RESULT startChannelConsumer(uint32_t nof_samples,
                             uint16_t channels_per_packet,
                             uint16_t antennas_per_packet,
-                            uint16_t samples_per_packet);
+                            uint16_t samples_per_packet,
+                            uint8_t  continuous_mode = 0);
 
 // Create and start bram data consumer
 RESULT startBeamConsumer(uint32_t nof_samples, uint16_t samples_per_packet);

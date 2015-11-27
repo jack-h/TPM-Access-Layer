@@ -19,6 +19,9 @@ class TPM(FPGABoard):
         # Check if we are simulating or not
         self._simulator = kwargs.get('simulator', False)
 
+        # Check if we are initialising or not
+        self._initialise = kwargs.get('initialise', False)
+
         # Set hardcoded cpld xml offset address
         self._cpld_xml_offset         = 0x80000004
 
@@ -47,8 +50,6 @@ class TPM(FPGABoard):
             # Load PLL
             self.load_plugin("TpmPll")
             self._initialise_board()
-        else:
-            print "Running in simulation mode"
 
     def get_firmware_list(self, device = Device.Board):
         """ Get list of downloaded firmware on TPM FLASH
@@ -222,8 +223,9 @@ class TPM(FPGABoard):
         # Update firmware information
         [info.update_information() for info in self.tpm_firmware_information]
 
-        # Initialise devices
-        self._initialise_devices()
+        # Initialise devices (if required)
+        if self._initialise:
+            self._initialise_devices()
 
         # CPLD and SPI XML files have been loaded, check whether FPGA have been programmed
         # If FPGA is programmed, load the firmware's XML file

@@ -26,12 +26,12 @@ RECEIVER_CONFIGURATION configuration = { 0 };
 
 // set global parameters / telescope setup
 void setReceiverConfiguration(uint16_t  nof_antennas,
-                                             uint16_t  nof_channels,
-                                             uint8_t   nof_beams,
-                                             uint8_t   nof_polarisations,
-                                             uint16_t  nof_stations,
-                                             uint8_t   tile_per_station,
-                                             uint16_t  start_station_id)
+                              uint16_t  nof_channels,
+                              uint8_t   nof_beams,
+                              uint8_t   tile_per_station,
+                              uint16_t  nof_stations,
+                              uint8_t   nof_polarisations,
+                              uint16_t  start_station_id)
 {
     configuration.nof_antennas      = nof_antennas;
     configuration.nof_channels      = nof_channels;
@@ -66,10 +66,10 @@ RESULT startReceiver(const char *interface, unsigned frame_size,
         receiver = new NetworkReceiver(hw_interface, params);
         receiver -> startThread();
     }
-    catch (...)    {
-
+    catch (...)
+    {
         return FAILURE;
-    } 
+    }
 
     return SUCCESS;
 }
@@ -126,7 +126,8 @@ RESULT startRawConsumer(uint32_t samples_per_buffer)
 
 // Add and start channel data consumer
 RESULT startChannelConsumer(uint32_t nof_samples, uint16_t channels_per_packet,
-                            uint16_t antennas_per_packet, uint16_t samples_per_packet)
+                            uint16_t antennas_per_packet, uint16_t samples_per_packet,
+                            uint8_t  continuous_mode)
 {
     // Check if receiver is initialised
     if (receiver == NULL)
@@ -149,7 +150,8 @@ RESULT startChannelConsumer(uint32_t nof_samples, uint16_t channels_per_packet,
                                                             channels_per_packet,
                                                             antennas_per_packet,
                                                             samples_per_packet,
-                                                            configuration.start_station_id);
+                                                            configuration.start_station_id,
+                                                            continuous_mode);
 
         // Set receive thread to consumer
         channel_data -> setReceiver(receiver);

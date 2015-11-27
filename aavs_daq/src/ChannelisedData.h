@@ -89,10 +89,7 @@ public:
                   uint32_t nof_samples, uint8_t pol_id, T *data_ptr, double timestamp)
     {
         // Get pointer to buffer location where data will be placed
-        T* ptr = buffer[station][tile][channel] + start_sample_index * nof_pols * nof_antennas;
-
-        // Copy data to buffer
-//        memcpy(ptr, data_ptr, nof_samples * nof_antennas * nof_pols * sizeof(T));
+        T* ptr = buffer_ptr + (channel * this->nof_samples * nof_antennas * nof_pols + start_sample_index * nof_pols * nof_antennas);
 
         // TEMPORARY: For AAVS0.5, X and Y pols will be received from separate FPGAs, so we have to
         //            interleave them for now
@@ -129,9 +126,11 @@ public:
     void persist_container()
     {
         // If a callback is defined, call it and return
+        // TODO: Make nicer
         if (this->callback != NULL)
         {
-            callback((int8_t *) buffer_ptr, channel_info[0][0][0].timestamp);
+            callback((complex_8t *) buffer_ptr, channel_info[0][0][0].timestamp);
+            clear();
             return;
         }
 
@@ -183,7 +182,8 @@ public:
     ChannelisedData(uint16_t nof_stations, uint16_t nof_tiles, uint16_t nof_channels,
                     uint32_t nof_samples, uint16_t nof_antennas, uint8_t nof_pols,
                     uint16_t channels_per_packet, uint16_t antennas_per_packet,
-                    uint16_t samples_per_packet, uint16_t start_station_id);
+                    uint16_t samples_per_packet, uint16_t start_station_id,
+                    uint8_t continuous_mode = 0);
 
     // Class destructor
     ~ChannelisedData();
@@ -210,6 +210,9 @@ private:
 
     // AntennaInformation object
     ChannelDataContainer<complex_8t> *container;
+
+    // Operation mode
+    uint8_t continuous_mode;
 
     // Two conditions will result in the buffering process exiting:
     // 1. Ring buffer timeout, which means that we reached the end of the data stream

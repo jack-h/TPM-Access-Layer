@@ -25,23 +25,23 @@ class TpmTestFirmware(FirmwareBlock):
         self._device = kwargs['device']
 
         # Load required plugins
-        jesd1 = self.board.load_plugin("TpmJesd", device = self._device, core = 0)
-        jesd2 = self.board.load_plugin("TpmJesd", device = self._device, core = 1)
+        self._jesd1 = self.board.load_plugin("TpmJesd", device = self._device, core = 0)
+        self._jesd2 = self.board.load_plugin("TpmJesd", device = self._device, core = 1)
         self._fpga = self.board.load_plugin('TpmFpga', device = self._device)
 
         self._device_name = "fpga1" if self._device is Device.FPGA_1 else "fpga2"
 
-        # Initialise JESD core (try multiple times)
+    def initialise_firmware(self):
+        """ Initialise firmware components """
         max_retries = 4
         retries = 0
-
         while self.board['%s.jesd204_if.regfile_status' % self._device_name] & 0x1F != 0x1C and retries < max_retries:
             # Reset FPGA
             self._fpga.fpga_reset()
 
             # Start JESD cores
-            jesd1.jesd_core_start()
-            jesd2.jesd_core_start()
+            self._jesd1.jesd_core_start()
+            self._jesd2.jesd_core_start()
 
             # Initialise FPGAs
             # I have no idea what these ranges are
@@ -50,17 +50,17 @@ class TpmTestFirmware(FirmwareBlock):
             retries += 1
             sleep(0.5)
 
-        if retries == max_retries:
-            raise BoardError("TpmTestFirmware: Could not configure JESD cores")
 
         # Initialise SPEAD transmission
         self.initialize_spead()
+
+        if retries == max_retries:
+            raise BoardError("TpmTestFirmware: Could not configure JESD cores")
 
     #######################################################################################
 
     def initialize_spead(self):
         """ Initialize SPEAD  """
-        self.board["board.regfile.c2c_stream_enable"] = 0x1
         self.board["%s.lmc_spead_tx.control" % self._device_name] = 0x0400100C
 
     def send_raw_data(self):
@@ -88,6 +88,15 @@ class TpmTestFirmware(FirmwareBlock):
     def send_beam_data(self):
         """ Send beam data from the TPM """
         self.board["%s.lmc_gen.request.beamformed_data" % self._device_name] = 0x1
+
+    #######################################################################################
+    def download_beamforming_weights(self, weights, antenna):
+        """ Apply beamforming weights
+        :param weights: Weights array
+        :param antenna: Antenna ID
+        """
+        self.board["%s.beamf.ch%02dcoeff" % (self._device_name, antenna)] = weights
+
 
     ##################### Superclass method implementations #################################
 

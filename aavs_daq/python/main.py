@@ -23,32 +23,33 @@ def raw_data_callback(data, timestamp):
 
     # Persist extracted data to file
     persisters['RAW_DATA'].ingest_data(data_ptr = values, timestamp = timestamp)
+    logging.info("Persister ready")
 
 def channel_data_callback(data, timestamp, continuous = False):
     # Extract data sent by DAQ
     if continuous:
         logging.info("(Continuous) Channel data callback")
         nof_values = conf.nof_antennas * conf.nof_polarisations * conf.nof_channel_samples
-
     else:
         logging.info("(Burst) Channel data callback")
         nof_values = conf.nof_antennas * conf.nof_polarisations * \
-                     conf.nof_channel_samples * conf.nof_channels
-    values_ptr = ctypes.cast(data, ctypes.POINTER(ctypes.c_int8))
-    values     = np.array([values_ptr[i] for i in range(nof_values * 2)], dtype=numpy.int8)
+             conf.nof_channel_samples * conf.nof_channels
 
-    # data = np.empty(nof_values, numpy.dtype([('real', numpy.int8), ('imag', numpy.int8)]))
-    # for i, (real, imag)in enumerate(zip(values[::2], values[1::2])):
-    #     data[i][0] = real
-    #     data[i][1] = imag
+    #values_ptr = ctypes.cast(data, ctypes.POINTER(Complex_8t))
+    #values     = np.array([(values_ptr[i].x, values_ptr[i].y) for i in range(nof_values)], dtype=complex_8t)
+
+
+    print values.shape, values[:32]
+
 
     # Persist extracted data to file
-    if continuous:
-        persisters['CHANNEL_DATA'].ingest_data(data_ptr = values, timestamp = timestamp, append=True)
-    else:
-        persisters['CHANNEL_DATA'].ingest_data(data_ptr = values, timestamp = timestamp)
-
-    logging.info("Persister ready")
+    print nof_values
+    # if continuous:
+    #    persisters['CHANNEL_DATA'].append_data(data_ptr=values, timestamp=timestamp)
+    # else:
+    #    persisters['CHANNEL_DATA'].write_data(data_ptr=values, timestamp=timestamp)
+    #
+    # logging.info("Persister ready")
 
 def channel_burst_data_callback(data, timestamp):
     # Channel callback wrapper for burst data mode
@@ -58,28 +59,17 @@ def channel_continuous_data_callback(data, timestamp):
     # Channel callback wrapper for continuous data mode
     channel_data_callback(data, timestamp, True)
 
-def continuous_channel_data_callback(data, timestamp):
-    # Extract data sent by DAQ
-    logging.info("Channel data callback")
-    nof_values = conf.nof_antennas * conf.nof_polarisations * conf.nof_channel_samples
-    values_ptr = ctypes.cast(data, ctypes.POINTER(ctypes.c_int8))
-    values     = np.array([values_ptr[i] for i in range(nof_values * 2)], dtype='float')
-    values     = values[::2] + values[1::2] * 1j
-
-    # Persist extracted data to file
-    persisters['CHANNEL_DATA'].ingest_data(data_ptr = values, timestamp = timestamp)
-
 def beam_data_callback(data, timestamp):
     # Extract data sent by DAQ
     logging.info("Beam data callback")
     nof_values = conf.nof_beams * conf.nof_polarisations * \
                  conf.nof_beam_samples * conf.nof_channels
-    values_ptr = ctypes.cast(data, ctypes.POINTER(ctypes.c_int8))
-    values     = np.array([values_ptr[i] for i in range(nof_values * 2)], dtype='float')
-    values     = values[::2] + values[1::2] + 1j
+    values_ptr = ctypes.cast(data, ctypes.POINTER(Complex_8t))
+    values     = np.array([(values_ptr[i].x, values_ptr[i].y) for i in range(nof_values)], dtype=complex_8t)
 
     # Persist extracted data to file
-    persisters['BEAM_DATA'].ingest_data(data_ptr = values, timestamp = timestamp)
+    persisters['BEAM_DATA'].write_data(data_ptr = values, timestamp = timestamp)
+    logging.info("Persister ready")
 
 # ----------------------------------------- Script Body ------------------------------------------------
 
@@ -182,7 +172,6 @@ if __name__ == "__main__":
                            conf.receiver_frames_per_block,
                            conf.receiver_nof_blocks) != Result.Success.value:
         logging.error("Failed to start receiver")
-        exit(-1)
 
     # Set receiver ports
     for port in conf.receiver_ports:
@@ -197,11 +186,13 @@ if __name__ == "__main__":
             logging.error("Failed to start raw data consumer")
 
         logging.info("Started raw data consumer")
-        # Set raw data consumer callback  #  if call_set_raw_consumer_callback(DATACALLBACK_RAW(raw_data_callback)) != Result.Success.value:
-        #      print "Failed to set raw data consumer callback"
+
+        # Set raw data consumer callback
+        if call_set_raw_consumer_callback(DATACALLBACK_RAW(raw_data_callback)) != Result.Success.value:
+            logging.error("Failed to set raw data consumer callback")
 
         # Create data persister
-        raw_file = RawFormatFileManager(root_path = ".", mode = FileModes.Write)
+        raw_file = RawFormatFileManager(root_path=".", mode=FileModes.Write)
         raw_file.set_metadata(n_antennas = conf.nof_antennas,
                               n_pols     = conf.nof_polarisations,
                               n_samples  = conf.nof_raw_samples)
@@ -215,10 +206,11 @@ if __name__ == "__main__":
         if call_start_channel_consumer(conf.nof_channel_samples,
                                        conf.channel_channels_per_packet,
                                        conf.channel_antennas_per_packet,
-                                       conf.channel_samples_per_packet) != Result.Success.value:
+                                       conf.channel_samples_per_packet,
+                                       conf.continuous_channel) != Result.Success.value:
             logging.error("Failed to start continuous channel data consumer")
 
-            logging.info("Started channel data consumer")
+        logging.info("Started channel data consumer")
 
         if not conf.continuous_channel:
             # Set channel data consumer callback
@@ -258,7 +250,7 @@ if __name__ == "__main__":
 
         # # Set beam data consumer callback
         if call_set_beam_consumer_callback(DATACALLBACK_BEAM(beam_data_callback)) != Result.Success.value:
-            logging.error("Faile to set beam data consumer callback")
+            logging.error("Failed to set beam data consumer callback")
 
         # Create data persister
         beam_file = BeamFormatFileManager(root_path=".", mode = FileModes.Write)
@@ -266,7 +258,6 @@ if __name__ == "__main__":
                                n_pols    = conf.nof_polarisations,
                                n_samples = conf.nof_beam_samples)
         persisters['BEAM_DATA'] = beam_file
-
 
     # Wait forever
     logging.info("Ready to receive data")

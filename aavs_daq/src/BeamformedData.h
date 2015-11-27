@@ -103,13 +103,14 @@ public:
         if (this->callback != NULL)
         {
             callback((int8_t *) buffer_ptr, beam_info[0].timestamp);
+            clear();
             return;
         }
 
         write(output_fd, buffer_ptr, sizeof(T) * nof_channels * nof_samples * nof_tiles * nof_pols);
         fsync(output_fd);
 
-        printf("Written to file\n");
+        printf("Written beam to file\n");
 
         // Clear container after persisting
         clear();

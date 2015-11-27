@@ -18,7 +18,7 @@ AntennaData::AntennaData()
 
 // Class constructor with parameters
 AntennaData::AntennaData(uint16_t nof_antennas, uint32_t samples_per_buffer,
-                         uint8_t tiles_per_station, uint8_t nof_stations,
+                         uint8_t tiles_per_station, uint16_t nof_stations,
                          uint8_t nof_pols, uint16_t start_station_id)
 {
     // Set local values
@@ -133,6 +133,8 @@ bool AntennaData::getPacket()
     if (packet_size == SIZE_MAX)
         // Request timed out
         return false;
+
+    printf("acquired packet\n");
 
     // This packet is a SPEAD packet, since otherwise it would not have
     // passed through the filter

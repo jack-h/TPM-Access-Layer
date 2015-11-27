@@ -122,7 +122,9 @@ public:
         // If a callback is defined, call it and return
         if (this->callback != NULL)
         {
+            printf("Calling callback\n");
             callback((int8_t *) buffer_ptr, antenna_info[0][0][0].timestamp);
+            clear();
             return;
         }
 
@@ -139,7 +141,7 @@ public:
         fsync(fd);
         close(fd);
 
-        printf("Written to file\n");
+        printf("Written antenna to file\n");
     }
 
 
@@ -177,7 +179,7 @@ public:
     AntennaData(uint16_t nof_antennas,
                 uint32_t samples_per_buffer,
                 uint8_t  tiles_per_station,
-                uint8_t  nof_stations,
+                uint16_t  nof_stations,
                 uint8_t  nof_pols,
                 uint16_t start_station_id);
 

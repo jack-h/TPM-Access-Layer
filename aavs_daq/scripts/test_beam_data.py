@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
 #    fp = open(sys.argv[1])
 
-    fp = open("/home/lessju/Code/AAVS/aavs_daq/src/build/beam_output.dat", "rb")
+    fp = open("/home/lessju/Code/TPM-Access-Layer/aavs_daq/src/build/beam_output.dat", "rb")
     data = fp.read()
     nsamp = len(data) / (nchans * npol * 2)
     print nsamp

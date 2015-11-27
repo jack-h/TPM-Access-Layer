@@ -16,12 +16,17 @@ ChannelisedData::ChannelisedData()
 ChannelisedData::ChannelisedData(uint16_t nof_stations, uint16_t nof_tiles, uint16_t nof_channels,
                                  uint32_t nof_samples, uint16_t nof_antennas, uint8_t nof_pols,
                                  uint16_t channels_per_packet, uint16_t antennas_per_packet, uint16_t samples_per_packet,
-                                 uint16_t start_station_id)
+                                 uint16_t start_station_id, uint8_t continuous_mode)
 {
+    // If continuous mode, we only receive data from one channel
+    if (this->continuous_mode == 1)
+        this -> nof_channels = 1;
+
     // Set local values
+    this -> continuous_mode = continuous_mode;
     this -> nof_stations = nof_stations;
-    this -> nof_tiles = nof_tiles;
     this -> nof_channels = nof_channels;
+    this -> nof_tiles = nof_tiles;
     this -> nof_samples = nof_samples;
     this -> nof_antennas = nof_antennas;
     this -> nof_pols = nof_pols;
@@ -32,9 +37,9 @@ ChannelisedData::ChannelisedData(uint16_t nof_stations, uint16_t nof_tiles, uint
 
     // Calculate packet size and approximate required number of cells in ring buffer
     // Note that this assumes complex values with 8-bit components
-    size_t packet_size = (size_t) (nof_antennas * channels_per_packet *
+    size_t packet_size = (size_t) nof_antennas * channels_per_packet *
                                   samples_per_packet * sizeof(complex_8t) +
-                                  16 + 10 * 8 + 8) * 2;
+                                  (16 + 10 * 8 + 8) * 2;
 
     // Create ring buffer
     initialiseRingBuffer(packet_size, (size_t) 128e6 / packet_size);
@@ -247,10 +252,9 @@ bool ChannelisedData::getPacket()
 
     double packet_time = sync_time + timestamp * timestamp_scale;
 
-
     // If in continuous streaming mode (number of channels is one), the start channel ID
     // must always be one. We also have to segment buffers
-    if (nof_channels == 1)
+    if (this -> continuous_mode == 1)
     {
         // Set start channel ID to 1 (otherwise it will mess with buffer indexing
         start_channel_id = 0;
@@ -272,8 +276,6 @@ bool ChannelisedData::getPacket()
 
             // Update timestamp
             reference_time = packet_time;
-
-          //  exit(-1);
         }
 
         // Update packet index

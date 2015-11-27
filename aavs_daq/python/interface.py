@@ -3,6 +3,9 @@ import ctypes
 
 # ------------------------------ Enumerations --------------------------------
 
+class Complex_8t(ctypes.Structure):
+     _fields_ = [("x", ctypes.c_int8),
+                 ("y", ctypes.c_int8)]
 
 class DataType(Enum):
     """ DataType enumeration """
@@ -25,8 +28,9 @@ library = None
 
 # Define consumer data callback wrapper
 DATACALLBACK_RAW = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_int8), ctypes.c_double)
-DATACALLBACK_BEAM = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_int8), ctypes.c_double)
-DATACALLBACK_CHANNEL = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_int8), ctypes.c_double)
+DATACALLBACK_BEAM = ctypes.CFUNCTYPE(None, ctypes.POINTER(Complex_8t), ctypes.c_double)
+DATACALLBACK_CHANNEL = ctypes.CFUNCTYPE(None, ctypes.POINTER(Complex_8t), ctypes.c_double)
+
 
 def initialise_library(filepath = None):
     """ Wrap AAVS DAQ shared library functionality in ctypes
@@ -65,7 +69,8 @@ def initialise_library(filepath = None):
     library.startRawConsumer.restype = ctypes.c_int
 
     # Define startChannelConsumer function
-    library.startChannelConsumer.argtypes = [ctypes.c_uint32, ctypes.c_uint16, ctypes.c_uint16, ctypes.c_uint16]
+    library.startChannelConsumer.argtypes = [ctypes.c_uint32, ctypes.c_uint16, ctypes.c_uint16,
+                                             ctypes.c_uint16, ctypes.c_int8]
     library.startChannelConsumer.restype = ctypes.c_int
 
     # Define startBeamConsumer function
@@ -134,16 +139,19 @@ def call_start_raw_consumer(samples_per_buffer):
     return library.startRawConsumer(samples_per_buffer)
 
 
-def call_start_channel_consumer(nof_samples, channels_per_packet, antennas_per_packet, samples_per_packet):
+def call_start_channel_consumer(nof_samples, channels_per_packet, antennas_per_packet,
+                                samples_per_packet, continuous_mode = False):
     """ Start channel data consumer
     :param nof_samples: Total number of (time) samples to buffer
     :param channels_per_packet: Number of channels per packet
     :param antennas_per_packet: Number of antennas per packet
     :param samples_per_packet: Number of (time) samples per packet
+    :param continuous_mode: Set whether consumer will run in continuous mode
     :return: Return code
     """
     global library
-    return library.startChannelConsumer(nof_samples, channels_per_packet, antennas_per_packet, samples_per_packet)
+    return library.startChannelConsumer(nof_samples, channels_per_packet, antennas_per_packet,
+                                        samples_per_packet, continuous_mode)
 
 
 def call_start_beam_consumer(nof_samples, samples_per_packet):
