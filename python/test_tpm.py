@@ -31,7 +31,7 @@ class Beamformer(object):
         self._pol_fpga_map = polarisation_fpga_map if polarisation_fpga_map is not None else {0: 0, 1: 1}
         self._value_conversion_table = None
 
-    def set_weights(self, weights):
+    def download_weights(self, weights):
         """ Set weights provided externally.
         :param weights Weights should be a numpy array with polarisation changing in the first dimension,
                        antenna in the second dimension and channel in the third dimension
@@ -52,7 +52,7 @@ class Beamformer(object):
             for antenna in range(self._nof_antennas):
 
                 # Convert weights to 8-bit values, reverse array and combine every 4 values into 32-bit words
-                coeffs = weights[pol, antenna, :, :].flatten()[::-1]
+                coeffs = weights[pol, antenna, :, :].flatten()
                 coeffs = self.convert_weights(coeffs)
                 values = []
                 for i in range(0, len(coeffs), 4):
@@ -88,11 +88,73 @@ class Beamformer(object):
 
         return values
 
-    def generate_empty_weights(self):
+    def generate_empty_weights(self, ones=False):
+        """ Generate a matrix containing only ones or zeros
+        :param ones: Fill matrix with ones, if False fill it with zeros
+        :return: Return a weight matrix containing only ones or zeros
         """
-        :return: Return an empty numpy array of the correct shape
+        if ones:
+            return np.ones((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
+        else:
+            return np.zeros((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
+
+    def mask_antennas_channels(self, weights, antennas=None, channels=None, polarisations=None):
+        """ Generate beamforming coefficients to mask particular channels and antennas, for particular polarisations
+        :param weights: Weight matrix to apply masks on
+        :param antennas: Antennas to mask
+        :param channels: Channels to mask
+        :param pols: Polarisation to which mask is applied
+        :return: Weight matrix
         """
-        return np.zeros((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
+
+        # Check if polarisation is specified, otherwise apply to all
+        pols = range(self._nof_pols) if polarisations is None \
+            else [polarisations] if type (polarisations) is not list else polarisations
+
+        # Check antenna and channel selection
+        if antennas is None and channels is None:
+            print "Antenna and channels list must be specified"
+            return weights
+
+        # Optimsed for all channel masking
+        if channels is None:
+            ants = range(self._nof_antennas) if antennas is None \
+            else [antennas] if type(antennas) is not list else antennas
+
+            # Apply masking
+            for p in pols:
+                for a in ants:
+                    weights[p,a,:,:] = np.zeros((self._nof_channels, 2))
+
+            # Return updated weights
+            return weights
+
+        # Optimsed for all antenna masking
+        if antennas is None:
+            chans = range(self._nof_channels) if channels is None \
+                    else [channels] if type(channels) is not list else channels
+
+            # Apply masking
+            for p in pols:
+                for c in chans:
+                    weights[p,:,c,:] = np.zeros((self._nof_antennas, 2))
+
+            # Return updated weights
+            return weights
+
+        # Convert antennas and channels to lists
+        ants = range(self._nof_antennas) if antennas is None \
+            else [antennas] if type(antennas) is not list else antennas
+        chans = range(self._nof_channels) if channels is None \
+            else [channels] if type(channels) is not list else channels
+
+        # Apply masking
+        for p in polarisations:
+            for a in ants:
+                for c in channels:
+                    weights[p,a,c,:] = [0,0]
+
+        return weights
 
     def _convert_coordinates(self, lat, long, ra_ref, dec_ref, date, time):
         """ Accurate conversion from equatorial coordiantes (RA, DEC) to Spherical (TH,PH) coordinates.
@@ -306,13 +368,12 @@ if __name__ == "__main__":
     tile = Tile()
    # tile.program_fpgas()
    # tile.initialise()
-  #  tile.connect()
-  #  tile.send_raw_data()
+    tile.connect()
+   # tile.send_raw_data()
 
-    # beamformer = Beamformer(tile, 512, 16, 2, 1)
-    # weights = beamformer.generate_empty_weights()
-    # for p in range(1):
-    #     for a in range(16):
-    #         weights[p,a] = (np.arange(1024) / 1024.0).reshape((512,2))
-    # beamformer.set_weights(weights)
+    beamformer = Beamformer(tile, 512, 16, 2, 1)
+    weights = beamformer.generate_empty_weights(ones=True)
+    weights = beamformer.mask_antennas_channels(weights, antennas=[2,4,6])
+    beamformer.download_weights(weights)
+
 
