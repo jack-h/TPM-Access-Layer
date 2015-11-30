@@ -604,6 +604,7 @@ class RawFormatFileManager(AAVSFileManager):
         self.close_file(file)
 
 if __name__ == "__main__":
+
    channel_file = ChannelFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
    channel_file.plot(channels=range(0, 512), antennas=range(0, 2), polarizations=range(0, 1), n_samples=1024)
 

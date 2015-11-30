@@ -1,3 +1,5 @@
+import logging
+
 from pyfabil import TPM, Device
 from pyslalib import slalib
 from time import sleep
@@ -7,18 +9,51 @@ import math
 __author__ = 'Alessio Magro'
 
 # --------------------------------------------- Beamformer Class ---------------------------------------
+class AntennaArray(object):
+    """ Class representing antenna array """
+    def __init__(self, reference_latitude, reference_longitude):
+        self._ref_lat    = reference_latitude
+        self._ref_lon    = reference_longitude
+        self._x          = None
+        self._y          = None
+
+    def positions(self):
+        """
+        :return: Antenna positions
+        """
+        return self._x, self._y
+
+    def lat(self):
+        """ Return reference latitude
+        :return: reference latitude
+        """
+        return self._ref_lat
+
+    def long(self):
+        """ Return reference longitude
+        :return: reference longitude
+        """
+        return self._ref_lon
+
+    def load_from_file(self, filepath):
+        """ Load antenna positions from file
+        :param filepath: Path to file
+        """
+        pass
 
 
 class Beamformer(object):
     """ Helper class for generating beamforming coefficients """
 
-    def __init__(self, tile, nof_channels, nof_antennas, nof_pols, nof_beams, polarisation_fpga_map = None):
+    def __init__(self, tile, nof_channels, nof_antennas, nof_pols, nof_beams,
+                array = None, polarisation_fpga_map = None):
         """ Beamforming weight generation class
         :param tile: Reference to tile object
         :param nof_channels: Number of channels
         :param nof_antennas: Number of antennas
         :param nof_pols: Number of polarisations
         :param nof_beams: Number of beams
+        :param array: AntennaArray object, required for source pointing
         :param polarisation_fpga_map: Mapping between polarisation index and FPGA index
         """
 
@@ -29,6 +64,7 @@ class Beamformer(object):
         self._nof_pols     = nof_pols
         self._nof_beams    = nof_beams
         self._pol_fpga_map = polarisation_fpga_map if polarisation_fpga_map is not None else {0: 0, 1: 1}
+        self._array        = array
         self._value_conversion_table = None
         self._weights      = None
 
@@ -145,6 +181,38 @@ class Beamformer(object):
             for a in ants:
                 for c in channels:
                     self._weights[p, a, c, :] = [0, 0]
+
+    def point_array(self, ra, dec, date, time):
+        """ Point array to specified RA and DEC
+        :param ref: RA(J2000) (decimal hours)
+        :param ref: Dec(J2000) (decimal degrees)
+        :param date: vector date [iyear, imonth, iday]
+        :param time: vector time [ihour imin isec]
+        """
+
+        # Check if we have a reference AntennaArray
+        if self._array is None:
+            print "Need an AntennaArray reference to generate pointing weights"
+            return
+
+        # Check if antenna positions are set
+        x, y = self._array.positions()
+        if None in [x, y]:
+            print "AntennaArray positions not set"
+            return
+
+        # Convert coordinates to theta and phi
+        theta, phi = self._convert_coordinates(self._array.lat(), self._array.lat(),
+                                               ra, dec, date, time)
+
+        # Apply theta and phi to array and generate weights
+        # TODO: Frequency information required here
+        r = 10e9
+        dx0 = r * math.sin(theta) * math.cos(phi) - x
+        dy0 = r * math.sin(theta) * math.sin(phi) - y
+        dz0 = r * math.cos(theta) # Z should be included here if it is known
+        Wc = math.exp(-1j * k0 * math.sqrt(dx0**2 + dy0**2 + dz0**2))
+
 
     def _convert_coordinates(self, lat, long, ra_ref, dec_ref, date, time):
         """ Accurate conversion from equatorial coordiantes (RA, DEC) to Spherical (TH,PH) coordinates.
@@ -355,15 +423,60 @@ class Tile(object):
         return str(self.tpm)
 
 if __name__ == "__main__":
-    tile = Tile()
-   # tile.program_fpgas()
-   # tile.initialise()
-    tile.connect()
-   # tile.send_raw_data()
 
-    beamformer = Beamformer(tile, 512, 16, 2, 1)
-    beamformer.generate_empty_weights(ones=True)
-    beamformer.mask_antennas_channels(antennas=[2,4,6])
-    beamformer.download_weights()
+    # Use OptionParse to get command-line arguments
+    from optparse import OptionParser
+    from sys import argv, stdout
+
+    parser = OptionParser(usage="usage: %test_tpm [options]")
+    parser.add_option("-a", "--nof_antennas", action="store", dest="nof_antennas",
+                      type="int", default=16, help="Number of antennas [default: 16]")
+    parser.add_option("-c", "--nof_channels", action="store", dest="nof_channels",
+                      type="int", default=512, help="Number of channels [default: 512]")
+    parser.add_option("-b", "--nof_beams", action="store", dest="nof_beams",
+                      type="int", default=1, help="Number of beams [default: 1]")
+    parser.add_option("-p", "--nof_pols", action="store", dest="nof_polarisations",
+                      type="int", default=2, help="Number of polarisations [default: 2]")
+    parser.add_option("-P", "--program", action="store_true", dest="program",
+                      default=False, help="Program FPGAs [default: False]")
+    parser.add_option("-I", "--initialise", action="store_true", dest="initialise",
+                      default=False, help="Initialie TPM [default: False]")
+    parser.add_option("-B", "--initialise-beamformer", action="store_true", dest="beamformer",
+                  default=False, help="Initialie beamformer [default: False]")
+    (conf, args) = parser.parse_args(argv[1:])
+
+    # Set logging
+    log = logging.getLogger('')
+    log.setLevel(logging.INFO)
+    format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    ch = logging.StreamHandler(stdout)
+    ch.setFormatter(format)
+    log.addHandler(ch)
+
+    # Create Tile
+    tile = Tile()
+
+    # Porgam FPGAs if required
+    if conf.program:
+        logging.info("Programming FPGAs")
+        tile.program_fpgas()
+
+    # Initialise TPM if required
+    if conf.initialise:
+        logging.info("Initialising TPM")
+        tile.initialise()
+
+    tile.connect()
+
+    # Initialise beamformer if required
+    beamformer = None
+    if conf.beamformer:
+        logging.info("Initialising beamformer")
+        beamformer = Beamformer(tile, conf.nof_channels, conf.nof_antennas, conf.nof_polarisations, conf.nof_beams)
+
+    # Example commands (to generate weigts, mask antennas and download coefficients to TPM
+    #beamformer.generate_empty_weights(ones=True)
+    #beamformer.mask_antennas_channels(antennas=[2,4,6])
+    #beamformer.download_weights()
 
 
