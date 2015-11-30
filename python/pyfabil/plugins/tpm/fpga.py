@@ -131,7 +131,7 @@ class TpmFpga(FirmwareBlock):
         """ Apply synchronous operation delay """
         self.board["%s.pps_manager.sync_time_arm_val" % self._device] = delay
 
-    ##################### Superclass method implementations #################################
+    ##################### Superclass method implementations ###############################
 
 
     def initialise(self):

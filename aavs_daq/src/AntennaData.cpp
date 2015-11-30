@@ -31,7 +31,7 @@ AntennaData::AntennaData(uint16_t nof_antennas, uint32_t samples_per_buffer,
 
     // Calculate packet size and approximate required number of cells in ring buffer
     // TODO: This needs to be calculated properly, has hardcoded values for current firmware iteration
-    size_t packet_size = (size_t) 1024 + 16 + 10 * 8 + 8;
+    size_t packet_size = (size_t) 1024 + (16 + 10 * 8 + 8) * 2;
 
     // Create ring buffer
     initialiseRingBuffer(packet_size, (size_t) 128e6 / packet_size);

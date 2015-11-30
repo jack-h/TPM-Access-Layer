@@ -35,21 +35,18 @@ def channel_data_callback(data, timestamp, continuous = False):
         nof_values = conf.nof_antennas * conf.nof_polarisations * \
              conf.nof_channel_samples * conf.nof_channels
 
-    #values_ptr = ctypes.cast(data, ctypes.POINTER(Complex_8t))
-    #values     = np.array([(values_ptr[i].x, values_ptr[i].y) for i in range(nof_values)], dtype=complex_8t)
-
-
-    print values.shape, values[:32]
-
+    buffer_from_memory = ctypes.pythonapi.PyBuffer_FromMemory
+    buffer_from_memory.restype = ctypes.py_object
+    values = buffer_from_memory(data, complex_8t.itemsize * nof_values)
+    values = np.frombuffer(values, complex_8t)
 
     # Persist extracted data to file
-    print nof_values
-    # if continuous:
-    #    persisters['CHANNEL_DATA'].append_data(data_ptr=values, timestamp=timestamp)
-    # else:
-    #    persisters['CHANNEL_DATA'].write_data(data_ptr=values, timestamp=timestamp)
-    #
-    # logging.info("Persister ready")
+    if continuous:
+       persisters['CHANNEL_DATA'].append_data(data_ptr=values, timestamp=timestamp)
+    else:
+       persisters['CHANNEL_DATA'].write_data(data_ptr=values, timestamp=timestamp)
+
+    logging.info("Persister ready")
 
 def channel_burst_data_callback(data, timestamp):
     # Channel callback wrapper for burst data mode

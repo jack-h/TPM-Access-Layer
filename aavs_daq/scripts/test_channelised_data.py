@@ -24,4 +24,5 @@ if __name__ == "__main__":
     for i in range(nant):
         plt.figure()
         plt.imshow(np.abs(data[0,0,:,:,i,0]), aspect='auto')
+        plt.colorbar()
     plt.show()

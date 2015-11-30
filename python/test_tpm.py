@@ -1,5 +1,6 @@
 from pyfabil import TPM, Device
 from pyslalib import slalib
+from time import sleep
 import numpy as np
 import math
 
@@ -210,6 +211,10 @@ class Tile(object):
         # Temporary
         self.tpm[0x30000024] = 0x0
 
+        # Temporary: enable test pattern for channelised data
+        self.tpm['fpga1.regfile.test_gen_walking'] = 0x1
+        self.tpm['fpga2.regfile.test_gen_walking'] = 0x1
+
     def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_timestamp.bit"):
         self.connect(simulation=True)
         self.tpm.download_firmware(Device.FPGA_1, bitfile)
@@ -217,11 +222,11 @@ class Tile(object):
     # ---------------------------- Synchronisation routines ------------------------------------
     def sync_fpgas(self):
         devices = ["fpga1", "fpga2"]
-        print "Syncing FPGAs"
-        for f in devices:
-            self.tpm['%s.pps_manager.pps_gen_tc' % f] = 0xA6E49BF  #700 MHz!
 
-        # setting sync time
+        for f in devices:
+            self.tpm['%s.pps_manager.pps_gen_tc' % f] = 0xA6E49BF  # 700 MHz!
+
+        # Setting sync time
         for f in devices:
             self.tpm["%s.pps_manager.sync_time_write_val" % f] = 0x0
 
@@ -243,11 +248,16 @@ class Tile(object):
             print "Decrementing %s by 1" % fpga
             self.tpm["%s.pps_manager.sync_time_cmd.down_req" % fpga] = 0x1
 
-    def synchronise_operation(self):
-
+    def synchronised_data_operation(self):
         # Arm FPGAs
         for fpga in self.tpm.tpm_fpga:
             fpga.fpga_arm_force()
+
+        # Wait while previous data requests are processed
+        while self.tpm['fpga1.lmc_gen.request'] != 0 or  \
+              self.tpm['fpga2.lmc_gen.request'] != 0:
+            print "Waiting for enable to be reset"
+            sleep(0.1)
 
         # Read arm time
         t0 = self.tpm["fpga1.pps_manager.sync_time_read_val"]
@@ -260,13 +270,13 @@ class Tile(object):
     # ---------------------------- Wrapper for data acquisition ------------------------------------
     def send_raw_data(self):
         """ Send raw data from the TPM """
-        self.synchronise_operation()
+        self.synchronised_data_operation()
         for i in range(len(self.tpm.tpm_test_firmware)):
             self.tpm.tpm_test_firmware[i].send_raw_data()
 
     def send_channelised_data(self, number_of_samples = 128):
         """ Send channelized data from the TPM """
-        self.synchronise_operation()
+        self.synchronised_data_operation()
         for i in range(len(self.tpm.tpm_test_firmware)):
             self.tpm.tpm_test_firmware[i].send_channelised_data(number_of_samples)
 
@@ -274,7 +284,7 @@ class Tile(object):
         """ Continuously send channelised data from a single channel
         :param channel_id: Channel ID
         """
-        self.synchronise_operation()
+        self.synchronised_data_operation()
         for i in range(len(self.tpm.tpm_test_firmware)):
             self.tpm.tpm_test_firmware[i].send_channelised_data_continuous(channel_id, number_of_samples)
 
@@ -285,7 +295,7 @@ class Tile(object):
 
     def send_beam_data(self):
         """ Send beam data from the TPM """
-        self.synchronise_operation()
+        self.synchronised_data_operation()
         for i in range(len(self.tpm.tpm_test_firmware)):
             self.tpm.tpm_test_firmware[i].send_beam_data()
 

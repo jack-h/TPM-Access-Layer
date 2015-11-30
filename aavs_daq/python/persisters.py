@@ -58,6 +58,7 @@ class AAVSFileManager(object):
         elif self.type == FileTypes.Beamformed:
             filename_prefix = "beamformed_"
 
+        full_filename = None
         if timestamp==None:
             files = next(os.walk(self.root_path))[2]
             for file in files:
@@ -516,6 +517,7 @@ class RawFormatFileManager(AAVSFileManager):
         #set up image area
         total_plots = len(antennas) * len(polarizations)
         plots = []
+        subplots = []
         plot_cnt = 1
         for antenna_idx in xrange(0, len(antennas)):
             current_antenna = antennas[antenna_idx]
@@ -527,6 +529,7 @@ class RawFormatFileManager(AAVSFileManager):
                 line, = subplot.plot(range(0, n_samples_view),dummy_data)
                 subplot.set_title("Antenna: " + str(current_antenna) + " - Polarization: " + str(current_polarization), fontsize=9)
                 plots.append(line)
+                subplots.append(subplot)
                 plt.xlabel('Time (sample)', fontsize=9)
                 plt.ylabel('Amplitude', fontsize=9)
                 plot_cnt += 1
@@ -538,18 +541,20 @@ class RawFormatFileManager(AAVSFileManager):
 
         #now start real plotting
         current_sample_start = sample_start
-        while (current_sample_start+n_samples_view) < sample_end:
+        while (current_sample_start+n_samples_view) <= sample_end:
             #print current_sample_start
             plot_cnt = 1
             data = self.read_data(timestamp=timestamp, antennas=antennas, polarizations=polarizations, n_samples=n_samples_view, sample_offset=current_sample_start)
-            plt.waitforbuttonpress()
             for antenna_idx in xrange(0, len(antennas)):
                 for polarization_idx in xrange(0, len(polarizations)):
                     plots[plot_cnt-1].set_ydata(data[antenna_idx,polarization_idx,:])
+                    subplots[plot_cnt-1].relim()
+                    subplots[plot_cnt-1].autoscale_view()
                     plot_cnt += 1
             current_sample_start += n_samples_view
             fig.canvas.draw()
             plt.show(block=False)
+            plt.waitforbuttonpress()
             print "Drawn!"
         plt.show()
 
@@ -562,7 +567,7 @@ class RawFormatFileManager(AAVSFileManager):
         self.main_dset.attrs['timestamp'] = timestamp
 
         raw_grp = file["raw_"]
-        dset = raw_grp["data"]
+        dset = raw_grp["dmaata"]
         ds_last_size = dset[0].size
         dset.resize(n_samp, axis=1) #resize for only one fit
 
@@ -599,9 +604,11 @@ class RawFormatFileManager(AAVSFileManager):
         self.close_file(file)
 
 if __name__ == "__main__":
-    channel_file = ChannelFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
-    channel_file.plot(channels=range(0, 512), antennas=range(0, 16), polarizations=range(0, 2), n_samples=128)
+   channel_file = ChannelFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
+   channel_file.plot(channels=range(0, 512), antennas=range(0, 2), polarizations=range(0, 1), n_samples=1024)
 
-    beam_file = BeamFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
-    beam_file.plot(channels=range(0,512), polarizations=[0,1], n_samples=64)
+    # beam_file = BeamFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
+    # beam_file.plot(channels=range(0,512), polarizations=[0,1], n_samples=64)
 
+    # raw_file = RawFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
+    # raw_file.plot(antennas=range(8), polarizations=[0,1], n_samples=1024)

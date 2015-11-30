@@ -98,6 +98,9 @@ void RingBuffer::push(uint8_t *data, size_t data_size)
 
     // Finished processing cell, increment producer
     producer = (producer + 1) & (nofcells - 1);
+
+//    if (producer % 10000 == 0)
+//        printf("%d %d\n", producer, consumer);
 }
 
 size_t RingBuffer::pull_timeout(uint8_t *data, uint8_t timeout_seconds)

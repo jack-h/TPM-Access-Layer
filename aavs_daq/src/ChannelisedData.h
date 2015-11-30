@@ -110,16 +110,16 @@ public:
     void clear()
     {
         // Clear buffer, set all content to 0
-        memset(buffer_ptr, 0, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
+ //       memset(buffer_ptr, 0, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
 
         // Clear AntennaInfo
-        for(unsigned i = 0; i < nof_stations; i++)
-            for(unsigned j = 0; j < nof_tiles; j++)
-                for(unsigned k = 0; k < nof_channels; k++)
-                {
-                    channel_info[i][j][k].first_sample_index = UINT32_MAX;
-                    channel_info[i][j][k].timestamp = 0;
-                }
+//        for(unsigned i = 0; i < nof_stations; i++)
+//            for(unsigned j = 0; j < nof_tiles; j++)
+//                for(unsigned k = 0; k < nof_channels; k++)
+//                {
+//                    channel_info[i][j][k].first_sample_index = UINT32_MAX;
+//                    channel_info[i][j][k].timestamp = 0;
+//                }
     }
 
     // Save data to disk
@@ -219,6 +219,7 @@ private:
     // 2. Packet index of this packet is greater than the number of samples in the buffer
     double reference_time = 0;
     uint32_t current_packet_index = 0;
+    uint32_t num_packets = 0;
 };
 
 

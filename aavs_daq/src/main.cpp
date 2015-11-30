@@ -259,7 +259,7 @@ void test_continuous_channel()
 {
     // Telescope information
     uint16_t nant     = 16;
-    uint32_t nsamp    = 1024*1024;
+    uint32_t nsamp    = 131072;
     uint8_t  ntiles   = 1;
     uint8_t  nstation = 1;
     uint8_t  npols    = 2;
@@ -271,7 +271,7 @@ void test_continuous_channel()
     addReceiverPort(4660);
     addReceiverPort(4661);
 
-    startChannelConsumer(nsamp, 1, 1, 32);
+    startChannelConsumer(nsamp, 1, 1, 32, 1);
 
     sleep(1000);
 }
@@ -283,7 +283,7 @@ int main()
 //    test_receiver();
 //    test_antenna_data();
 //    daq_service();
-    daq_service_library();
-//    test_continuous_channel();
+//    daq_service_library();
+    test_continuous_channel();
 }
 

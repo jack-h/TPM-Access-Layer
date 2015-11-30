@@ -268,7 +268,7 @@ bool ChannelisedData::getPacket()
             return true;
 
         // Check if packet index is smaller than stored packet index
-        if (current_packet_index > 2 &&
+        if (current_packet_index > 2 && pol_id == 0 &&
             packet_index < (current_packet_index - 2))
         {
             // New buffer detected, persist current container
@@ -276,6 +276,7 @@ bool ChannelisedData::getPacket()
 
             // Update timestamp
             reference_time = packet_time;
+            num_packets = 0;
         }
 
         // Update packet index
@@ -283,6 +284,7 @@ bool ChannelisedData::getPacket()
     }
 
     // We have processed the packet items, now comes the data
+    num_packets++;
     container -> add_data(station_id - start_station_id, tile_id, start_channel_id, packet_index * nof_samples,
                           nof_samples, pol_id, (complex_8t *) payload + payload_offset, packet_time);
 

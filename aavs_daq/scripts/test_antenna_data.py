@@ -15,11 +15,11 @@ if __name__ == "__main__":
 
 #    fp = open(sys.argv[1])
 
-    fp = open("/home/lessju/Code/AAVS/aavs_daq/src/build/antenna_output.dat", "rb")
+    fp = open("/home/lessju/Code/TPM-Access-Layer/aavs_daq/src/build/antenna_output.dat", "rb")
     data = fp.read()
     nsamp = len(data) / (nstation * ntile * nants * npol)
     print nsamp, len(data)
-    data = np.array(struct.unpack(len(data) * 'b', data))
+    data = np.array(struct.unpack(len(data) * 'B', data))
     data = np.reshape(data, (nstation, ntile, nants, nsamp, npol))
 
     fig = pylab.figure(figsize=(8*3, 6*3))
