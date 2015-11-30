@@ -30,20 +30,17 @@ class Beamformer(object):
         self._nof_beams    = nof_beams
         self._pol_fpga_map = polarisation_fpga_map if polarisation_fpga_map is not None else {0: 0, 1: 1}
         self._value_conversion_table = None
+        self._weights      = None
 
-    def download_weights(self, weights):
-        """ Set weights provided externally.
-        :param weights Weights should be a numpy array with polarisation changing in the first dimension,
-                       antenna in the second dimension and channel in the third dimension
-        :return:
-        """
+    def download_weights(self):
+        """ Set weights provided externally. """
 
         # Weights must be a numpy multi-dimensional array
-        if type(weights) is not np.ndarray:
+        if type(self._weights) is not np.ndarray:
             raise Exception("Weights parameter to set wieghts must be a numpy array")
 
         # Weights shape must match beamformer parameters
-        if np.shape(weights) != (self._nof_pols, self._nof_antennas, self._nof_channels, 2):
+        if np.shape(self._weights) != (self._nof_pols, self._nof_antennas, self._nof_channels, 2):
             raise Exception("Invalid weights shape")
 
         # Loop over polarisations
@@ -52,7 +49,7 @@ class Beamformer(object):
             for antenna in range(self._nof_antennas):
 
                 # Convert weights to 8-bit values, reverse array and combine every 4 values into 32-bit words
-                coeffs = weights[pol, antenna, :, :].flatten()
+                coeffs = self._weights[pol, antenna, :, :].flatten()
                 coeffs = self.convert_weights(coeffs)
                 values = []
                 for i in range(0, len(coeffs), 4):
@@ -64,9 +61,8 @@ class Beamformer(object):
 
                 self._tile.tpm.tpm_test_firmware[self._pol_fpga_map[pol]].download_beamforming_weights(values, antenna)
 
-    def convert_weights(self, weights, signed=False):
+    def convert_weights(self, signed=False):
         """ Convert weights from float (assuming range is between 0 and 1) to 8-bit
-        :param weights: Input weight matrix
         :param signed: Use signed (-1 to 1) or unsigned (0 t0 1) values
         :return: Converted weight matrix
         """
@@ -79,8 +75,8 @@ class Beamformer(object):
                 self._value_conversion_table = np.arange(128) * (1 / 127.0)
 
         # Apply conversion
-        values = np.empty(np.size(weights), dtype='int8')
-        for i, w in enumerate(weights):
+        values = np.empty(np.size(self._weights), dtype='int8')
+        for i, w in enumerate(self._weights):
             for j, val in enumerate(self._value_conversion_table):
                 if val >= w:
                     values[i] = j
@@ -94,16 +90,15 @@ class Beamformer(object):
         :return: Return a weight matrix containing only ones or zeros
         """
         if ones:
-            return np.ones((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
+            self._weights = np.ones((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
         else:
-            return np.zeros((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
+            self._weights = np.zeros((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
 
-    def mask_antennas_channels(self, weights, antennas=None, channels=None, polarisations=None):
+    def mask_antennas_channels(self, antennas=None, channels=None, polarisations=None):
         """ Generate beamforming coefficients to mask particular channels and antennas, for particular polarisations
-        :param weights: Weight matrix to apply masks on
         :param antennas: Antennas to mask
         :param channels: Channels to mask
-        :param pols: Polarisation to which mask is applied
+        :param polarisations: Polarisation to which mask is applied
         :return: Weight matrix
         """
 
@@ -114,7 +109,6 @@ class Beamformer(object):
         # Check antenna and channel selection
         if antennas is None and channels is None:
             print "Antenna and channels list must be specified"
-            return weights
 
         # Optimsed for all channel masking
         if channels is None:
@@ -124,10 +118,9 @@ class Beamformer(object):
             # Apply masking
             for p in pols:
                 for a in ants:
-                    weights[p,a,:,:] = np.zeros((self._nof_channels, 2))
+                    self._weights[p, a, :, :] = np.zeros((self._nof_channels, 2))
 
-            # Return updated weights
-            return weights
+            return
 
         # Optimsed for all antenna masking
         if antennas is None:
@@ -137,10 +130,9 @@ class Beamformer(object):
             # Apply masking
             for p in pols:
                 for c in chans:
-                    weights[p,:,c,:] = np.zeros((self._nof_antennas, 2))
+                    self._weights[p, :, c, :] = np.zeros((self._nof_antennas, 2))
 
-            # Return updated weights
-            return weights
+            return
 
         # Convert antennas and channels to lists
         ants = range(self._nof_antennas) if antennas is None \
@@ -149,12 +141,10 @@ class Beamformer(object):
             else [channels] if type(channels) is not list else channels
 
         # Apply masking
-        for p in polarisations:
+        for p in pols:
             for a in ants:
                 for c in channels:
-                    weights[p,a,c,:] = [0,0]
-
-        return weights
+                    self._weights[p, a, c, :] = [0, 0]
 
     def _convert_coordinates(self, lat, long, ra_ref, dec_ref, date, time):
         """ Accurate conversion from equatorial coordiantes (RA, DEC) to Spherical (TH,PH) coordinates.
@@ -372,8 +362,8 @@ if __name__ == "__main__":
    # tile.send_raw_data()
 
     beamformer = Beamformer(tile, 512, 16, 2, 1)
-    weights = beamformer.generate_empty_weights(ones=True)
-    weights = beamformer.mask_antennas_channels(weights, antennas=[2,4,6])
-    beamformer.download_weights(weights)
+    beamformer.generate_empty_weights(ones=True)
+    beamformer.mask_antennas_channels(antennas=[2,4,6])
+    beamformer.download_weights()
 
 
