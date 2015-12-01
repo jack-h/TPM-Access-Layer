@@ -29,7 +29,8 @@ class FileMonitor(object):
     def __init__(self, root_path = '.', type=FileTypes.Raw):
         self.root_path = root_path
         self.type = type
-        self.thread_handler = threading.Thread(target=self.__run_file_monitor, args=(1,))
+        self.thread_handler = threading.Thread(target=self.__run_file_monitor, args=(5,))
+        self.thread_handler.daemon = True
         self.terminate = False
         del zope.event.subscribers[:]
         if not self.__check_path():
@@ -43,7 +44,7 @@ class FileMonitor(object):
         if self.valid:
             current_file_list = self.__get_file_list()
             while not self.terminate:
-               # print "[" + str(counter) + "] - Polling for new files..."
+                print "[" + str(counter) + "] - Polling for new files..."
                 time.sleep(delay)
                 next_file_list = self.__get_file_list()
                 if not set(current_file_list) == set(next_file_list):
@@ -95,6 +96,18 @@ class AAVSFileManager(object):
         self.root_path = root_path
         self.mode = mode
         self.ctype = numpy.dtype([('real', numpy.int8), ('imag', numpy.int8)])
+
+        # some default values
+        self.real_time_timestamp = 0
+        self.plot_timestamp = 0
+        self.plot_channels = []
+        self.plot_antennas = []
+        self.plot_polarizations = []
+        self.plot_n_samples = 0
+        self.plot_sample_offset = 0
+
+        self.update_canvas = False
+
         self.file_monitor = FileMonitor(root_path=root_path, type=type)
         self.file_monitor.add_subscriber(self.event_receiver)
 
@@ -102,19 +115,22 @@ class AAVSFileManager(object):
     def configure(self, file):
         pass
 
+    @abstractmethod
+    def do_plotting(self):
+        pass
+
+    @abstractmethod
+    def plot(self, real_time = True, timestamp=0, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
+        pass
+
     def event_receiver(self, event):
         print 'Event received: ' + event.get_name()
         filename_ext = os.path.basename(event.get_name())
         filename, file_ext = os.path.splitext(filename_ext)
         filename_parts = filename.split('_')
-        self.plot(timestamp=filename_parts[1])
-
-    def set_plot_defaults(self, channels=[], antennas=[], polarizations=[], n_samples=0, sample_offset=0):
-        self.plot_channels = channels
-        self.plot_antennas = antennas
-        self.plot_polarizations = polarizations
-        self.plot_n_samples = n_samples
-        self.plot_sample_offset = sample_offset
+        self.plot_timestamp = filename_parts[1]
+        self.real_time_timestamp = filename_parts[1]
+        self.do_plotting()
 
     def set_metadata(self, n_antennas = 16, n_pols = 2, n_stations = 1, n_beams = 1, n_tiles = 1, n_chans = 512, n_samples = 0):
         self.n_antennas = n_antennas
@@ -207,7 +223,7 @@ class AAVSFileManager(object):
     def start_monitoring(self):
         self.file_monitor.start_file_monitor()
 
-if __name__ == '__main__':
-    file_monitor = FileMonitor(root_path="/media/andrea/hdf5", type=FileTypes.Raw)
-    file_monitor.start_file_monitor()
-    #file_monitor.stop_file_monitor()
+# if __name__ == '__main__':
+#     file_monitor = FileMonitor(root_path="/media/andrea/hdf5", type=FileTypes.Raw)
+#     file_monitor.start_file_monitor()
+#     #file_monitor.stop_file_monitor()

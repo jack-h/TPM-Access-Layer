@@ -112,13 +112,13 @@ public:
    //     memset(buffer_ptr, 0, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
 
         // Clear AntennaInfo
-//        for(unsigned i = 0; i < nof_stations; i++)
-//            for(unsigned j = 0; j < nof_tiles; j++)
-//                for(unsigned k = 0; k < nof_channels; k++)
-//                {
-//                    channel_info[i][j][k].first_sample_index = UINT32_MAX;
-//                    channel_info[i][j][k].timestamp = 0;
-//                }
+        for(unsigned i = 0; i < nof_stations; i++)
+            for(unsigned j = 0; j < nof_tiles; j++)
+                for(unsigned k = 0; k < nof_channels; k++)
+                {
+                    channel_info[i][j][k].first_sample_index = UINT32_MAX;
+                    channel_info[i][j][k].timestamp = 0;
+                }
     }
 
     // Save data to disk

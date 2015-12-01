@@ -159,6 +159,11 @@ if __name__ == "__main__":
         logging.error("No DAQ mode was set. Exiting")
         exit(0)
 
+    # Check if data directory exists
+    if not os.path.exists(conf.directory):
+        logging.error("Specified data directory [%s] does not exist" % conf.directory)
+        exit(-1)
+
     # Initialise AAVS DAQ library
     initialise_library("/usr/local/lib/libaavsdaq")
 

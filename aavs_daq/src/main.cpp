@@ -230,21 +230,6 @@ void daq_service()
     receiver.waitForThreadToExit();
 }
 
-void beamCallback(void *data, double time)
-{
-printf("In beam callback\n");
-}
-
-void channelCallback(void *data, double time)
-{
-printf("In channel callback\n");
-}
-
-void rawCallback(void *data, double time)
-{
-printf("In raw callback\n");
-}
-
 void daq_service_library()
 {
    // Telescope information
@@ -264,10 +249,6 @@ void daq_service_library()
     startRawConsumer(nsamp);
     startChannelConsumer(128, 1, 1, 32);
     startBeamConsumer(64, 1);
-
-    setBeamConsumerCallback(beamCallback);
-    setRawConsumerCallback(rawCallback);
-    setChannelConsumerCallback(channelCallback);
 
     sleep(1000);
 }
