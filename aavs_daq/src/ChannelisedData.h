@@ -85,18 +85,17 @@ public:
     }
 
     // Add data to buffer
-    void add_data(uint16_t station, uint16_t tile, uint16_t channel, uint32_t start_sample_index,
-                  uint32_t nof_samples, uint8_t pol_id, T *data_ptr, double timestamp)
+    void add_data(uint16_t station, uint16_t tile, uint16_t channel, 
+		  uint32_t start_sample_index, uint32_t samples, 
+		  uint8_t pol_id, T *data_ptr, double timestamp)
     {
         // Get pointer to buffer location where data will be placed
-        T* ptr = buffer_ptr + (channel * this  -> nof_samples * nof_antennas * nof_pols) + start_sample_index * nof_pols * nof_antennas;
+        T* ptr = buffer_ptr + (channel * nof_samples * nof_antennas * nof_pols) + start_sample_index * nof_pols * nof_antennas;
 
-        // TEMPORARY: For AAVS0.5, X and Y pols will be received from separate FPGAs, 
-        // 	      so we have to interleave them for now
-        for(unsigned i = 0; i < nof_samples * nof_antennas; i++)
-        {
+        // TEMPORARY: For AAVS0.5, X and Y pols will be received from separate 
+        //            FPGAs, so we have to interleave them for now
+        for(unsigned i = 0; i < samples * nof_antennas; i++)
             ptr[i * 2 + pol_id] = data_ptr[i];
-        }
 
         // Update timing
         if (channel_info[station][tile][channel].first_sample_index > start_sample_index)
@@ -110,7 +109,7 @@ public:
     void clear()
     {
         // Clear buffer, set all content to 0
-        memset(buffer_ptr, 0, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
+   //     memset(buffer_ptr, 0, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
 
         // Clear AntennaInfo
 //        for(unsigned i = 0; i < nof_stations; i++)
@@ -188,6 +187,8 @@ public:
     // Class destructor
     ~ChannelisedData();
 
+    // Override setDataCallback
+    void setCallback(DataCallback callback);
 
 protected:
     // Packet filtering function to be passed to network thread
@@ -202,9 +203,6 @@ private:
 
     // Grab SPEAD packet from buffer and process
     bool getPacket();
-
-    // Override setDataCallback
-    void setCallback(DataCallback callback);
 
 private:
 

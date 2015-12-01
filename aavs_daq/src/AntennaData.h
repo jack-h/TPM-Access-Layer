@@ -185,6 +185,9 @@ public:
     // Class destructor
     ~AntennaData();
 
+    // Override setDataCallback
+    void setCallback(DataCallback callback);
+
 protected:
     // Packet filtering function to be passed to network thread
     static inline bool packetFilter(unsigned char* udp_packet);
@@ -198,9 +201,6 @@ protected:
 
     // Grab SPEAD packet from buffer and process
     bool getPacket();
-
-    // Override setDataCallback
-    void setCallback(DataCallback callback);
 
 private:
 

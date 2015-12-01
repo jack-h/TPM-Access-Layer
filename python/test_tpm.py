@@ -1,9 +1,9 @@
-import logging
-
 from pyfabil import TPM, Device
 from pyslalib import slalib
 from time import sleep
 import numpy as np
+import threading
+import logging
 import math
 
 __author__ = 'Alessio Magro'
@@ -297,6 +297,11 @@ class Tile(object):
         self._port = port
         self.tpm   = None
 
+        # Threads for continuously sending data
+        self._RUNNING = 1
+        self._STOP    = 0
+        self._daq_threads = { }
+
     # ---------------------------- Main functions ------------------------------------
 
     def connect(self, initialise=False, simulation=False):
@@ -332,10 +337,20 @@ class Tile(object):
         self.tpm[0x30000024] = 0x0
 
         # Temporary: enable test pattern for channelised data
-        self.tpm['fpga1.regfile.test_gen_walking'] = 0x1
-        self.tpm['fpga2.regfile.test_gen_walking'] = 0x1
+     #   try:
+     #       self.tpm['fpga1.regfile.test_gen_walking'] = 0x1
+     #       self.tpm['fpga2.regfile.test_gen_walking'] = 0x1
+     #   except:
+     #       pass
 
-    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_full.bit"):
+        # Temporary: Set beamforming truncation range
+        try:
+            self.tpm['fpga1.beamf.truncate_adj'] = 0x6
+            self.tpm['fpga2.beamf.truncate_adj'] = 0x6
+        except:
+            pass
+
+    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate.bit"):
         self.connect(simulation=True)
         self.tpm.download_firmware(Device.FPGA_1, bitfile)
 
@@ -387,19 +402,124 @@ class Tile(object):
         for fpga in self.tpm.tpm_fpga:
             fpga.fpga_apply_sync_delay(t0 + delay)
 
-    # ---------------------------- Wrapper for data acquisition ------------------------------------
-    def send_raw_data(self):
+    # ---------------------------- Wrapper for data acquisition: RAW ------------------------------------
+    def _send_raw_data(self, period = 0):
+        """ Repeatedly send raw data from the TPM """
+        # Loop indefinitely if a period is defined
+        while(self._daq_threads['RAW'] > self._STOP):
+            # Data transmission should be syncrhonised across FPGAs
+            self.synchronised_data_operation()
+
+            # Send data from all FPGAs
+            for i in range(len(self.tpm.tpm_test_firmware)):
+                self.tpm.tpm_test_firmware[i].send_raw_data()
+
+            # Period should be >= 2, otherwise return
+            if period < 2:
+                return
+
+            # Sleep for defined period
+            sleep(period)
+
+        # Finished looping, exit
+        self._daq_threads.pop('RAW')
+
+    def send_raw_data(self, period = 0):
         """ Send raw data from the TPM """
-        self.synchronised_data_operation()
-        for i in range(len(self.tpm.tpm_test_firmware)):
-            self.tpm.tpm_test_firmware[i].send_raw_data()
+        # Period sanity check
+        if period <= 2:
+            self._send_raw_data()
+            return
 
-    def send_channelised_data(self, number_of_samples = 128):
+        # Create thread which will continuously send raw data
+        t = threading.Thread(target = self._send_raw_data, args = (period,))
+        self._daq_threads['RAW'] = self._RUNNING
+        t.start()
+
+    def stop_raw_data(self):
+        """ Stop sending raw data """
+        if 'RAW' in self._daq_threads.keys():
+            self._daq_threads['RAW'] = self._STOP
+
+    # ---------------------------- Wrapper for data acquisition: CHANNEL ------------------------------------
+    def _send_channelised_data(self, number_of_samples=128, period=0):
         """ Send channelized data from the TPM """
-        self.synchronised_data_operation()
-        for i in range(len(self.tpm.tpm_test_firmware)):
-            self.tpm.tpm_test_firmware[i].send_channelised_data(number_of_samples)
+        # Loop indefinitely if a period is defined
+        while(self._daq_threads['CHANNEL'] > self._STOP):
+            # Data transmission should be syncrhonised across FPGAs
+            self.synchronised_data_operation()
 
+            # Send data from all FPGAs
+            for i in range(len(self.tpm.tpm_test_firmware)):
+                self.tpm.tpm_test_firmware[i].send_channelised_data(number_of_samples)
+
+            # Period should be >= 2, otherwise return
+            if period < 2:
+                return
+
+            # Sleep for defined period
+            sleep(period)
+
+        # Finished looping, exit
+        self._daq_threads.pop('CHANNEL')
+
+    def send_channelised_data(self, number_of_samples=128, period=0):
+        """ Send channelised data from the TPM """
+        # Period sanity check
+        if period <= 2:
+            self._send_raw_data()
+            return
+
+        # Create thread which will continuously send raw data
+        t = threading.Thread(target = self._send_channelised_data, args = (number_of_samples,period,))
+        self._daq_threads['CHANNEL'] = self._RUNNING
+        t.start()
+
+    def stop_channelised_data(self):
+        """ Stop sending channelised data """
+        if 'CHANNEL' in self._daq_threads.keys():
+            self._daq_threads['CHANNEL'] = self._STOP
+
+    # ---------------------------- Wrapper for data acquisition: BEAM ------------------------------------
+    def _send_beam_data(self, period = 0):
+        """ Send beam data from the TPM """
+        # Loop indefinitely if a period is defined
+        while(self._daq_threads['BEAM'] > self._STOP):
+            # Data transmission should be syncrhonised across FPGAs
+            self.synchronised_data_operation()
+
+            # Send data from all FPGAs
+            for i in range(len(self.tpm.tpm_test_firmware)):
+                self.tpm.tpm_test_firmware[i].send_beam_data()
+
+            # Period should be >= 2, otherwise return
+            if period < 2:
+                return
+
+            # Sleep for defined period
+            sleep(period)
+
+        # Finished looping, exit
+        self._daq_threads.pop('BEAM')
+
+    def send_beam_data(self, period = 0):
+        """ Send beam data from the TPM """
+        # Period sanity check
+        if period <= 2:
+            self._send_beam_data()
+            return
+
+        # Create thread which will continuously send raw data
+        t = threading.Thread(target = self._send_beam_data, args = (period,))
+        self._daq_threads['BEAM'] = self._RUNNING
+        t.start()
+
+    def stop_beam_data(self):
+        """ Stop sending raw data """
+        if 'BEAM' in self._daq_threads.keys():
+            self._daq_threads['BEAM'] = self._STOP
+
+    # ---------------------------- Wrapper for data acquisition: CONT CHANNEL ----------------------------
     def send_channelised_data_continuous(self, channel_id, number_of_samples = 128):
         """ Continuously send channelised data from a single channel
         :param channel_id: Channel ID
@@ -412,12 +532,6 @@ class Tile(object):
         """ Stop sending channelised data """
         for i in range(len(self.tpm.tpm_test_firmware)):
             self.tpm.tpm_test_firmware[i].stop_channelised_data_continuous()
-
-    def send_beam_data(self):
-        """ Send beam data from the TPM """
-        self.synchronised_data_operation()
-        for i in range(len(self.tpm.tpm_test_firmware)):
-            self.tpm.tpm_test_firmware[i].send_beam_data()
 
     def __str__(self):
         return str(self.tpm)
@@ -439,6 +553,8 @@ if __name__ == "__main__":
                       type="int", default=2, help="Number of polarisations [default: 2]")
     parser.add_option("-P", "--program", action="store_true", dest="program",
                       default=False, help="Program FPGAs [default: False]")
+    parser.add_option("-T", "--test", action="store_true", dest="test",
+                      default=False, help="Load test firmware (-P still required) [default: False]")
     parser.add_option("-I", "--initialise", action="store_true", dest="initialise",
                       default=False, help="Initialie TPM [default: False]")
     parser.add_option("-B", "--initialise-beamformer", action="store_true", dest="beamformer",
@@ -459,7 +575,11 @@ if __name__ == "__main__":
     # Porgam FPGAs if required
     if conf.program:
         logging.info("Programming FPGAs")
-        tile.program_fpgas()
+        if conf.test:
+            logging.info("Using test firmware")
+            tile.program_fpgas(bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_timestamp.bit")
+        else:
+            tile.program_fpgas()
 
     # Initialise TPM if required
     if conf.initialise:

@@ -39,8 +39,7 @@ ChannelisedData::ChannelisedData(uint16_t nof_stations, uint16_t nof_tiles, uint
     // Note that this assumes complex values with 8-bit components
     size_t packet_size = (size_t) nof_antennas * channels_per_packet *
                                   samples_per_packet * sizeof(complex_8t) +
-                                  (16 + 10 * 8 + 8) * 2;
-
+                                  (16 + 10 * 8 + 8);
     // Create ring buffer
     initialiseRingBuffer(packet_size, (size_t) 128e6 / packet_size);
 
@@ -287,7 +286,7 @@ bool ChannelisedData::getPacket()
     num_packets++;
     container -> add_data(station_id - start_station_id, tile_id, start_channel_id, 
 			  packet_index * nof_samples, nof_samples, pol_id, 
-			  (complex_8t *) payload + payload_offset, packet_time);
+			  (complex_8t *) (payload + payload_offset), packet_time);
 
     // All done, return
     return true;

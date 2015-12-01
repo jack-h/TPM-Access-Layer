@@ -5,12 +5,6 @@ from interface import *
 import numpy as np
 import logging
 
-# DAQ configuration, set with optparser
-conf = { }
-
-# Global HDF5 persisters handles
-persisters = { }
-
 # Custom numpy type for creating complex signed 8-bit data
 complex_8t = numpy.dtype([('real', numpy.int8), ('imag', numpy.int8)])
 
@@ -18,8 +12,11 @@ def raw_data_callback(data, timestamp):
     # Extract data sent by DAQ
     logging.info("Raw data callback")
     nof_values = conf.nof_antennas * conf.nof_polarisations * conf.nof_raw_samples
-    values_ptr = ctypes.cast(data, ctypes.POINTER(ctypes.c_int8))
-    values     = np.array([values_ptr[i] for i in xrange(nof_values)])
+    
+    buffer_from_memory = ctypes.pythonapi.PyBuffer_FromMemory
+    buffer_from_memory.restype = ctypes.py_object
+    values = buffer_from_memory(data, np.dtype('int8').itemsize * nof_values)
+    values = np.frombuffer(values, np.int8)
 
     # Persist extracted data to file
     persisters['RAW_DATA'].write_data(data_ptr=values, timestamp=timestamp)
@@ -61,14 +58,28 @@ def beam_data_callback(data, timestamp):
     logging.info("Beam data callback")
     nof_values = conf.nof_beams * conf.nof_polarisations * \
                  conf.nof_beam_samples * conf.nof_channels
-    values_ptr = ctypes.cast(data, ctypes.POINTER(Complex_8t))
-    values     = np.array([(values_ptr[i].x, values_ptr[i].y) for i in range(nof_values)], dtype=complex_8t)
+
+    buffer_from_memory = ctypes.pythonapi.PyBuffer_FromMemory
+    buffer_from_memory.restype = ctypes.py_object
+    values = buffer_from_memory(data, complex_8t.itemsize * nof_values)
+    values = np.frombuffer(values, complex_8t)
 
     # Persist extracted data to file
     persisters['BEAM_DATA'].write_data(data_ptr = values, timestamp = timestamp)
     logging.info("Persister ready")
 
 # ----------------------------------------- Script Body ------------------------------------------------
+
+# DAQ configuration, set with optparser
+conf = { }
+
+# Callbacks
+callbacks = {'RAW_DATA'     : DATACALLBACK_RAW(raw_data_callback),
+             'CHANNEL_DATA' : DATACALLBACK_CHANNEL(channel_data_callback),
+             'BEAM_DATA'    : DATACALLBACK_BEAM(beam_data_callback)}
+
+# Global HDF5 persisters handles
+persisters = { }
 
 # Script main entry point
 if __name__ == "__main__":
@@ -185,7 +196,7 @@ if __name__ == "__main__":
         logging.info("Started raw data consumer")
 
         # Set raw data consumer callback
-        if call_set_raw_consumer_callback(DATACALLBACK_RAW(raw_data_callback)) != Result.Success.value:
+        if call_set_raw_consumer_callback(callbacks['RAW_DATA']) != Result.Success.value:
             logging.error("Failed to set raw data consumer callback")
 
         # Create data persister
@@ -211,7 +222,7 @@ if __name__ == "__main__":
 
         if not conf.continuous_channel:
             # Set channel data consumer callback
-            if call_set_channel_consumer_callback(DATACALLBACK_CHANNEL(channel_burst_data_callback)) != Result.Success.value:
+            if call_set_channel_consumer_callback(callbacks['CHANNEL_DATA']) != Result.Success.value:
                  logging.error("Failed to set channel data consumer callback")
 
             # Create data persister
@@ -246,7 +257,7 @@ if __name__ == "__main__":
         logging.info("Started beam data consumer")
 
         # # Set beam data consumer callback
-        if call_set_beam_consumer_callback(DATACALLBACK_BEAM(beam_data_callback)) != Result.Success.value:
+        if call_set_beam_consumer_callback(callbacks['BEAM_DATA']) != Result.Success.value:
             logging.error("Failed to set beam data consumer callback")
 
         # Create data persister

@@ -97,7 +97,6 @@ class TpmTestFirmware(FirmwareBlock):
         """
         self.board["%s.beamf.ch%02dcoeff" % (self._device_name, antenna)] = weights
 
-
     ##################### Superclass method implementations #################################
 
     def initialise(self):
