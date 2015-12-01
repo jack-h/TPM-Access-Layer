@@ -1,10 +1,12 @@
 from pyfabil import TPM, Device
 from pyslalib import slalib
 from time import sleep
+from sys import exit
 import numpy as np
 import threading
 import logging
 import math
+import os
 
 __author__ = 'Alessio Magro'
 
@@ -298,7 +300,8 @@ class Tile(object):
         self.tpm   = None
 
         # Threads for continuously sending data
-        self._RUNNING = 1
+        self._RUNNING = 2
+        self._ONCE    = 1
         self._STOP    = 0
         self._daq_threads = { }
 
@@ -337,11 +340,11 @@ class Tile(object):
         self.tpm[0x30000024] = 0x0
 
         # Temporary: enable test pattern for channelised data
-     #   try:
-     #       self.tpm['fpga1.regfile.test_gen_walking'] = 0x1
-     #       self.tpm['fpga2.regfile.test_gen_walking'] = 0x1
-     #   except:
-     #       pass
+        try:
+            self.tpm['fpga1.regfile.test_gen_walking'] = 0x1
+            self.tpm['fpga2.regfile.test_gen_walking'] = 0x1
+        except:
+            pass
 
         # Temporary: Set beamforming truncation range
         try:
@@ -350,7 +353,7 @@ class Tile(object):
         except:
             pass
 
-    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate.bit"):
+    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate2.bit"):
         self.connect(simulation=True)
         self.tpm.download_firmware(Device.FPGA_1, bitfile)
 
@@ -391,8 +394,8 @@ class Tile(object):
         # Wait while previous data requests are processed
         while self.tpm['fpga1.lmc_gen.request'] != 0 or  \
               self.tpm['fpga2.lmc_gen.request'] != 0:
-            print "Waiting for enable to be reset"
-            sleep(0.1)
+            logging.info("Waiting for enable to be reset")
+            sleep(0.5)
 
         # Read arm time
         t0 = self.tpm["fpga1.pps_manager.sync_time_read_val"]
@@ -406,7 +409,7 @@ class Tile(object):
     def _send_raw_data(self, period = 0):
         """ Repeatedly send raw data from the TPM """
         # Loop indefinitely if a period is defined
-        while(self._daq_threads['RAW'] > self._STOP):
+        while(self._daq_threads['RAW'] != self._STOP):
             # Data transmission should be syncrhonised across FPGAs
             self.synchronised_data_operation()
 
@@ -415,7 +418,7 @@ class Tile(object):
                 self.tpm.tpm_test_firmware[i].send_raw_data()
 
             # Period should be >= 2, otherwise return
-            if period < 2:
+            if self._daq_threads['RAW'] == self._ONCE:
                 return
 
             # Sleep for defined period
@@ -428,8 +431,13 @@ class Tile(object):
         """ Send raw data from the TPM """
         # Period sanity check
         if period <= 2:
+            self._daq_threads['RAW'] = self._ONCE
             self._send_raw_data()
+            self._daq_threads.pop('RAW')
             return
+
+        # Stop any other streams
+        self.stop_data_transmission()
 
         # Create thread which will continuously send raw data
         t = threading.Thread(target = self._send_raw_data, args = (period,))
@@ -445,7 +453,7 @@ class Tile(object):
     def _send_channelised_data(self, number_of_samples=128, period=0):
         """ Send channelized data from the TPM """
         # Loop indefinitely if a period is defined
-        while(self._daq_threads['CHANNEL'] > self._STOP):
+        while(self._daq_threads['CHANNEL'] != self._STOP):
             # Data transmission should be syncrhonised across FPGAs
             self.synchronised_data_operation()
 
@@ -454,7 +462,7 @@ class Tile(object):
                 self.tpm.tpm_test_firmware[i].send_channelised_data(number_of_samples)
 
             # Period should be >= 2, otherwise return
-            if period < 2:
+            if self._daq_threads['CHANNEL'] == self._ONCE:
                 return
 
             # Sleep for defined period
@@ -467,8 +475,13 @@ class Tile(object):
         """ Send channelised data from the TPM """
         # Period sanity check
         if period <= 2:
-            self._send_raw_data()
+            self._daq_threads['CHANNEL'] = self._ONCE
+            self._send_channelised_data()
+            self._daq_threads.pop('CHANNEL')
             return
+
+        # Stop any other streams
+        self.stop_data_transmission()
 
         # Create thread which will continuously send raw data
         t = threading.Thread(target = self._send_channelised_data, args = (number_of_samples,period,))
@@ -484,7 +497,7 @@ class Tile(object):
     def _send_beam_data(self, period = 0):
         """ Send beam data from the TPM """
         # Loop indefinitely if a period is defined
-        while(self._daq_threads['BEAM'] > self._STOP):
+        while(self._daq_threads['BEAM'] != self._STOP):
             # Data transmission should be syncrhonised across FPGAs
             self.synchronised_data_operation()
 
@@ -493,7 +506,7 @@ class Tile(object):
                 self.tpm.tpm_test_firmware[i].send_beam_data()
 
             # Period should be >= 2, otherwise return
-            if period < 2:
+            if self._daq_threads['BEAM'] == self._ONCE:
                 return
 
             # Sleep for defined period
@@ -506,8 +519,13 @@ class Tile(object):
         """ Send beam data from the TPM """
         # Period sanity check
         if period <= 2:
+            self._daq_threads['BEAM'] = self._ONCE
             self._send_beam_data()
+            self._daq_threads.pop('BEAM')
             return
+
+        # Stop any other streams
+        self.stop_data_transmission()
 
         # Create thread which will continuously send raw data
         t = threading.Thread(target = self._send_beam_data, args = (period,))
@@ -533,6 +551,13 @@ class Tile(object):
         for i in range(len(self.tpm.tpm_test_firmware)):
             self.tpm.tpm_test_firmware[i].stop_channelised_data_continuous()
 
+    def stop_data_transmission(self):
+        """ Stop all data transmission from TPM"""
+        for k, v in self._daq_threads.iteritems():
+            if v == self._RUNNING:
+                logging.info("Stopping transmission of %s data" % k)
+                self._daq_threads[k] = self._STOP
+
     def __str__(self):
         return str(self.tpm)
 
@@ -551,6 +576,8 @@ if __name__ == "__main__":
                       type="int", default=1, help="Number of beams [default: 1]")
     parser.add_option("-p", "--nof_pols", action="store", dest="nof_polarisations",
                       type="int", default=2, help="Number of polarisations [default: 2]")
+    parser.add_option("-f", "--bitfile", action="store", dest="bitfile",
+                      default=None, help="Bitfile to use (-P still required) [default: Local bitfile]")
     parser.add_option("-P", "--program", action="store_true", dest="program",
                       default=False, help="Program FPGAs [default: False]")
     parser.add_option("-T", "--test", action="store_true", dest="test",
@@ -576,9 +603,17 @@ if __name__ == "__main__":
     if conf.program:
         logging.info("Programming FPGAs")
         if conf.test:
-            logging.info("Using test firmware")
+            logging.info("Using test firmware (xtpm_xcku040_tpm_top_wrap_timestamp.bit)")
             tile.program_fpgas(bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_timestamp.bit")
+        elif conf.bitfile is not None:
+            logging.info("Using bitfile %s" % conf.bitfile)
+            if os.path.exists(conf.bitfile) and os.path.isfile(conf.bitfile):
+                tile.program_fpgas(bitfile=conf.bitfile)
+            else:
+                logging.error("Could not load bitfile %s, check filepath" % conf.bitfile)
+                exit(-1)
         else:
+            logging.info("Using local bitfile")
             tile.program_fpgas()
 
     # Initialise TPM if required
