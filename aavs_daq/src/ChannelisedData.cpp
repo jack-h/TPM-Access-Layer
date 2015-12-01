@@ -285,8 +285,9 @@ bool ChannelisedData::getPacket()
 
     // We have processed the packet items, now comes the data
     num_packets++;
-    container -> add_data(station_id - start_station_id, tile_id, start_channel_id, packet_index * nof_samples,
-                          nof_samples, pol_id, (complex_8t *) payload + payload_offset, packet_time);
+    container -> add_data(station_id - start_station_id, tile_id, start_channel_id, 
+			  packet_index * nof_samples, nof_samples, pol_id, 
+			  (complex_8t *) payload + payload_offset, packet_time);
 
     // All done, return
     return true;

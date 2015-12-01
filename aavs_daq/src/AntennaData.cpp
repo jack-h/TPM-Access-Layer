@@ -134,8 +134,6 @@ bool AntennaData::getPacket()
         // Request timed out
         return false;
 
-    printf("acquired packet\n");
-
     // This packet is a SPEAD packet, since otherwise it would not have
     // passed through the filter
     uint64_t hdr = SPEAD_HEADER(packet);

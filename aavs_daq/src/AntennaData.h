@@ -122,7 +122,6 @@ public:
         // If a callback is defined, call it and return
         if (this->callback != NULL)
         {
-            printf("Calling callback\n");
             callback((int8_t *) buffer_ptr, antenna_info[0][0][0].timestamp);
             clear();
             return;

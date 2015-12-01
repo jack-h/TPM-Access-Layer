@@ -297,6 +297,7 @@ class ChannelFormatFileManager(AAVSFileManager):
                 #selected_data = data[:,antenna_idx,polarization_idx,:]
                 #sub_data = complex_func(selected_data)
                 plt.imshow(sub_data, aspect='auto', interpolation='none')
+		plt.colorbar()
                 #plt.yticks(channels)
                 plot_cnt += 1
 
@@ -567,7 +568,7 @@ class RawFormatFileManager(AAVSFileManager):
         self.main_dset.attrs['timestamp'] = timestamp
 
         raw_grp = file["raw_"]
-        dset = raw_grp["dmaata"]
+        dset = raw_grp["data"]
         ds_last_size = dset[0].size
         dset.resize(n_samp, axis=1) #resize for only one fit
 
@@ -605,11 +606,11 @@ class RawFormatFileManager(AAVSFileManager):
 
 if __name__ == "__main__":
 
-   channel_file = ChannelFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
-   channel_file.plot(channels=range(0, 512), antennas=range(0, 2), polarizations=range(0, 1), n_samples=1024)
+#   channel_file = ChannelFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
+#   channel_file.plot(channels=range(0, 512), antennas=range(0, 2), polarizations=range(0, 1), n_samples=1024)
 
     # beam_file = BeamFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
     # beam_file.plot(channels=range(0,512), polarizations=[0,1], n_samples=64)
 
-    # raw_file = RawFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
-    # raw_file.plot(antennas=range(8), polarizations=[0,1], n_samples=1024)
+    raw_file = RawFormatFileManager(root_path="/home/lessju/Code/TPM-Access-Layer/aavs_daq/python", mode=FileModes.Read)
+    raw_file.plot(antennas=range(16), polarizations=[0], n_samples=1024)

@@ -89,10 +89,10 @@ public:
                   uint32_t nof_samples, uint8_t pol_id, T *data_ptr, double timestamp)
     {
         // Get pointer to buffer location where data will be placed
-        T* ptr = buffer_ptr + (channel * this->nof_samples * nof_antennas * nof_pols + start_sample_index * nof_pols * nof_antennas);
+        T* ptr = buffer_ptr + (channel * this  -> nof_samples * nof_antennas * nof_pols) + start_sample_index * nof_pols * nof_antennas;
 
-        // TEMPORARY: For AAVS0.5, X and Y pols will be received from separate FPGAs, so we have to
-        //            interleave them for now
+        // TEMPORARY: For AAVS0.5, X and Y pols will be received from separate FPGAs, 
+        // 	      so we have to interleave them for now
         for(unsigned i = 0; i < nof_samples * nof_antennas; i++)
         {
             ptr[i * 2 + pol_id] = data_ptr[i];
@@ -110,7 +110,7 @@ public:
     void clear()
     {
         // Clear buffer, set all content to 0
- //       memset(buffer_ptr, 0, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
+        memset(buffer_ptr, 0, nof_stations * nof_tiles * nof_channels * nof_samples * nof_antennas * nof_pols * sizeof(T));
 
         // Clear AntennaInfo
 //        for(unsigned i = 0; i < nof_stations; i++)

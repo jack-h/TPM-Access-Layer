@@ -244,7 +244,7 @@ void daq_service_library()
     uint8_t  nbeams   = 1;
 
     setReceiverConfiguration(nant, nchans, nbeams, ntiles, nstation, npols, 0);
-    startReceiver("eth1", 2048, 32, 128);
+    startReceiver("eth2", 2048, 32, 128);
     addReceiverPort(4660);
     addReceiverPort(4661);
 
@@ -267,7 +267,7 @@ void test_continuous_channel()
     uint8_t  nbeams   = 1;
 
     setReceiverConfiguration(nant, nchans, nbeams, ntiles, nstation, npols, 0);
-    startReceiver("eth1", 2048, 32, 128);
+    startReceiver("eth2", 2048, 32, 128);
     addReceiverPort(4660);
     addReceiverPort(4661);
 
@@ -283,7 +283,7 @@ int main()
 //    test_receiver();
 //    test_antenna_data();
 //    daq_service();
-//    daq_service_library();
-    test_continuous_channel();
+    daq_service_library();
+    //test_continuous_channel();
 }
 

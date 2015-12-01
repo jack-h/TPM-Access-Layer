@@ -97,7 +97,7 @@ class Beamformer(object):
 
                 self._tile.tpm.tpm_test_firmware[self._pol_fpga_map[pol]].download_beamforming_weights(values, antenna)
 
-    def convert_weights(self, signed=False):
+    def convert_weights(self, coeffs, signed=False):
         """ Convert weights from float (assuming range is between 0 and 1) to 8-bit
         :param signed: Use signed (-1 to 1) or unsigned (0 t0 1) values
         :return: Converted weight matrix
@@ -111,8 +111,8 @@ class Beamformer(object):
                 self._value_conversion_table = np.arange(128) * (1 / 127.0)
 
         # Apply conversion
-        values = np.empty(np.size(self._weights), dtype='int8')
-        for i, w in enumerate(self._weights):
+        values = np.empty(np.size(coeffs), dtype='int8')
+        for i, w in enumerate(coeffs):
             for j, val in enumerate(self._value_conversion_table):
                 if val >= w:
                     values[i] = j
@@ -335,7 +335,7 @@ class Tile(object):
         self.tpm['fpga1.regfile.test_gen_walking'] = 0x1
         self.tpm['fpga2.regfile.test_gen_walking'] = 0x1
 
-    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_timestamp.bit"):
+    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_full.bit"):
         self.connect(simulation=True)
         self.tpm.download_firmware(Device.FPGA_1, bitfile)
 
