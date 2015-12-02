@@ -362,6 +362,14 @@ class Tile(object):
         # Synchronise FPGAs
         self.sync_fpgas()
 
+        # Set destination and source IP/MAC/ports for 10G cores
+        self.tpm.tpm_10g_core[0].set_src_mac(0x620000000002)
+        self.tpm.tpm_10g_core[0].set_dst_mac(0xE41D2D149AD0)
+        self.tpm.tpm_10g_core[0].set_src_ip("192.168.7.11")
+        self.tpm.tpm_10g_core[0].set_dst_ip("192.168.7.1")
+        self.tpm.tpm_10g_core[0].set_src_port(0xF0D0)
+        self.tpm.tpm_10g_core[0].set_dst_port(0xF0D1)
+
         # Temporary
         self.tpm[0x30000024] = 0x0
 
@@ -550,13 +558,17 @@ class Tile(object):
             self._daq_threads.pop('BEAM')
             return
 
-        # Stop any other streams
-        self.stop_data_transmission()
+    # ---------------------------- Wrapper for data acquisition: CSP ------------------------------------
+    def send_csp_data(self, samples_per_packet, number_of_samples):
+        """ Send CSP data
+        :param samples_per_packet: Number of samples in a packet
+        :param number_of_samples: Total number of samples to send
+        :return:
+        """
+        self.synchronised_data_operation()
+        for i in range(len(self.tpm.tpm_test_firmware)):
+            self.tpm.tpm_test_firmware[i].send_csp_data(samples_per_packet, number_of_samples)
 
-        # Create thread which will continuously send raw data
-        t = threading.Thread(target = self._send_beam_data, args = (period,))
-        self._daq_threads['BEAM'] = self._RUNNING
-        t.start()
 
     def stop_beam_data(self):
         """ Stop sending raw data """

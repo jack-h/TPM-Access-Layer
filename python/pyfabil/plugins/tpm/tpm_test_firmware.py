@@ -28,6 +28,7 @@ class TpmTestFirmware(FirmwareBlock):
         self._jesd1 = self.board.load_plugin("TpmJesd", device = self._device, core = 0)
         self._jesd2 = self.board.load_plugin("TpmJesd", device = self._device, core = 1)
         self._fpga = self.board.load_plugin('TpmFpga', device = self._device)
+        self._teng = self.board.load_plugin("TpmTenGCore", device = self._device, core = 0)
 
         self._device_name = "fpga1" if self._device is Device.FPGA_1 else "fpga2"
 
@@ -53,6 +54,9 @@ class TpmTestFirmware(FirmwareBlock):
 
         # Initialise SPEAD transmission
         self.initialize_spead()
+
+        # Initialise 10G cores
+        self._teng.initialise_core()
 
         if retries == max_retries:
             raise BoardError("TpmTestFirmware: Could not configure JESD cores")
@@ -88,6 +92,17 @@ class TpmTestFirmware(FirmwareBlock):
     def send_beam_data(self):
         """ Send beam data from the TPM """
         self.board["%s.lmc_gen.request.beamformed_data" % self._device_name] = 0x1
+
+    def send_csp_data(self, samples_per_packet, number_of_samples):
+        """ Send CSP data
+        :param samples_per_packet: Number of samples in a packet
+        :param number_of_samples: Total number of samples to send
+        :return:
+        """
+        self.board['%s.csp_gen.trigger' % self._device_name]    = 0x0 # Reset trigger
+        self.board['%s.csp_gen.tlast_mask' % self._device_name] = samples_per_packet - 1
+        self.board['%s.csp_gen.pkt_num' % self._device_name]    = number_of_samples - 1
+        self.board['%s.csp_gen.trigger' % self._device_name]    = 0x1
 
     #######################################################################################
     def download_beamforming_weights(self, weights, antenna):
