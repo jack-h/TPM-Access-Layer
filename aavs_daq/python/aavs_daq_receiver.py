@@ -55,13 +55,16 @@ def beam_data_callback(data, timestamp):
     nof_values = conf.nof_beams * conf.nof_polarisations * \
                  conf.nof_beam_samples * conf.nof_channels
 
-    buffer_from_memory = ctypes.pythonapi.PyBuffer_FromMemory
-    buffer_from_memory.restype = ctypes.py_object
-    values = buffer_from_memory(data, complex_8t.itemsize * nof_values)
-    values = np.frombuffer(values, complex_8t)
+#    buffer_from_memory = ctypes.pythonapi.PyBuffer_FromMemory
+#    buffer_from_memory.restype = ctypes.py_object
+#    values = buffer_from_memory(data, complex_8t.itemsize * nof_values)
+#    values = np.frombuffer(values, complex_8t)
+
+    values_ptr = ctypes.cast(data, ctypes.POINTER(Complex_8t))
+    values     = np.array([(values_ptr[i].x, values_ptr[i].y) for i in range(nof_values)], dtype=complex_8t)
 
     # Persist extracted data to file
-    persisters['BEAM_DATA'].write_data(data_ptr = values, timestamp = timestamp)
+    persisters['BEAM_DATA'].write_data(data_ptr=values, timestamp=timestamp)
     logging.info("Received beam data")
 
 # ----------------------------------------- Script Body ------------------------------------------------

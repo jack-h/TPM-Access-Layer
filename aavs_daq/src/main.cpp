@@ -242,13 +242,15 @@ void daq_service_library()
     uint8_t  nbeams   = 1;
 
     setReceiverConfiguration(nant, nchans, nbeams, ntiles, nstation, npols, 0);
-    startReceiver("eth2", 2048, 32, 128);
+    startReceiver("eth2", 9000, 32, 128);
     addReceiverPort(4660);
     addReceiverPort(4661);
+    addReceiverPort(61649);
+    addReceiverPort(61650);
 
-    startRawConsumer(nsamp);
-    startChannelConsumer(128, 1, 1, 32);
-    startBeamConsumer(64, 1);
+ //   startRawConsumer(nsamp);
+ //   startChannelConsumer(128, 1, 1, 32);
+    startBeamConsumer(1024*1024, 8);
 
     sleep(1000);
 }

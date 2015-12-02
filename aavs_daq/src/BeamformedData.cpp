@@ -31,13 +31,14 @@ BeamformedData::BeamformedData(uint16_t nof_tiles, uint16_t nof_channels, uint32
     // Calculate packet size and approximate required number of cells in ring buffer
     // Note that this assumes complex values with 8-bit components
     // TODO: This needs to be calculated properly, has hardcoded values for current firmware iteration
-    size_t packet_size = (size_t) nof_channels * sizeof(complex_8t) + 16 + 10 * 8 + 8;;
+    size_t packet_size = (size_t) nof_channels * samples_per_packet * sizeof(complex_8t) + 11 * 8 + 8;
 
     // Create ring buffer
-    initialiseRingBuffer(packet_size, (size_t) 128e6 / packet_size);
+    // TODO: Make number of cells in ring buffer configurable
+    initialiseRingBuffer(packet_size, 65536);
 
     // Create channel container
-    container = new BeamDataContainer<complex_8t>(nof_tiles, nof_samples, nof_channels, nof_pols);
+    container = new BeamDataContainer<complex_8t>(nof_tiles, nof_samples, nof_channels, nof_pols, samples_per_packet);
 }
 
 // Class destructor
@@ -72,14 +73,17 @@ bool BeamformedData::packetFilter(unsigned char *udp_packet)
 
     // Check that this is in fact a SPEAD packet and that the correct
     // version is being used
+    // TODO: Temporary fix until output to CSP Itemsize and address size are fixed
     if ((SPEAD_GET_MAGIC(hdr) != SPEAD_MAGIC) ||
-        (SPEAD_GET_VERSION(hdr) != SPEAD_VERSION) ||
-        (SPEAD_GET_ITEMSIZE(hdr) != SPEAD_ITEM_PTR_WIDTH) ||
-        (SPEAD_GET_ADDRSIZE(hdr) != SPEAD_HEAP_ADDR_WIDTH))
+        (SPEAD_GET_VERSION(hdr) != SPEAD_VERSION)) // ||
+     //   (SPEAD_GET_ITEMSIZE(hdr) != SPEAD_ITEM_PTR_WIDTH) ||
+     //   (SPEAD_GET_ADDRSIZE(hdr) != SPEAD_HEAP_ADDR_WIDTH))
         return false;
 
     // Check whether the SPEAD packet contains antenna information
-    return (SPEAD_ITEM_ID(SPEAD_ITEM(udp_packet, 8)) == 0x3000);
+    // Beam data could be output to CSP beam or LMC beam data, this handles both
+    return (SPEAD_ITEM_ID(SPEAD_ITEM(udp_packet, 8)) == 0x3000) ||
+           (SPEAD_ITEM_ID(SPEAD_ITEM(udp_packet, 6)) == 0x3000);
 }
 
 // Main event loop
@@ -152,6 +156,9 @@ bool BeamformedData::getPacket()
     uint16_t nof_included_antennas = 0;
     uint32_t payload_offset = 0;
 
+    // Flag specifying whether we are dealing with CSP or LMC data
+    bool CSP = false;
+
     // Get the number of items and get a pointer to the packet payload
     unsigned short nofitems = (unsigned short) SPEAD_GET_NITEMS(hdr);
     uint8_t *payload = packet + SPEAD_HEADERLEN + nofitems * SPEAD_ITEMLEN;
@@ -205,13 +212,22 @@ bool BeamformedData::getPacket()
                 frequency_id = (uint16_t) (val & 0xFFF);
                 break;
             }
-            case 0x2003: // Tile and Station information
+            case 0x2003: // Tile and Station information (LMC data)
             {
                 uint64_t val = SPEAD_ITEM_ADDR(item);
                 tile_id    = (uint16_t) ((val >> 32) & 0xFF);
                 station_id = (uint16_t) ((val >> 16) & 0xFFFF);
                 nof_included_antennas = (uint16_t) (val & 0xFFFF);
-
+                CSP = false;
+                break;
+            }
+            case 0x3001: // Same as above (CSP data)
+            {
+                uint64_t val = SPEAD_ITEM_ADDR(item);
+                tile_id    = (uint16_t) ((val >> 32) & 0xFF);
+                station_id = (uint16_t) ((val >> 16) & 0xFFFF);
+                nof_included_antennas = (uint16_t) (val & 0xFFFF);
+                CSP = true;
                 break;
             }
             case 0x3300: // Payload offset
@@ -224,21 +240,32 @@ bool BeamformedData::getPacket()
         }
     }
 
-    // Read timestamp scale value
-    double timestamp_scale = *((double *) (payload + timestamp_scale_offset));
+    double packet_time = 0.0, center_frequency;
+    // Deal with CSP timing and frequency
+    if (CSP)
+    {
+        packet_time = sync_time + timestamp * 1.0e-9;
+        center_frequency = center_frequency_offset;
+    }
+    else  // Deal with LMC timing and frequency
+    {
+        // Read timestamp scale value
+        double timestamp_scale = *((double *) (payload + timestamp_scale_offset));
+        packet_time = sync_time + timestamp * timestamp_scale;
 
-    // Read center frequency
-    double center_frequency = *((double *) payload + center_frequency_offset);
+        // Read cepacket_time = sync_time + timestamp * timestamp_scale;nter frequency
+        center_frequency = *((double *) payload + center_frequency_offset);
+    }
 
     // TODO: Remove this
     station_id = 0;
     tile_id    = 0;
 
-    double packet_time = sync_time + timestamp * timestamp_scale;
-
     // Each packet contains one polarisations, all channels, one beam, one time sample
 
     // We have processed the packet items, now comes the data
+    // TODO: TEMPORARY
+    packet_index = packet_index % (1024*1024 / 8);
     container -> add_data(nof_pols * ((station_id - start_station_id) * tiles_per_station + tile_id), beam_id,
                           packet_index, (complex_8t *) (payload + payload_offset), packet_time);
 

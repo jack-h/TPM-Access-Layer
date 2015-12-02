@@ -270,10 +270,13 @@ void NetworkReceiver::threadEntry()
                 if (ntohs(udp_header->dest) == this->ports[port_index])
                     break;
 
+            if (port_index == this -> num_ports)
+                continue;
+
             if (ip_header->protocol != IPPROTO_UDP || port_index == this->num_ports)
             {
 #ifdef DEBUG
-//               printf("Invalid packet %d %d\n", ip_header->protocol, ntohs(udp_header->dest));
+                 printf("Invalid packet %d %d\n", ip_header->protocol, ntohs(udp_header->dest));
 #endif
                 // Proceed to next packet in block
                 frame_header = (struct tpacket3_hdr *) ((uint8_t *) frame_header + frame_header->tp_next_offset);

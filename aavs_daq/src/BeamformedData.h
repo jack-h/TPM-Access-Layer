@@ -26,13 +26,15 @@ public:
     // Class constructor
     BeamDataContainer(uint16_t nof_tiles,
                       uint32_t nof_samples, uint16_t nof_channels,
-                      uint8_t nof_pols)
+                      uint8_t nof_pols,
+                      uint8_t samples_per_packet)
     {
         // Set local variables
         this -> nof_samples  = nof_samples;
         this -> nof_tiles    = nof_tiles;
         this -> nof_channels = nof_channels;
         this -> nof_pols     = nof_pols;
+        this -> samples_per_packet = samples_per_packet;
 
         // Allocate buffer
         buffer_ptr = (T *) malloc(nof_tiles * nof_samples * nof_channels * nof_pols * sizeof(T));
@@ -46,16 +48,6 @@ public:
 
         // Reset antenna information
         clear();
-
-        // Create output file
-        // TODO: Make this proper
-        output_fd = open("beam_output.dat", O_WRONLY | O_CREAT | O_SYNC | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH);
-
-        if (output_fd < 0)
-        {
-            perror("Could not create file\n");
-            return;
-        }
     }
 
 public:
@@ -69,10 +61,11 @@ public:
     void add_data(uint16_t tile, uint8_t pol, uint32_t start_sample_index, T* data_ptr, double timestamp)
     {
         // Get pointer to buffer location where data will be placed
-        T* ptr = buffer[tile * nof_pols + pol] + start_sample_index * nof_channels;
+//        T* ptr = buffer[tile * nof_pols + pol] + start_sample_index * nof_channels * samples_per_packet;
+        T* ptr = buffer_ptr + start_sample_index * nof_channels * samples_per_packet;
 
         // Copy data to buffer
-        memcpy(ptr, data_ptr, nof_channels * sizeof(T));
+        memcpy(ptr, data_ptr, samples_per_packet * nof_channels * sizeof(T));
 
         // Update timing
         if (beam_info[tile].first_sample_index > start_sample_index)
@@ -107,6 +100,15 @@ public:
             return;
         }
 
+        // Temporary
+        output_fd = open("beam_output.dat", O_WRONLY | O_CREAT | O_SYNC | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH);
+
+        if (output_fd < 0)
+        {
+            perror("Could not create file\n");
+            return;
+        }
+
         write(output_fd, buffer_ptr, sizeof(T) * nof_channels * nof_samples * nof_tiles * nof_pols);
         fsync(output_fd);
 
@@ -123,6 +125,7 @@ private:
     uint32_t nof_samples;
     uint16_t nof_channels;
     uint8_t  nof_pols;
+    uint8_t  samples_per_packet;
 
     // Data container
     T *buffer_ptr;
