@@ -237,16 +237,17 @@ void daq_service_library()
     uint32_t nsamp    = (uint32_t) (64 * 1024);
     uint8_t  ntiles   = 1;
     uint8_t  nstation = 1;
-    uint8_t  npols    = 2;
+    uint8_t  npols    = 1; //2;
     uint16_t nchans   = 512;
     uint8_t  nbeams   = 1;
 
     setReceiverConfiguration(nant, nchans, nbeams, ntiles, nstation, npols, 0);
-    startReceiver("eth4", 9000, 32, 128);
+    startReceiver("eth2", 9000, 32, 128);
     addReceiverPort(4660);
     addReceiverPort(4661);
     addReceiverPort(61649);
     addReceiverPort(61650);
+    addReceiverPort(61651);
 
  //   startRawConsumer(nsamp);
  //   startChannelConsumer(128, 1, 1, 32);
@@ -267,7 +268,7 @@ void test_continuous_channel()
     uint8_t  nbeams   = 1;
 
     setReceiverConfiguration(nant, nchans, nbeams, ntiles, nstation, npols, 0);
-    startReceiver("eth2", 2048, 32, 128);
+    startReceiver("eth3", 2048, 32, 128);
     addReceiverPort(4660);
     addReceiverPort(4661);
 

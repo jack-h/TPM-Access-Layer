@@ -260,6 +260,7 @@ bool BeamformedData::getPacket()
     // TODO: Remove this
     station_id = 0;
     tile_id    = 0;
+    beam_id = 0;
 
     // Each packet contains one polarisations, all channels, one beam, one time sample
 
