@@ -7,6 +7,8 @@ import os
 import threading
 import time
 import zope.event
+import signal
+import sys
 
 class FileTypes(Enum):
     Raw = 1
@@ -30,7 +32,7 @@ class FileMonitor(object):
         self.root_path = root_path
         self.type = type
         self.thread_handler = threading.Thread(target=self.__run_file_monitor, args=(1,))
-        self.thread_handler.daemon = True
+        #self.thread_handler.daemon = True
         self.terminate = False
         del zope.event.subscribers[:]
         if not self.__check_path():
@@ -44,18 +46,22 @@ class FileMonitor(object):
         if self.valid:
             current_file_list = self.__get_file_list()
             while not self.terminate:
-                print "[" + str(counter) + "] - Polling for new files..."
-                time.sleep(delay)
-                next_file_list = self.__get_file_list()
-                if not set(current_file_list) == set(next_file_list):
-                    if len(next_file_list) > len(current_file_list): #new file(s) added
-                        print "\t [" + str(counter) + "] - New file detected!"
-                        # We have a list of matched filename, sort by last modified date and get latest one
-                        new_filename = sorted(next_file_list, cmp=lambda a, b: -1 if os.stat(a).st_mtime > os.stat(b).st_mtime else 1)[0]
-                        event = NewFileAddedEvent(filename=new_filename)
-                        zope.event.notify(event)
-                current_file_list = next_file_list
-                counter += 1
+                try:
+                    print "[" + str(counter) + "] - Polling for new files..."
+                    time.sleep(delay)
+                    next_file_list = self.__get_file_list()
+                    if not set(current_file_list) == set(next_file_list):
+                        if len(next_file_list) > len(current_file_list): #new file(s) added
+                            print "\t [" + str(counter) + "] - New file detected!"
+                            # We have a list of matched filename, sort by last modified date and get latest one
+                            new_filename = sorted(next_file_list, cmp=lambda a, b: -1 if os.stat(a).st_mtime > os.stat(b).st_mtime else 1)[0]
+                            event = NewFileAddedEvent(filename=new_filename)
+                            zope.event.notify(event)
+                    current_file_list = next_file_list
+                    counter += 1
+                except (KeyboardInterrupt, SystemExit):
+                    self.file_monitor.stop_file_monitor()
+                    print "Exiting thread..."
         self.terminate = False
 
     def start_file_monitor(self):
@@ -109,8 +115,12 @@ class AAVSFileManager(object):
 
         self.update_canvas = False
 
+        signal.signal(signal.SIGTERM, self.signal_term_handler)
         self.file_monitor = FileMonitor(root_path=root_path, type=type)
         self.file_monitor.add_subscriber(self.event_receiver)
+
+    def handle_close(self, evt):
+        self.file_monitor.stop_file_monitor()
 
     @abstractmethod
     def configure(self, file):
@@ -123,6 +133,12 @@ class AAVSFileManager(object):
     @abstractmethod
     def plot(self, real_time = True, timestamp=0, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
         pass
+
+    def signal_term_handler(self, signal, frame):
+        print 'Exiting in ~5 seconds...'
+        self.stop_monitoring()
+        time.sleep(5)
+        sys.exit(0)
 
     def event_receiver(self, event):
         print 'Event received: ' + event.get_name()
@@ -170,7 +186,8 @@ class AAVSFileManager(object):
         else:
             full_filename = os.path.join(self.root_path, filename_prefix + str(timestamp) + ".hdf5")
 
-        file = h5py.File(full_filename, 'r+')
+        #file = h5py.File(full_filename, 'r+')
+        file = h5py.File(full_filename, 'a')
 
         self.main_dset = file["root"]
 
@@ -194,12 +211,19 @@ class AAVSFileManager(object):
 
         full_filename = os.path.join(self.root_path, filename_prefix + str(timestamp) + ".hdf5")
 
-        if self.mode == FileModes.Read:
-            file = h5py.File(full_filename, 'r+')
-            os.chmod(full_filename, 0776);
-        elif self.mode == FileModes.Write:
-            file = h5py.File(full_filename, 'a')
-            os.chmod(full_filename, 0776);
+        #check if file exists, delete if it does (we want to create here!)
+        if os.path.isfile(full_filename):
+            os.remove(full_filename)
+
+        file = h5py.File(full_filename, 'a')
+        os.chmod(full_filename, 0776);
+
+        # if self.mode == FileModes.Read:
+        #     file = h5py.File(full_filename, 'r+')
+        #     os.chmod(full_filename, 0776);
+        # elif self.mode == FileModes.Write:
+        #     file = h5py.File(full_filename, 'w')
+        #     os.chmod(full_filename, 0776);
 
         self.main_dset = file.create_dataset("root", (1,), chunks=True,  dtype='float16')
 

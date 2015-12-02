@@ -27,8 +27,11 @@ class ChannelFormatFileManager(AAVSFileManager):
         n_samples = self.plot_n_samples
         sample_offset = self.plot_sample_offset
         data = self.read_data(timestamp=timestamp, channels=channels, antennas=antennas, polarizations=polarizations, n_samples=n_samples, sample_offset=sample_offset)
+
         complex_func = numpy.vectorize(self.complex_abs)
         sub_data = complex_func(data[:,:,:,:])
+        max_data = numpy.amax(sub_data)
+        sub_data = sub_data/max_data
 
         #now start real plotting
         plot_cnt = 1
@@ -62,6 +65,7 @@ class ChannelFormatFileManager(AAVSFileManager):
 
         #set up image area
         self.fig = plt.figure()
+        self.fig.canvas.mpl_connect('close_event', self.handle_close)
         dummy_data = numpy.zeros((len(channels),n_samples))
         total_plots = len(antennas) * len(polarizations)
         plot_div_value = total_plots / 2.0;
@@ -88,20 +92,43 @@ class ChannelFormatFileManager(AAVSFileManager):
         dummy_data=[]
 
         if(real_time):
+            colorbar_added=False
             while True:
-                time.sleep(1)
-                while(self.update_canvas == False):
-                    self.fig.canvas.flush_events()
-                else:
-                    self.fig.canvas.draw()
-                    self.fig.canvas.flush_events()
-                    self.update_canvas = False
+                try:
+                    time.sleep(1)
+                    while(self.update_canvas == False):
+                        self.fig.canvas.flush_events()
+                    else:
+                        #single colorbar
+                        if not colorbar_added:
+                            im = self.images[len(self.images)-1]
+                            self.fig.subplots_adjust(right=0.8)
+                            cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
+                            self.fig.colorbar(im, cax=cbar_ax)
+                            colorbar_added=True
+
+                        self.fig.canvas.draw()
+                        self.fig.canvas.flush_events()
+                        self.update_canvas = False
+                except KeyboardInterrupt:
+                    self.file_monitor.stop_file_monitor()
+                    self.file_monitor.thread_handler.join()
+                    print "Exiting..."
+                    break
         else:
             self.do_plotting()
+
+            #single colorbar
+            im = self.images[len(self.images)-1]
+            self.fig.subplots_adjust(right=0.8)
+            cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
+            self.fig.colorbar(im, cax=cbar_ax)
+
             self.fig.canvas.draw()
             plt.show()
 
     def progressive_plot(self, timestamp=None, channels=[], antennas=[], polarizations=[], sample_start=0, sample_end=0, n_samples_view=0):
+        plt.close()
         plt.ion()
         try:
             file = self.load_file(timestamp)
@@ -117,14 +144,26 @@ class ChannelFormatFileManager(AAVSFileManager):
             #print current_sample_start
             plot_cnt = 1
             data = self.read_data(timestamp=timestamp, channels=channels, antennas=antennas, polarizations=polarizations, n_samples=n_samples_view, sample_offset=current_sample_start)
+            complex_func = numpy.vectorize(self.complex_abs)
             sub_data = complex_func(data[:,:,:,:])
+            max_data = numpy.amax(sub_data)
+            sub_data = sub_data/max_data
             plt.waitforbuttonpress()
+
             for antenna_idx in xrange(0, len(antennas)):
                 for polarization_idx in xrange(0, len(polarizations)):
                     self.images[plot_cnt-1].set_data(sub_data[:,antenna_idx,polarization_idx,:])
                     self.images[plot_cnt-1].autoscale()
                     plot_cnt += 1
             current_sample_start += n_samples_view
+
+            #single colorbar
+            im = self.images[len(self.images)-1]
+            self.fig.subplots_adjust(right=0.8)
+            cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
+            if plot_cnt==1:
+                self.fig.colorbar(im, cax=cbar_ax)
+
             self.fig.canvas.draw()
             plt.show(block=False)
             print "Drawn!"
@@ -222,29 +261,29 @@ if __name__ == '__main__':
 
     ctype = numpy.dtype([('real', numpy.int8), ('imag', numpy.int8)])
 
-    # print "ingesting..."
-    # channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Write)
-    # channel_file.set_metadata(n_chans=channels, n_antennas=antennas, n_pols=pols, n_samples=samples)
-    # #data = numpy.zeros(channels * samples * antennas * pols, dtype=ctype)
-    #
-    # a = numpy.arange(0,channels * samples * antennas * pols, dtype=numpy.int8)
-    # for channel_value in xrange(0,channels):
-    #     a[channel_value*(samples*antennas*pols):((channel_value+1)*(samples*antennas*pols))] = channel_value
-    # b = numpy.zeros(channels * samples * antennas * pols, dtype=numpy.int8)
-    # data = numpy.array([(a[i],b[i]) for i in range(0,len(a))],dtype=ctype)
-    # a=[]
-    # b=[]
-    # # numpy.set_printoptions(threshold='nan')
-    # # print data
-    # start = time.time()
-    # for i in xrange(0, 1):
-    #     for run in xrange(0, runs):
-    #         channel_file.write_data(data_ptr=data, timestamp=run)
-    #         #channel_file.append_data(data_ptr=data, timestamp=0)
-    # end = time.time()
-    # bits = (channels * antennas * pols * samples * runs * 16)
-    # mbs = bits * 1.25e-7
-    # print "Write speed: " + str(mbs/(end - start)) + " Mb/s"
+    print "ingesting..."
+    channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Write)
+    channel_file.set_metadata(n_chans=channels, n_antennas=antennas, n_pols=pols, n_samples=samples)
+    #data = numpy.zeros(channels * samples * antennas * pols, dtype=ctype)
+
+    a = numpy.arange(0,channels * samples * antennas * pols, dtype=numpy.int8)
+    for channel_value in xrange(0,channels):
+        a[channel_value*(samples*antennas*pols):((channel_value+1)*(samples*antennas*pols))] = channel_value
+    b = numpy.zeros(channels * samples * antennas * pols, dtype=numpy.int8)
+    data = numpy.array([(a[i],b[i]) for i in range(0,len(a))],dtype=ctype)
+    a=[]
+    b=[]
+    # numpy.set_printoptions(threshold='nan')
+    # print data
+    start = time.time()
+    for i in xrange(0, 1):
+        for run in xrange(0, runs):
+            channel_file.write_data(data_ptr=data, timestamp=run)
+            #channel_file.append_data(data_ptr=data, timestamp=0)
+    end = time.time()
+    bits = (channels * antennas * pols * samples * runs * 16)
+    mbs = bits * 1.25e-7
+    print "Write speed: " + str(mbs/(end - start)) + " Mb/s"
 
     # print "reading back out"
     # channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
@@ -263,4 +302,6 @@ if __name__ == '__main__':
     # print end - start
 
     channel_file_mgr = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
+    #channel_file_mgr.progressive_plot(channels=range(0, channels), antennas=range(0, 2), polarizations=range(0, pols), sample_start=0, sample_end=samples, n_samples_view=10)
+    #channel_file_mgr.plot(channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
     channel_file_mgr.plot(real_time=True, channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)

@@ -364,11 +364,18 @@ class Tile(object):
 
         # Set destination and source IP/MAC/ports for 10G cores
         self.tpm.tpm_10g_core[0].set_src_mac(0x620000000002)
-        self.tpm.tpm_10g_core[0].set_dst_mac(0xE41D2D149AD0)
-        self.tpm.tpm_10g_core[0].set_src_ip("192.168.7.11")
-        self.tpm.tpm_10g_core[0].set_dst_ip("192.168.7.1")
+        self.tpm.tpm_10g_core[0].set_dst_mac(0xF452144C4A61)
+        self.tpm.tpm_10g_core[0].set_src_ip("192.168.7.12")
+        self.tpm.tpm_10g_core[0].set_dst_ip("192.168.7.2")
         self.tpm.tpm_10g_core[0].set_src_port(0xF0D0)
         self.tpm.tpm_10g_core[0].set_dst_port(0xF0D1)
+
+        self.tpm.tpm_10g_core[1].set_src_mac(0x620000000003)
+        self.tpm.tpm_10g_core[1].set_dst_mac(0xF452144C4A60)
+        self.tpm.tpm_10g_core[1].set_src_ip("192.168.7.11")
+        self.tpm.tpm_10g_core[1].set_dst_ip("192.168.7.1")
+        self.tpm.tpm_10g_core[1].set_src_port(0xF0D0)
+        self.tpm.tpm_10g_core[1].set_dst_port(0xF0D2)
 
         # Temporary
         self.tpm[0x30000024] = 0x0
@@ -387,7 +394,7 @@ class Tile(object):
         except:
             pass
 
-    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate3.bit"):
+    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate4.bit"):
         self.connect(simulation=True)
         self.tpm.download_firmware(Device.FPGA_1, bitfile)
 
@@ -558,6 +565,11 @@ class Tile(object):
             self._daq_threads.pop('BEAM')
             return
 
+    def stop_beam_data(self):
+        """ Stop sending raw data """
+        if 'BEAM' in self._daq_threads.keys():
+            self._daq_threads['BEAM'] = self._STOP
+
     # ---------------------------- Wrapper for data acquisition: CSP ------------------------------------
     def send_csp_data(self, samples_per_packet, number_of_samples):
         """ Send CSP data
@@ -565,15 +577,13 @@ class Tile(object):
         :param number_of_samples: Total number of samples to send
         :return:
         """
-        self.synchronised_data_operation()
+        
+        # Manually set arm force
+        for fpga in self.tpm.tpm_fpga:
+            fpga.fpga_disarm_force()
+
         for i in range(len(self.tpm.tpm_test_firmware)):
             self.tpm.tpm_test_firmware[i].send_csp_data(samples_per_packet, number_of_samples)
-
-
-    def stop_beam_data(self):
-        """ Stop sending raw data """
-        if 'BEAM' in self._daq_threads.keys():
-            self._daq_threads['BEAM'] = self._STOP
 
     # ---------------------------- Wrapper for data acquisition: CONT CHANNEL ----------------------------
     def send_channelised_data_continuous(self, channel_id, number_of_samples = 128):

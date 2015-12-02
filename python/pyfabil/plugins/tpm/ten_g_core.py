@@ -114,7 +114,7 @@ class TpmTenGCore(FirmwareBlock):
             self.board['%s.udp_core%d.udp_core_top_udp_core_config_udp_dst_ip_addr'
                 % (self._device, self._core)] = ip
         except:
-            raise PluginError("Tpm10GCore: Could not set source IP")
+            raise PluginError("Tpm10GCore: Could not set destination IP")
 
 
     def set_src_port(self, port):

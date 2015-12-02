@@ -99,7 +99,24 @@ class TpmTestFirmware(FirmwareBlock):
         :param number_of_samples: Total number of samples to send
         :return:
         """
-        self.board['%s.csp_gen.trigger' % self._device_name]    = 0x0 # Reset trigger
+        # TEMPORARY: Reset spead counter in header
+        if self._device_name == "fpga1":
+            self.board[0x315004] = self.board[0x315004] | 0x1
+            self.board[0x315004] = self.board[0x315004] & 0xFFFFFFFE
+        else:
+            self.board[0x10315004] = self.board[0x10319004] | 0x1       
+            self.board[0x10315004] = self.board[0x10319004] & 0xFFFFFFFE
+
+        if self._device_name == "fpga1":
+            self.board[0x319004] = self.board[0x319004] | 0x1
+            self.board[0x319004] = self.board[0x319004] & 0xFFFFFFFE
+        else:
+            self.board[0x10319004] = self.board[0x10319004] | 0x1       
+            self.board[0x10319004] = self.board[0x10319004] & 0xFFFFFFFE
+
+        while self.board['%s.csp_gen.trigger' % self._device_name]  != 0x0:
+            pass
+
         self.board['%s.csp_gen.tlast_mask' % self._device_name] = samples_per_packet - 1
         self.board['%s.csp_gen.pkt_num' % self._device_name]    = number_of_samples - 1
         self.board['%s.csp_gen.trigger' % self._device_name]    = 0x1

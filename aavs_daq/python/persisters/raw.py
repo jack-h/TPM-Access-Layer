@@ -84,6 +84,7 @@ class RawFormatFileManager(AAVSFileManager):
 
     def plot(self, real_time = False, timestamp=None, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
         plt.close()
+
         self.plot_channels = channels
         self.plot_antennas = antennas
         self.plot_polarizations = polarizations
@@ -103,6 +104,7 @@ class RawFormatFileManager(AAVSFileManager):
 
         #set up image area
         self.fig = plt.figure()
+        self.fig.canvas.mpl_connect('close_event', self.handle_close)
         dummy_data = numpy.zeros(n_samples)
         total_plots = len(antennas) * len(polarizations)
         plot_div_value = total_plots / 2.0;
@@ -132,19 +134,26 @@ class RawFormatFileManager(AAVSFileManager):
 
         if(real_time):
             while True:
-                time.sleep(1)
-                while(self.update_canvas == False):
-                    self.fig.canvas.flush_events()
-                else:
-                    self.fig.canvas.draw()
-                    self.fig.canvas.flush_events()
-                    self.update_canvas = False
+                try:
+                    time.sleep(1)
+                    while(self.update_canvas == False):
+                        self.fig.canvas.flush_events()
+                    else:
+                        self.fig.canvas.draw()
+                        self.fig.canvas.flush_events()
+                        self.update_canvas = False
+                except KeyboardInterrupt:
+                    self.file_monitor.stop_file_monitor()
+                    self.file_monitor.thread_handler.join()
+                    print "Exiting..."
+                    break
         else:
             self.do_plotting()
             self.fig.canvas.draw()
             plt.show()
 
     def progressive_plot(self, timestamp=None, antennas=[], polarizations=[], sample_start=0, sample_end=0, n_samples_view=0):
+        plt.close()
         plt.ion()
         try:
             file = self.load_file(timestamp)

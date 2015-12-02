@@ -264,8 +264,6 @@ bool BeamformedData::getPacket()
     // Each packet contains one polarisations, all channels, one beam, one time sample
 
     // We have processed the packet items, now comes the data
-    // TODO: TEMPORARY
-    //packet_index = packet_index % (1024*1024 / 8);
     container -> add_data(nof_pols * ((station_id - start_station_id) * tiles_per_station + tile_id), beam_id,
                           packet_index, (complex_8t *) (payload + payload_offset), packet_time);
 
