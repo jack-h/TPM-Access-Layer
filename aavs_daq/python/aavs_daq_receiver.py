@@ -277,4 +277,4 @@ if __name__ == "__main__":
 
     # Wait forever
     logging.info("Ready to receive data")
-    sleep(1000)
+    sleep(10000000)

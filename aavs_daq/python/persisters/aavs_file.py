@@ -186,8 +186,9 @@ class AAVSFileManager(object):
         else:
             full_filename = os.path.join(self.root_path, filename_prefix + str(timestamp) + ".hdf5")
 
-        #file = h5py.File(full_filename, 'r+')
-        file = h5py.File(full_filename, 'a')
+        print "Trying to open: " + full_filename
+        file = h5py.File(full_filename, 'r+')
+        #file = h5py.File(full_filename, 'a')
 
         self.main_dset = file["root"]
 
@@ -208,15 +209,17 @@ class AAVSFileManager(object):
             filename_prefix = "channel_"
         elif self.type == FileTypes.Beamformed:
             filename_prefix = "beamformed_"
-
         full_filename = os.path.join(self.root_path, filename_prefix + str(timestamp) + ".hdf5")
 
         #check if file exists, delete if it does (we want to create here!)
         if os.path.isfile(full_filename):
             os.remove(full_filename)
-
-        file = h5py.File(full_filename, 'a')
+        
+        file = h5py.File(full_filename, 'w')
         os.chmod(full_filename, 0776);
+        self.close_file(file)
+        file = h5py.File(full_filename, 'r+')
+
 
         # if self.mode == FileModes.Read:
         #     file = h5py.File(full_filename, 'r+')
@@ -226,7 +229,8 @@ class AAVSFileManager(object):
         #     os.chmod(full_filename, 0776);
 
         self.main_dset = file.create_dataset("root", (1,), chunks=True,  dtype='float16')
-
+        
+        self.main_dset_attrs['timestamp'] = timestamp
         self.main_dset.attrs['n_antennas'] = self.n_antennas
         self.main_dset.attrs['n_pols'] = self.n_pols
         self.main_dset.attrs['n_stations'] = self.n_stations
@@ -235,8 +239,9 @@ class AAVSFileManager(object):
         self.main_dset.attrs['n_chans'] = self.n_chans
         self.main_dset.attrs['n_samples'] = self.n_samples
         self.main_dset.attrs['type'] = self.type.value
-
+        #file.flush()
         self.configure(file)
+        #self.close_file(file)
         return file
 
     def close_file(self, file):

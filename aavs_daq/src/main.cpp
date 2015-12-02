@@ -242,7 +242,7 @@ void daq_service_library()
     uint8_t  nbeams   = 1;
 
     setReceiverConfiguration(nant, nchans, nbeams, ntiles, nstation, npols, 0);
-    startReceiver("eth2", 9000, 32, 128);
+    startReceiver("eth3", 9000, 32, 128);
     addReceiverPort(4660);
     addReceiverPort(4661);
     addReceiverPort(61649);

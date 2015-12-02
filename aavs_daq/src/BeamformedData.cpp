@@ -260,9 +260,12 @@ bool BeamformedData::getPacket()
     // TODO: Remove this
     station_id = 0;
     tile_id    = 0;
-    beam_id = 0;
 
-    // Each packet contains one polarisations, all channels, one beam, one time sample
+    // Sanity check when working with two interfaces
+    if (nof_beams == 1)
+        beam_id = 0;
+
+    printf("%d %d\n", packet_index, packet_counter);
 
     // We have processed the packet items, now comes the data
     container -> add_data(nof_pols * ((station_id - start_station_id) * tiles_per_station + tile_id), beam_id,

@@ -30,12 +30,14 @@ class BeamFormatFileManager(AAVSFileManager):
         complex_func = numpy.vectorize(self.complex_abs)
         sub_data = complex_func(data[:,:,:])
         max_data = numpy.amax(sub_data)
-        sub_data = sub_data/max_data
+        if(max_data>0):
+            sub_data = sub_data/max_data
 
         plot_cnt = 1
         for polarization_idx in xrange(0, len(polarizations)):
             self.images[plot_cnt-1].set_data(sub_data[polarization_idx,:,:])
             self.images[plot_cnt-1].autoscale()
+            self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
             plot_cnt += 1
         print "Drawn!"
         self.update_canvas = True
@@ -61,7 +63,8 @@ class BeamFormatFileManager(AAVSFileManager):
 
         #set up image area
         self.fig = plt.figure()
-        dummy_data = numpy.zeros((len(channels),n_samples))
+        dummy_data = numpy.ones((len(channels),n_samples))
+        dummy_data[0] = 0
         total_plots = len(polarizations)
         plot_div_value = total_plots / 2.0;
 
@@ -74,31 +77,29 @@ class BeamFormatFileManager(AAVSFileManager):
             elif(plot_div_value >= 1):
                 subplot = self.fig.add_subplot(math.ceil(total_plots / 2.0), 2, plot_cnt)
             subplot.set_title("Polarization: " + str(current_polarization), fontsize=9)
-            self.images.append(plt.imshow(dummy_data, aspect='auto', interpolation='none'))
+            self.images.append(plt.imshow(dummy_data, aspect='auto', interpolation='none', vmin=0.0, vmax=1.0))
             plt.xlabel('Time (sample)', fontsize=9)
             plt.ylabel('Channel', fontsize=9)
             plot_cnt += 1
-        plt.tight_layout()
+
+        #plt.tight_layout()
         plt.subplots_adjust(left=0.04, bottom=0.05, right=0.99, top=0.95, wspace=0.1, hspace=0.2)
+
+        im = self.images[0]
+        self.fig.subplots_adjust(right=0.9)
+        cax = self.fig.add_axes([0.95, 0.1, 0.01, 0.8])
+        self.fig.colorbar(im, cax=cax)
+
         plt.show(block=False)
         dummy_data=[]
 
         if(real_time):
-            colorbar_added=False
             while True:
                 try:
                     time.sleep(1)
                     while(self.update_canvas == False):
                         self.fig.canvas.flush_events()
                     else:
-                        #single colorbar
-                        if not colorbar_added:
-                            im = self.images[len(self.images)-1]
-                            self.fig.subplots_adjust(right=0.8)
-                            cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
-                            self.fig.colorbar(im, cax=cbar_ax)
-                            colorbar_added=True
-
                         self.fig.canvas.draw()
                         self.fig.canvas.flush_events()
                         self.update_canvas = False
@@ -109,13 +110,6 @@ class BeamFormatFileManager(AAVSFileManager):
                     break
         else:
             self.do_plotting()
-
-            #single colorbar
-            im = self.images[len(self.images)-1]
-            self.fig.subplots_adjust(right=0.8)
-            cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
-            self.fig.colorbar(im, cax=cbar_ax)
-
             self.fig.canvas.draw()
             plt.show()
 
@@ -138,12 +132,14 @@ class BeamFormatFileManager(AAVSFileManager):
             data = self.read_data(timestamp=timestamp, channels=channels, polarizations=polarizations, n_samples=n_samples_view, sample_offset=current_sample_start)
             sub_data = complex_func(data[:,:,:])
             max_data = numpy.amax(sub_data)
-            sub_data = sub_data/max_data
+            if(max_data>0):
+                sub_data = sub_data/max_data
             plt.waitforbuttonpress()
 
             for polarization_idx in xrange(0, len(polarizations)):
                 self.images[plot_cnt-1].set_data(sub_data[polarization_idx,:,:])
                 self.images[plot_cnt-1].autoscale()
+                self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
                 plot_cnt += 1
             current_sample_start += n_samples_view
 
@@ -162,6 +158,8 @@ class BeamFormatFileManager(AAVSFileManager):
     def read_data(self, timestamp=None, channels=[], polarizations=[], n_samples=0, sample_offset=0):
         try:
             file = self.load_file(timestamp)
+            temp_dset = file["root"]
+            temp_timestamp = temp_dset.attrs['timestamp']
         except Exception as e:
             print "Can't load file: ", e.message
             raise
@@ -185,14 +183,18 @@ class BeamFormatFileManager(AAVSFileManager):
                 data_flushed = True
             except Exception as e:
                 print "File appears to be in construction, re-trying."
+                print "Closing file..."
                 self.close_file(file)
-                file = self.load_file(timestamp)
+                print "Sleeping..."
+                time.sleep(5)
+                print "Reloading file..."
+                file = self.load_file(temp_timestamp)
         return output_buffer
 
     def write_data(self, timestamp=None, data_ptr=None):
         file = self.create_file(timestamp)
-        self.close_file(file)
-        file = self.load_file(timestamp)
+        # self.close_file(file)
+        #file = self.load_file(timestamp)
 
         n_pols = self.main_dset.attrs['n_pols']
         n_samp = self.main_dset.attrs['n_samples']

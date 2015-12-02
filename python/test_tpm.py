@@ -364,16 +364,16 @@ class Tile(object):
 
         # Set destination and source IP/MAC/ports for 10G cores
         self.tpm.tpm_10g_core[0].set_src_mac(0x620000000002)
-        self.tpm.tpm_10g_core[0].set_dst_mac(0xF452144C4A61)
+        self.tpm.tpm_10g_core[0].set_dst_mac(0xF452144C4A60)
         self.tpm.tpm_10g_core[0].set_src_ip("192.168.7.12")
-        self.tpm.tpm_10g_core[0].set_dst_ip("192.168.7.2")
+        self.tpm.tpm_10g_core[0].set_dst_ip("192.168.7.1")
         self.tpm.tpm_10g_core[0].set_src_port(0xF0D0)
         self.tpm.tpm_10g_core[0].set_dst_port(0xF0D1)
 
         self.tpm.tpm_10g_core[1].set_src_mac(0x620000000003)
-        self.tpm.tpm_10g_core[1].set_dst_mac(0xF452144C4A60)
+        self.tpm.tpm_10g_core[1].set_dst_mac(0xF452144C4A61)
         self.tpm.tpm_10g_core[1].set_src_ip("192.168.7.11")
-        self.tpm.tpm_10g_core[1].set_dst_ip("192.168.7.1")
+        self.tpm.tpm_10g_core[1].set_dst_ip("192.168.8.1")
         self.tpm.tpm_10g_core[1].set_src_port(0xF0D0)
         self.tpm.tpm_10g_core[1].set_dst_port(0xF0D2)
 
@@ -394,9 +394,17 @@ class Tile(object):
         except:
             pass
 
-    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate4.bit"):
+    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate3.bit"):
         self.connect(simulation=True)
         self.tpm.download_firmware(Device.FPGA_1, bitfile)
+
+    def get_temperature(self):
+        """ Get board temperature """
+        self.tpm[0x40000004] = 0x5
+        self.tpm[0x40000000] = 0x2118
+        temp = self.tpm[0x40000008]
+        temp = ((temp >> 8) & 0x00FF) | ((temp << 8) & 0x1F00)
+        return temp * 0.0625
 
     # ---------------------------- Synchronisation routines ------------------------------------
     def sync_fpgas(self):

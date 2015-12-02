@@ -22,6 +22,8 @@ class RawFormatFileManager(AAVSFileManager):
     def read_data(self, timestamp=None, antennas=[], polarizations=[], n_samples=0, sample_offset=0):
         try:
             file = self.load_file(timestamp)
+            temp_dset = file["root"]
+            temp_timestamp = temp_dset.attrs['timestamp']
         except Exception as e:
             print "Can't load file: ", e.message
             raise
@@ -44,8 +46,12 @@ class RawFormatFileManager(AAVSFileManager):
                 data_flushed = True
             except Exception as e:
                 print "File appears to be in construction, re-trying."
+                print "Closing file..."
                 self.close_file(file)
-                file = self.load_file(timestamp)
+                print "Sleeping..."
+                time.sleep(5)
+                print "Reloading file..."
+                file = self.load_file(temp_timestamp)
         return output_buffer
 
     def do_plotting(self):

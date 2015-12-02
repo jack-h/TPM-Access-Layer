@@ -114,7 +114,9 @@ size_t RingBuffer::pull_timeout(uint8_t *data, uint8_t timeout_seconds)
     {
         nanosleep(&tim, &tim2); // Wait using nanosleep
         gettimeofday(&end, NULL);
-        if (end.tv_sec - start.tv_sec >= timeout_seconds)
+	float delay = (end.tv_sec + end.tv_usec * 1e-6) - (start.tv_sec + end.tv_usec * 1e-6);
+
+        if (delay  >= timeout_seconds)
             return SIZE_MAX;
     }
 
