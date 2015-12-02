@@ -6,6 +6,7 @@ import numpy as np
 import threading
 import logging
 import math
+import time
 import os
 
 __author__ = 'Alessio Magro'
@@ -353,7 +354,7 @@ class Tile(object):
         except:
             pass
 
-    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate2.bit"):
+    def program_fpgas(self, bitfile="/home/lessju/Code/TPM-Access-Layer/bitfiles/xtpm_xcku040_tpm_top_wrap_truncate3.bit"):
         self.connect(simulation=True)
         self.tpm.download_firmware(Device.FPGA_1, bitfile)
 
@@ -366,7 +367,7 @@ class Tile(object):
 
         # Setting sync time
         for f in devices:
-            self.tpm["%s.pps_manager.sync_time_write_val" % f] = 0x0
+            self.tpm["%s.pps_manager.sync_time_write_val" % f] = int(time.time())
 
         # sync time write command
         for f in devices:
