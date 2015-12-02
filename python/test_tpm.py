@@ -69,17 +69,17 @@ class Beamformer(object):
         self._pol_fpga_map = polarisation_fpga_map if polarisation_fpga_map is not None else {0: 0, 1: 1}
         self._array        = array
         self._value_conversion_table = None
-        self._weights      = None
+        self.weights      = None
 
     def download_weights(self):
         """ Set weights provided externally. """
 
         # Weights must be a numpy multi-dimensional array
-        if type(self._weights) is not np.ndarray:
+        if type(self.weights) is not np.ndarray:
             raise Exception("Weights parameter to set wieghts must be a numpy array")
 
         # Weights shape must match beamformer parameters
-        if np.shape(self._weights) != (self._nof_pols, self._nof_antennas, self._nof_channels, 2):
+        if np.shape(self.weights) != (self._nof_pols, self._nof_antennas, self._nof_channels, 2):
             raise Exception("Invalid weights shape")
 
         # Loop over polarisations
@@ -88,7 +88,7 @@ class Beamformer(object):
             for antenna in range(self._nof_antennas):
 
                 # Convert weights to 8-bit values, reverse array and combine every 4 values into 32-bit words
-                coeffs = self._weights[pol, antenna, :, :].flatten()
+                coeffs = self.weights[pol, antenna, :, :].flatten()
                 coeffs = self.convert_weights(coeffs)
                 values = []
                 for i in range(0, len(coeffs), 4):
@@ -129,15 +129,40 @@ class Beamformer(object):
         :return: Return a weight matrix containing only ones or zeros
         """
         if ones:
-            self._weights = np.ones((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
+            self.weights = np.ones((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
         else:
-            self._weights = np.zeros((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
+            self.weights = np.zeros((self._nof_pols, self._nof_antennas, self._nof_channels, 2))
+
+    def set_antennas_channels(self, antennas=None, channels=None, polarisations=None):
+        """ Generate beamforming coefficients to set particular channels and antennas, for particular polarisations
+        :param antennas: Antennas to set
+        :param channels: Channels to set
+        :param polarisations: Polarisation to which set is applied
+        :return: Weight matrix
+        """
+        self._apply_value_antennas_channels(antennas=antennas, 
+                                            channels=channels, 
+                                            polarisations=polarisations, 
+                                            value=1)
 
     def mask_antennas_channels(self, antennas=None, channels=None, polarisations=None):
         """ Generate beamforming coefficients to mask particular channels and antennas, for particular polarisations
         :param antennas: Antennas to mask
         :param channels: Channels to mask
         :param polarisations: Polarisation to which mask is applied
+        :return: Weight matrix
+        """
+        self._apply_value_antennas_channels(antennas=antennas, 
+                                            channels=channels, 
+                                            polarisations=polarisations, 
+                                            value=0)
+
+    def _apply_value_antennas_channels(self, antennas=None, channels=None, polarisations=None, value=1):
+        """ Generate beamforming coefficients to apply value to particular channels and antennas, for particular polarisations
+        :param antennas: Antennas to apply value
+        :param channels: Channels to apply value
+        :param polarisations: Polarisation to which value is applied
+        :param value: value to set 
         :return: Weight matrix
         """
 
@@ -157,7 +182,7 @@ class Beamformer(object):
             # Apply masking
             for p in pols:
                 for a in ants:
-                    self._weights[p, a, :, :] = np.zeros((self._nof_channels, 2))
+                    self.weights[p, a, :, :] = np.zeros((self._nof_channels, 2)) * value
 
             return
 
@@ -169,7 +194,7 @@ class Beamformer(object):
             # Apply masking
             for p in pols:
                 for c in chans:
-                    self._weights[p, :, c, :] = np.zeros((self._nof_antennas, 2))
+                    self.weights[p, :, c, :] = np.zeros((self._nof_antennas, 2)) * value
 
             return
 
@@ -183,7 +208,7 @@ class Beamformer(object):
         for p in pols:
             for a in ants:
                 for c in channels:
-                    self._weights[p, a, c, :] = [0, 0]
+                    self.weights[p, a, c, :] = [0, 0]
 
     def point_array(self, ra, dec, date, time):
         """ Point array to specified RA and DEC

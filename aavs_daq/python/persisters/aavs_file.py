@@ -29,7 +29,7 @@ class FileMonitor(object):
     def __init__(self, root_path = '.', type=FileTypes.Raw):
         self.root_path = root_path
         self.type = type
-        self.thread_handler = threading.Thread(target=self.__run_file_monitor, args=(5,))
+        self.thread_handler = threading.Thread(target=self.__run_file_monitor, args=(1,))
         self.thread_handler.daemon = True
         self.terminate = False
         del zope.event.subscribers[:]
@@ -59,6 +59,7 @@ class FileMonitor(object):
         self.terminate = False
 
     def start_file_monitor(self):
+        self.terminate = False
         self.thread_handler.start()
 
     def stop_file_monitor(self):
@@ -194,10 +195,10 @@ class AAVSFileManager(object):
         full_filename = os.path.join(self.root_path, filename_prefix + str(timestamp) + ".hdf5")
 
         if self.mode == FileModes.Read:
-            file = h5py.File(full_filename, 'r')
+            file = h5py.File(full_filename, 'r+')
             os.chmod(full_filename, 0776);
         elif self.mode == FileModes.Write:
-            file = h5py.File(full_filename, 'w')
+            file = h5py.File(full_filename, 'a')
             os.chmod(full_filename, 0776);
 
         self.main_dset = file.create_dataset("root", (1,), chunks=True,  dtype='float16')

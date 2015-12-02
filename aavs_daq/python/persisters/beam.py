@@ -37,7 +37,7 @@ class BeamFormatFileManager(AAVSFileManager):
         print "Drawn!"
         self.update_canvas = True
 
-    def plot(self, real_time = False, timestamp=0, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
+    def plot(self, real_time = False, timestamp=None, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
         plt.close()
         self.plot_channels = channels
         self.plot_antennas = antennas
@@ -75,8 +75,6 @@ class BeamFormatFileManager(AAVSFileManager):
             plt.xlabel('Time (sample)', fontsize=9)
             plt.ylabel('Channel', fontsize=9)
             plot_cnt += 1
-        mng = plt.get_current_fig_manager()
-        mng.resize(*mng.window.maxsize())
         plt.tight_layout()
         plt.subplots_adjust(left=0.04, bottom=0.05, right=0.99, top=0.95, wspace=0.1, hspace=0.2)
         plt.show(block=False)
@@ -84,15 +82,15 @@ class BeamFormatFileManager(AAVSFileManager):
 
         if(real_time):
             while True:
+                time.sleep(1)
                 while(self.update_canvas == False):
-                    time.sleep(1)
+                    self.fig.canvas.flush_events()
                 else:
-                    plt.show(block=False)
                     self.fig.canvas.draw()
+                    self.fig.canvas.flush_events()
                     self.update_canvas = False
         else:
             self.do_plotting()
-            #plt.show(block=False)
             self.fig.canvas.draw()
             plt.show()
 
@@ -132,26 +130,32 @@ class BeamFormatFileManager(AAVSFileManager):
             raise
 
         output_buffer = numpy.zeros([len(polarizations),len(channels), n_samples],dtype=self.ctype)
+        data_flushed = False
+        while not data_flushed:
+            try:
+                for polarization_idx in xrange(0, len(polarizations)):
+                    current_polarization = polarizations[polarization_idx]
+                    polarization_grp = file["polarization_" + str(current_polarization)]
+                    dset = polarization_grp["data"]
+                    nof_items = dset[0].size
 
-        try:
-            for polarization_idx in xrange(0, len(polarizations)):
-                current_polarization = polarizations[polarization_idx]
-                polarization_grp = file["polarization_" + str(current_polarization)]
-                dset = polarization_grp["data"]
-                nof_items = dset[0].size
-
-                for channel_idx in xrange(0, len(channels)):
-                    current_channel = channels[channel_idx]
-                    if sample_offset+n_samples > nof_items:
-                        output_buffer[polarization_idx,channel_idx,:] = dset[current_channel,0:nof_items]
-                    else:
-                        output_buffer[polarization_idx,channel_idx,:] = dset[current_channel,sample_offset:sample_offset+n_samples]
-        except Exception as e:
-            print "File appears to be in construction: ", e.message
+                    for channel_idx in xrange(0, len(channels)):
+                        current_channel = channels[channel_idx]
+                        if sample_offset+n_samples > nof_items:
+                            output_buffer[polarization_idx,channel_idx,:] = dset[current_channel,0:nof_items]
+                        else:
+                            output_buffer[polarization_idx,channel_idx,:] = dset[current_channel,sample_offset:sample_offset+n_samples]
+                data_flushed = True
+            except Exception as e:
+                print "File appears to be in construction, re-trying."
+                self.close_file(file)
+                file = self.load_file(timestamp)
         return output_buffer
 
     def write_data(self, timestamp=None, data_ptr=None):
         file = self.create_file(timestamp)
+        self.close_file(file)
+        file = self.load_file(timestamp)
 
         n_pols = self.main_dset.attrs['n_pols']
         n_samp = self.main_dset.attrs['n_samples']

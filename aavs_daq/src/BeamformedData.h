@@ -61,8 +61,8 @@ public:
     void add_data(uint16_t tile, uint8_t pol, uint32_t start_sample_index, T* data_ptr, double timestamp)
     {
         // Get pointer to buffer location where data will be placed
-//        T* ptr = buffer[tile * nof_pols + pol] + start_sample_index * nof_channels * samples_per_packet;
-        T* ptr = buffer_ptr + start_sample_index * nof_channels * samples_per_packet;
+        T* ptr = buffer[tile * nof_pols + pol] + start_sample_index * nof_channels * samples_per_packet;
+//        T* ptr = buffer_ptr + start_sample_index * nof_channels * samples_per_packet;
 
         // Copy data to buffer
         memcpy(ptr, data_ptr, samples_per_packet * nof_channels * sizeof(T));

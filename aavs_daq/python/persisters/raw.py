@@ -27,21 +27,25 @@ class RawFormatFileManager(AAVSFileManager):
             raise
 
         output_buffer = numpy.zeros([len(antennas),len(polarizations), n_samples],dtype='int8')
-        raw_grp = file["raw_"]
-        dset = raw_grp["data"]
-        nof_items = dset[0].size
-
-        try:
-            for antenna_idx in xrange(0, len(antennas)):
-                current_antenna = antennas[antenna_idx]
-                for polarization_idx in xrange(0, len(polarizations)):
-                    current_polarization = polarizations[polarization_idx]
-                    if sample_offset+n_samples > nof_items:
-                        output_buffer[antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, 0:nof_items]
-                    else:
-                        output_buffer[antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, sample_offset:sample_offset+n_samples]
-        except Exception as e:
-            print "File appears to be in construction: ", e.message
+        data_flushed = False
+        while not data_flushed:
+            raw_grp = file["raw_"]
+            dset = raw_grp["data"]
+            nof_items = dset[0].size
+            try:
+                for antenna_idx in xrange(0, len(antennas)):
+                    current_antenna = antennas[antenna_idx]
+                    for polarization_idx in xrange(0, len(polarizations)):
+                        current_polarization = polarizations[polarization_idx]
+                        if sample_offset+n_samples > nof_items:
+                            output_buffer[antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, 0:nof_items]
+                        else:
+                            output_buffer[antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, sample_offset:sample_offset+n_samples]
+                data_flushed = True
+            except Exception as e:
+                print "File appears to be in construction, re-trying."
+                self.close_file(file)
+                file = self.load_file(timestamp)
         return output_buffer
 
     def do_plotting(self):
@@ -78,7 +82,7 @@ class RawFormatFileManager(AAVSFileManager):
         print "Drawn!"
         self.update_canvas = True
 
-    def plot(self, real_time = False, timestamp=0, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
+    def plot(self, real_time = False, timestamp=None, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
         plt.close()
         self.plot_channels = channels
         self.plot_antennas = antennas
@@ -121,8 +125,6 @@ class RawFormatFileManager(AAVSFileManager):
                 plt.xlabel('Time (sample)', fontsize=9)
                 plt.ylabel('Amplitude', fontsize=9)
                 plot_cnt += 1
-        mng = plt.get_current_fig_manager()
-        mng.resize(*mng.window.maxsize())
         plt.tight_layout()
         plt.subplots_adjust(left=0.04, bottom=0.05, right=0.99, top=0.95, wspace=0.1, hspace=0.2)
         plt.show(block=False)
@@ -130,15 +132,15 @@ class RawFormatFileManager(AAVSFileManager):
 
         if(real_time):
             while True:
+                time.sleep(1)
                 while(self.update_canvas == False):
-                    time.sleep(1)
+                    self.fig.canvas.flush_events()
                 else:
-                    plt.show(block=False)
                     self.fig.canvas.draw()
+                    self.fig.canvas.flush_events()
                     self.update_canvas = False
         else:
             self.do_plotting()
-            #plt.show(block=False)
             self.fig.canvas.draw()
             plt.show()
 
@@ -174,6 +176,8 @@ class RawFormatFileManager(AAVSFileManager):
 
     def write_data(self, data_ptr=None, timestamp=None):
         file = self.create_file(timestamp)
+        self.close_file(file)
+        file = self.load_file(timestamp)
 
         n_pols = self.main_dset.attrs['n_pols']
         n_antennas = self.main_dset.attrs['n_antennas']
@@ -247,13 +251,15 @@ if __name__ == '__main__':
     # end = time.time()
     # print end - start
 
-    print "Plotting"
-    raw_file_mgr = RawFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
-    start = time.time()
-    raw_file_mgr.plot(timestamp=0, antennas=range(0, 2), polarizations=range(0, pols), n_samples=samples, sample_offset=0)
-    #raw_file_mgr.progressive_plot(timestamp=0, antennas=range(0, 1), polarizations=range(0, 2), sample_start=0, sample_end=samples, n_samples_view=128)
-    end = time.time()
-    print end - start
-
+    # print "Plotting"
     # raw_file_mgr = RawFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
-    # raw_file_mgr.plot(real_time=True, antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    # start = time.time()
+    # raw_file_mgr.plot(timestamp=0, antennas=range(0, 2), polarizations=range(0, pols), n_samples=samples, sample_offset=0)
+    # #raw_file_mgr.progressive_plot(timestamp=0, antennas=range(0, 1), polarizations=range(0, 2), sample_start=0, sample_end=samples, n_samples_view=128)
+    # end = time.time()
+    # print end - start
+
+    raw_file_mgr = RawFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
+    raw_file_mgr.plot(antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+
+    raw_file_mgr.plot(real_time=True, antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)

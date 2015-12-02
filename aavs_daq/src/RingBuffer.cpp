@@ -96,8 +96,8 @@ void RingBuffer::push(uint8_t *data, size_t data_size)
     // Done writing data, assign size to cell
     ring_buffer[producer].size = data_size;
 
-    if (producer % 20000 == 0)
-        printf("%d %d\n", producer, consumer);
+//    if (producer % 20000 == 0)
+//        printf("%d %d\n", producer, consumer);
 
     // Finished processing cell, increment producer
     producer = (producer + 1) & (nofcells - 1);
