@@ -9,6 +9,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sstream>
 
 #include "DataConsumer.h"
 
@@ -101,7 +102,15 @@ public:
         }
 
         // Temporary
-        output_fd = open("beam_output.dat", O_WRONLY | O_CREAT | O_SYNC | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH);
+        if (CSP)
+        {
+            std::stringstream filename;
+            time_t seconds = time (NULL); 
+            filename << "/data/csp_output_" << seconds << ".dat";
+            output_fd = open(filename.str().c_str(), O_WRONLY | O_CREAT | O_SYNC | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH);
+        }
+        else
+            output_fd = open("beam_output.dat", O_WRONLY | O_CREAT | O_SYNC | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH);
 
         if (output_fd < 0)
         {
@@ -139,6 +148,10 @@ private:
 
     // File descriptor
     int output_fd;
+
+public:
+    // Flag determining whether this is running in CSP or LMC mode
+    bool CSP = false;
 };
 
 /* This class is responsible for consuming beam SPEAD packets coming out of TPMs

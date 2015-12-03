@@ -4,6 +4,7 @@ import math
 from abc import abstractmethod
 from enum import Enum
 import os
+from scipy.signal.windows import slepian
 import threading
 import time
 import zope.event
@@ -167,6 +168,40 @@ class AAVSFileManager(object):
         else:
             self.write_data(data_ptr=data_ptr, timestamp=timestamp)
 
+    def check_root_integrity(self, file):
+        integrity = True
+        try:
+            #check for root dataset in file
+            file.require_dataset("root", shape=(1,), dtype='float16', exact=True)
+            file_dset = file.get("root", default=None)
+            if not file_dset==None:
+                attrs_found = file_dset.attrs.items()
+                dict_attrs_found = dict(attrs_found)
+                if not dict_attrs_found.has_key("timestamp"):
+                    integrity = False
+                if not dict_attrs_found.has_key("n_antennas"):
+                    integrity = False
+                if not dict_attrs_found.has_key("n_pols"):
+                    integrity = False
+                if not dict_attrs_found.has_key("n_stations"):
+                    integrity = False
+                if not dict_attrs_found.has_key("n_beams"):
+                    integrity = False
+                if not dict_attrs_found.has_key("n_tiles"):
+                    integrity = False
+                if not dict_attrs_found.has_key("n_chans"):
+                    integrity = False
+                if not dict_attrs_found.has_key("n_samples"):
+                    integrity = False
+                if not dict_attrs_found.has_key("type"):
+                    integrity = False
+            else:
+                integrity = False
+        except Exception as e:
+            integrity = False
+        finally:
+            return integrity
+
     def load_file(self, timestamp = None):
         if self.type == FileTypes.Raw:
             filename_prefix = "raw_"
@@ -186,21 +221,31 @@ class AAVSFileManager(object):
         else:
             full_filename = os.path.join(self.root_path, filename_prefix + str(timestamp) + ".hdf5")
 
-        print "Trying to open: " + full_filename
-        file = h5py.File(full_filename, 'r+')
-        #file = h5py.File(full_filename, 'a')
-
-        self.main_dset = file["root"]
-
-        self.n_antennas = self.main_dset.attrs['n_antennas']
-        self.n_pols = self.main_dset.attrs['n_pols']
-        self.n_stations = self.main_dset.attrs['n_stations']
-        self.n_beams = self.main_dset.attrs['n_beams']
-        self.n_tiles = self.main_dset.attrs['n_tiles']
-        self.n_chans = self.main_dset.attrs['n_chans']
-        self.n_samples = self.main_dset.attrs['n_samples']
-
-        return file
+        file_read = False
+        slept_time = 0
+        try:
+            while not file_read and slept_time<5:
+                file = h5py.File(full_filename, 'r+')
+                if self.check_root_integrity(file):
+                    self.main_dset = file["root"]
+                    self.n_antennas = self.main_dset.attrs['n_antennas']
+                    self.n_pols = self.main_dset.attrs['n_pols']
+                    self.n_stations = self.main_dset.attrs['n_stations']
+                    self.n_beams = self.main_dset.attrs['n_beams']
+                    self.n_tiles = self.main_dset.attrs['n_tiles']
+                    self.n_chans = self.main_dset.attrs['n_chans']
+                    self.n_samples = self.main_dset.attrs['n_samples']
+                    file_read=True
+                else:
+                    print str(slept_time) + " - Waiting for file integrity checks in " + full_filename
+                    time.sleep(1)
+                    slept_time += 1
+            if not file_read:
+                raise RuntimeError('Requested file is either corrupt, or perpetually unavailable for further processing.')
+            else:
+                return file
+        except Exception as e:
+            raise
 
     def create_file(self, timestamp = None):
         if self.type == FileTypes.Raw:
@@ -230,7 +275,7 @@ class AAVSFileManager(object):
 
         self.main_dset = file.create_dataset("root", (1,), chunks=True,  dtype='float16')
         
-        self.main_dset_attrs['timestamp'] = timestamp
+        self.main_dset.attrs['timestamp'] = timestamp
         self.main_dset.attrs['n_antennas'] = self.n_antennas
         self.main_dset.attrs['n_pols'] = self.n_pols
         self.main_dset.attrs['n_stations'] = self.n_stations
@@ -239,9 +284,7 @@ class AAVSFileManager(object):
         self.main_dset.attrs['n_chans'] = self.n_chans
         self.main_dset.attrs['n_samples'] = self.n_samples
         self.main_dset.attrs['type'] = self.type.value
-        #file.flush()
         self.configure(file)
-        #self.close_file(file)
         return file
 
     def close_file(self, file):

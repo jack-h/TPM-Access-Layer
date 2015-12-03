@@ -161,25 +161,35 @@ class BeamFormatFileManager(AAVSFileManager):
             temp_dset = file["root"]
             temp_timestamp = temp_dset.attrs['timestamp']
         except Exception as e:
-            print "Can't load file: ", e.message
+            print "Can't load file for data reading: ", e.message
             raise
 
         output_buffer = numpy.zeros([len(polarizations),len(channels), n_samples],dtype=self.ctype)
+
         data_flushed = False
         while not data_flushed:
             try:
+                file_items = temp_dset.attrs.items()
+                file_groups = file.values()
+                file_groups_names = [elem.name for elem in file_groups]
+
                 for polarization_idx in xrange(0, len(polarizations)):
                     current_polarization = polarizations[polarization_idx]
-                    polarization_grp = file["polarization_" + str(current_polarization)]
-                    dset = polarization_grp["data"]
-                    nof_items = dset[0].size
-
-                    for channel_idx in xrange(0, len(channels)):
-                        current_channel = channels[channel_idx]
-                        if sample_offset+n_samples > nof_items:
-                            output_buffer[polarization_idx,channel_idx,:] = dset[current_channel,0:nof_items]
-                        else:
-                            output_buffer[polarization_idx,channel_idx,:] = dset[current_channel,sample_offset:sample_offset+n_samples]
+                    polarization_name = "/"+"polarization_" + str(current_polarization)
+                    if polarization_name in file_groups_names:
+                        polarization_grp = file["polarization_" + str(current_polarization)]
+                        if polarization_grp.values()[0].name == polarization_name+"/data":
+                            dset = polarization_grp["data"]
+                            dset_rows = dset.shape[0]
+                            dset_columns = dset.shape[1]
+                            nof_items = dset[0].size
+                            if (dset_rows == temp_dset.attrs["n_chans"]) and (dset_columns >= temp_dset.attrs["n_samples"]):
+                                for channel_idx in xrange(0, len(channels)):
+                                    current_channel = channels[channel_idx]
+                                    if sample_offset+n_samples > nof_items:
+                                        output_buffer[polarization_idx,channel_idx,:] = dset[current_channel,0:nof_items]
+                                    else:
+                                        output_buffer[polarization_idx,channel_idx,:] = dset[current_channel,sample_offset:sample_offset+n_samples]
                 data_flushed = True
             except Exception as e:
                 print "File appears to be in construction, re-trying."

@@ -25,25 +25,40 @@ class RawFormatFileManager(AAVSFileManager):
             temp_dset = file["root"]
             temp_timestamp = temp_dset.attrs['timestamp']
         except Exception as e:
-            print "Can't load file: ", e.message
+            print "Can't load file for data reading: ", e.message
             raise
 
         output_buffer = numpy.zeros([len(antennas),len(polarizations), n_samples],dtype='int8')
+
         data_flushed = False
         while not data_flushed:
-            raw_grp = file["raw_"]
-            dset = raw_grp["data"]
-            nof_items = dset[0].size
             try:
-                for antenna_idx in xrange(0, len(antennas)):
-                    current_antenna = antennas[antenna_idx]
-                    for polarization_idx in xrange(0, len(polarizations)):
-                        current_polarization = polarizations[polarization_idx]
-                        if sample_offset+n_samples > nof_items:
-                            output_buffer[antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, 0:nof_items]
-                        else:
-                            output_buffer[antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, sample_offset:sample_offset+n_samples]
-                data_flushed = True
+                file_items = temp_dset.attrs.items()
+                file_groups = file.values()
+                file_groups_names = [elem.name for elem in file_groups]
+
+                # raw_grp = file["raw_"]
+                # dset = raw_grp["data"]
+                # nof_items = dset[0].size
+
+                raw_grp_name = "/raw_"
+                if raw_grp_name in file_groups_names:
+                    raw_grp = file[raw_grp_name]
+                    if raw_grp.values()[0].name == raw_grp_name+"/data":
+                        dset = raw_grp["data"]
+                        dset_rows = dset.shape[0]
+                        dset_columns = dset.shape[1]
+                        nof_items = dset[0].size
+                        if (dset_rows == temp_dset.attrs["n_antennas"] * temp_dset.attrs["n_pols"]) and (dset_columns >= temp_dset.attrs["n_samples"]):
+                            for antenna_idx in xrange(0, len(antennas)):
+                                current_antenna = antennas[antenna_idx]
+                                for polarization_idx in xrange(0, len(polarizations)):
+                                    current_polarization = polarizations[polarization_idx]
+                                    if sample_offset+n_samples > nof_items:
+                                        output_buffer[antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, 0:nof_items]
+                                    else:
+                                        output_buffer[antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, sample_offset:sample_offset+n_samples]
+                            data_flushed = True
             except Exception as e:
                 print "File appears to be in construction, re-trying."
                 print "Closing file..."
@@ -277,4 +292,4 @@ if __name__ == '__main__':
     raw_file_mgr = RawFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
     raw_file_mgr.plot(antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
 
-    raw_file_mgr.plot(real_time=True, antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    #raw_file_mgr.plot(real_time=True, antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)

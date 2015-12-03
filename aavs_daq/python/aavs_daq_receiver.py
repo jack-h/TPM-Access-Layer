@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from time import sleep
 
 from persisters import *
@@ -146,9 +148,6 @@ if __name__ == "__main__":
 
     (conf, args) = parser.parse_args(argv[1:])
 
-    # Extract port string and create list of ports
-    conf.receiver_ports = [int(x) for x in conf.receiver_ports.split(',')]
-
     # Set logging
     log = logging.getLogger('')
     log.setLevel(logging.DEBUG)
@@ -156,6 +155,9 @@ if __name__ == "__main__":
     ch = logging.StreamHandler(stdout)
     ch.setFormatter(format)
     log.addHandler(ch)
+
+    # Extract port string and create list of ports
+    conf.receiver_ports = [int(x) for x in conf.receiver_ports.split(',')]
 
     # Check if any mode was chosen
     if not any([conf.read_beam_data, conf.read_channel_data, conf.read_raw_data, conf.continuous_channel]):

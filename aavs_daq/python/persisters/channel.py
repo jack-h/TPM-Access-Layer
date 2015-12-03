@@ -173,26 +173,36 @@ class ChannelFormatFileManager(AAVSFileManager):
             temp_dset = file["root"]
             temp_timestamp = temp_dset.attrs['timestamp']
         except Exception as e:
-            print "Can't load file: ", e.message
+            print "Can't load file for data reading: ", e.message
             raise
 
         output_buffer = numpy.zeros([len(channels),len(antennas),len(polarizations), n_samples],dtype=self.ctype)
+
         data_flushed = False
         while not data_flushed:
             try:
+                file_items = temp_dset.attrs.items()
+                file_groups = file.values()
+                file_groups_names = [elem.name for elem in file_groups]
                 for channel_idx in xrange(0, len(channels)):
                     current_channel = channels[channel_idx]
-                    channel_grp = file["channel_" + str(current_channel)]
-                    dset = channel_grp["data"]
-                    nof_items = dset[0].size
-                    for antenna_idx in xrange(0, len(antennas)):
-                        current_antenna = antennas[antenna_idx]
-                        for polarization_idx in xrange(0, len(polarizations)):
-                            current_polarization = polarizations[polarization_idx]
-                            if sample_offset+n_samples > nof_items:
-                                output_buffer[channel_idx,antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, 0:nof_items]
-                            else:
-                                output_buffer[channel_idx,antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, sample_offset:sample_offset+n_samples]
+                    channel_name = "/"+"channel_" + str(current_channel)
+                    if channel_name in file_groups_names:
+                        channel_grp = file["channel_" + str(current_channel)]
+                        if channel_grp.values()[0].name == channel_name+"/data":
+                            dset = channel_grp["data"]
+                            dset_rows = dset.shape[0]
+                            dset_columns = dset.shape[1]
+                            nof_items = dset[0].size
+                            if (dset_rows == temp_dset.attrs["n_antennas"] * temp_dset.attrs["n_pols"]) and (dset_columns >= temp_dset.attrs["n_samples"]):
+                                for antenna_idx in xrange(0, len(antennas)):
+                                    current_antenna = antennas[antenna_idx]
+                                    for polarization_idx in xrange(0, len(polarizations)):
+                                        current_polarization = polarizations[polarization_idx]
+                                        if sample_offset+n_samples > nof_items:
+                                            output_buffer[channel_idx,antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, 0:nof_items]
+                                        else:
+                                            output_buffer[channel_idx,antenna_idx,polarization_idx,:] = dset[(current_antenna*self.n_pols)+current_polarization, sample_offset:sample_offset+n_samples]
                 data_flushed = True
             except Exception as e:
                 print "File appears to be in construction, re-trying."
@@ -264,29 +274,29 @@ if __name__ == '__main__':
 
     ctype = numpy.dtype([('real', numpy.int8), ('imag', numpy.int8)])
 
-    print "ingesting..."
-    channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Write)
-    channel_file.set_metadata(n_chans=channels, n_antennas=antennas, n_pols=pols, n_samples=samples)
-    #data = numpy.zeros(channels * samples * antennas * pols, dtype=ctype)
-
-    a = numpy.arange(0,channels * samples * antennas * pols, dtype=numpy.int8)
-    for channel_value in xrange(0,channels):
-        a[channel_value*(samples*antennas*pols):((channel_value+1)*(samples*antennas*pols))] = channel_value
-    b = numpy.zeros(channels * samples * antennas * pols, dtype=numpy.int8)
-    data = numpy.array([(a[i],b[i]) for i in range(0,len(a))],dtype=ctype)
-    a=[]
-    b=[]
-    # numpy.set_printoptions(threshold='nan')
-    # print data
-    start = time.time()
-    for i in xrange(0, 1):
-        for run in xrange(0, runs):
-            channel_file.write_data(data_ptr=data, timestamp=run)
-            #channel_file.append_data(data_ptr=data, timestamp=0)
-    end = time.time()
-    bits = (channels * antennas * pols * samples * runs * 16)
-    mbs = bits * 1.25e-7
-    print "Write speed: " + str(mbs/(end - start)) + " Mb/s"
+    # print "ingesting..."
+    # channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Write)
+    # channel_file.set_metadata(n_chans=channels, n_antennas=antennas, n_pols=pols, n_samples=samples)
+    # #data = numpy.zeros(channels * samples * antennas * pols, dtype=ctype)
+    #
+    # a = numpy.arange(0,channels * samples * antennas * pols, dtype=numpy.int8)
+    # for channel_value in xrange(0,channels):
+    #     a[channel_value*(samples*antennas*pols):((channel_value+1)*(samples*antennas*pols))] = channel_value
+    # b = numpy.zeros(channels * samples * antennas * pols, dtype=numpy.int8)
+    # data = numpy.array([(a[i],b[i]) for i in range(0,len(a))],dtype=ctype)
+    # a=[]
+    # b=[]
+    # # numpy.set_printoptions(threshold='nan')
+    # # print data
+    # start = time.time()
+    # for i in xrange(0, 1):
+    #     for run in xrange(0, runs):
+    #         channel_file.write_data(data_ptr=data, timestamp=run)
+    #         #channel_file.append_data(data_ptr=data, timestamp=0)
+    # end = time.time()
+    # bits = (channels * antennas * pols * samples * runs * 16)
+    # mbs = bits * 1.25e-7
+    # print "Write speed: " + str(mbs/(end - start)) + " Mb/s"
 
     # print "reading back out"
     # channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)

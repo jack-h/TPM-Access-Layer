@@ -156,9 +156,6 @@ bool BeamformedData::getPacket()
     uint16_t nof_included_antennas = 0;
     uint32_t payload_offset = 0;
 
-    // Flag specifying whether we are dealing with CSP or LMC data
-    bool CSP = false;
-
     // Get the number of items and get a pointer to the packet payload
     unsigned short nofitems = (unsigned short) SPEAD_GET_NITEMS(hdr);
     uint8_t *payload = packet + SPEAD_HEADERLEN + nofitems * SPEAD_ITEMLEN;
@@ -218,7 +215,7 @@ bool BeamformedData::getPacket()
                 tile_id    = (uint16_t) ((val >> 32) & 0xFF);
                 station_id = (uint16_t) ((val >> 16) & 0xFFFF);
                 nof_included_antennas = (uint16_t) (val & 0xFFFF);
-                CSP = false;
+                container -> CSP = false;
                 break;
             }
             case 0x3001: // Same as above (CSP data)
@@ -227,7 +224,7 @@ bool BeamformedData::getPacket()
                 tile_id    = (uint16_t) ((val >> 32) & 0xFF);
                 station_id = (uint16_t) ((val >> 16) & 0xFFFF);
                 nof_included_antennas = (uint16_t) (val & 0xFFFF);
-                CSP = true;
+                container -> CSP = true;
                 break;
             }
             case 0x3300: // Payload offset
@@ -242,7 +239,7 @@ bool BeamformedData::getPacket()
 
     double packet_time = 0.0, center_frequency;
     // Deal with CSP timing and frequency
-    if (CSP)
+    if (container -> CSP)
     {
         packet_time = sync_time + timestamp * 1.0e-9;
         center_frequency = center_frequency_offset;
@@ -262,10 +259,10 @@ bool BeamformedData::getPacket()
     tile_id    = 0;
 
     // Sanity check when working with two interfaces
-    if (nof_beams == 1)
-        beam_id = 0;
+//    if (nof_beams == 1)
+//        beam_id = 0;
 
-    printf("%d %d\n", packet_index, packet_counter);
+    int32_t sample_offset = (container -> CSP) ? packet_counter : packet_index;
 
     // We have processed the packet items, now comes the data
     container -> add_data(nof_pols * ((station_id - start_station_id) * tiles_per_station + tile_id), beam_id,
