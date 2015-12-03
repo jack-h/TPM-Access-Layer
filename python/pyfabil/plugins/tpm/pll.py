@@ -115,7 +115,7 @@ class TpmPll(FirmwareBlock):
             self.board[('pll', 0x104)] = 0xA   # VCXO100MHz
             self.board[('pll', 0x106)] = 0x14  # VCXO100MHz ##mod
             self.board[('pll', 0x107)] = 0x13  # Not disable holdover
-            self.board[('pll', 0x100)] = 0x38 # VCXO100MHz ##mod  ##10MHZ: 0x38
+            self.board[('pll', 0x108)] = 0x38 # VCXO100MHz ##mod  ##10MHZ: 0x38
             self.board[('pll', 0x109)] = 0x4
             self.board[('pll', 0x10A)] = 0x2  ###10MHZ: 0x2
         else:
