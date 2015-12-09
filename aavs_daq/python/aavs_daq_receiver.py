@@ -278,5 +278,8 @@ if __name__ == "__main__":
         persisters['BEAM_DATA'] = beam_file
 
     # Wait forever
-    logging.info("Ready to receive data")
-    sleep(10000000)
+    logging.info("Ready to receive data. Enter 'quit' to quit")
+
+    # Wait until "quit" is input
+    while (raw_input("").replace(" ", "").upper() != "QUIT")):
+        pass
