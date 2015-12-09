@@ -348,4 +348,4 @@ if __name__ == '__main__':
     channel_file_mgr = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
     #channel_file_mgr.progressive_plot(channels=range(0, channels), antennas=range(0, 2), polarizations=range(0, pols), sample_start=0, sample_end=samples, n_samples_view=10)
     #channel_file_mgr.plot(channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
-    channel_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = False, real_time=False, channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    channel_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = False, real_time=True, channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)

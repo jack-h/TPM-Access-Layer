@@ -34,6 +34,7 @@ class NewFileAddedEvent(object):
 
 class FileMonitor(Thread):
     def __init__(self, root_path='.', type=FileTypes.Raw, poll_delay=1):
+        super(FileMonitor, self).__init__()
         self.root_path = root_path
         self.type = type
         self.poll_delay = poll_delay
