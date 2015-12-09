@@ -31,9 +31,9 @@ class ChannelFormatFileManager(AAVSFileManager):
 
         complex_func = numpy.vectorize(self.complex_abs)
         sub_data = complex_func(data[:,:,:,:])
-        max_data = numpy.amax(sub_data)
-        if(max_data>0):
-            sub_data = sub_data/max_data
+    #    max_data = numpy.amax(sub_data)
+     #   if(max_data>0):
+     #       sub_data = sub_data/max_data
 
         #now start real plotting
         plot_cnt = 1
@@ -41,7 +41,7 @@ class ChannelFormatFileManager(AAVSFileManager):
             for polarization_idx in xrange(0, len(polarizations)):
                 self.images[plot_cnt-1].set_data(sub_data[:,antenna_idx,polarization_idx,:])
                 self.images[plot_cnt-1].autoscale()
-                self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
+            #    self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
                 plot_cnt += 1
 
         print "Drawn!"
