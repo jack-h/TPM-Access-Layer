@@ -29,21 +29,42 @@ class BeamFormatFileManager(AAVSFileManager):
 
         complex_func = numpy.vectorize(self.complex_abs)
         sub_data = complex_func(data[:,:,:])
-        max_data = numpy.amax(sub_data)
-        if(max_data>0):
-            sub_data = sub_data/max_data
 
-        plot_cnt = 1
-        for polarization_idx in xrange(0, len(polarizations)):
-            self.images[plot_cnt-1].set_data(sub_data[polarization_idx,:,:])
-            self.images[plot_cnt-1].autoscale()
-            self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
-            plot_cnt += 1
-        print "Drawn!"
-        self.update_canvas = True
+        if self.plot_normalize:
+            max_data = numpy.amax(sub_data)
+            if(max_data>0):
+                sub_data = sub_data/max_data
 
-    def plot(self, real_time = False, timestamp=None, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
+        if self.plot_log:
+            sub_data = 10 * math.log10(sub_data)
+
+        if self.plot_powerspectrum:
+            sub_data = numpy.mean(sub_data, 2)
+
+        if not self.plot_powerspectrum:
+            plot_cnt = 1
+            for polarization_idx in xrange(0, len(polarizations)):
+                self.images[plot_cnt-1].set_data(sub_data[polarization_idx,:,:])
+                self.images[plot_cnt-1].autoscale()
+                #self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
+                plot_cnt += 1
+            print "Drawn!"
+            self.update_canvas = True
+        else:
+            plot_cnt = 1
+            for polarization_idx in xrange(0, len(polarizations)):
+                self.images[plot_cnt-1].set_ydata(sub_data[polarization_idx,:])
+                self.subplots[plot_cnt-1].relim()
+                self.subplots[plot_cnt-1].autoscale_view()
+                plot_cnt += 1
+            print "Drawn!"
+            self.update_canvas = True
+
+    def plot(self, power_spectrum = False, normalize = False, log_plot = False, real_time = False, timestamp=None, channels=[], antennas = [], polarizations = [], n_samples = 0, sample_offset=0):
         plt.close()
+        self.plot_powerspectrum = power_spectrum
+        self.plot_normalize = normalize
+        self.plot_log = log_plot
         self.plot_channels = channels
         self.plot_antennas = antennas
         self.plot_polarizations = polarizations
@@ -66,7 +87,7 @@ class BeamFormatFileManager(AAVSFileManager):
         dummy_data = numpy.ones((len(channels),n_samples))
         dummy_data[0] = 0
         total_plots = len(polarizations)
-        plot_div_value = total_plots / 2.0;
+        plot_div_value = total_plots / 2.0
 
         images = []
         plot_cnt = 1
@@ -77,18 +98,26 @@ class BeamFormatFileManager(AAVSFileManager):
             elif(plot_div_value >= 1):
                 subplot = self.fig.add_subplot(math.ceil(total_plots / 2.0), 2, plot_cnt)
             subplot.set_title("Polarization: " + str(current_polarization), fontsize=9)
-            self.images.append(plt.imshow(dummy_data, aspect='auto', interpolation='none', vmin=0.0, vmax=1.0))
-            plt.xlabel('Time (sample)', fontsize=9)
-            plt.ylabel('Channel', fontsize=9)
+            if not self.plot_powerspectrum:
+                self.images.append(plt.imshow(dummy_data, aspect='auto', interpolation='none', vmin=0.0, vmax=1.0))
+                plt.xlabel('Time (sample)', fontsize=9)
+                plt.ylabel('Channel', fontsize=9)
+            else:
+                line, = subplot.plot(range(0, len(channels)),dummy_data[:,0])
+                self.images.append(line)
+                self.subplots.append(subplot)
+                plt.xlabel('Channel', fontsize=9)
+                plt.ylabel('Power', fontsize=9)
             plot_cnt += 1
 
         #plt.tight_layout()
         plt.subplots_adjust(left=0.04, bottom=0.05, right=0.99, top=0.95, wspace=0.1, hspace=0.2)
 
-        im = self.images[0]
-        self.fig.subplots_adjust(right=0.9)
-        cax = self.fig.add_axes([0.95, 0.1, 0.01, 0.8])
-        self.fig.colorbar(im, cax=cax)
+        if not self.plot_powerspectrum:
+            im = self.images[0]
+            self.fig.subplots_adjust(right=0.9)
+            cax = self.fig.add_axes([0.95, 0.1, 0.01, 0.8])
+            self.fig.colorbar(im, cax=cax)
 
         plt.show(block=False)
         dummy_data=[]
@@ -156,15 +185,18 @@ class BeamFormatFileManager(AAVSFileManager):
         plt.show()
 
     def read_data(self, timestamp=None, channels=[], polarizations=[], n_samples=0, sample_offset=0):
+        output_buffer = numpy.zeros([len(polarizations),len(channels), n_samples],dtype=self.ctype)
         try:
             file = self.load_file(timestamp)
-            temp_dset = file["root"]
-            temp_timestamp = temp_dset.attrs['timestamp']
+            if not file is None:
+                temp_dset = file["root"]
+                temp_timestamp = temp_dset.attrs['timestamp']
+            else:
+                print "Invalid file timestamp, returning empty buffer."
+                return output_buffer
         except Exception as e:
             print "Can't load file for data reading: ", e.message
             raise
-
-        output_buffer = numpy.zeros([len(polarizations),len(channels), n_samples],dtype=self.ctype)
 
         data_flushed = False
         while not data_flushed:
@@ -288,4 +320,4 @@ if __name__ == '__main__':
     # print end - start
 
     beam_file_mgr = BeamFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
-    beam_file_mgr.plot(channels=range(0,4), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    beam_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = False, timestamp=0, channels=range(0,4), polarizations=range(0, 2), n_samples=samples, sample_offset=0)

@@ -20,15 +20,18 @@ class RawFormatFileManager(AAVSFileManager):
         file.flush()
 
     def read_data(self, timestamp=None, antennas=[], polarizations=[], n_samples=0, sample_offset=0):
+        output_buffer = numpy.zeros([len(antennas),len(polarizations), n_samples],dtype='int8')
         try:
             file = self.load_file(timestamp)
-            temp_dset = file["root"]
-            temp_timestamp = temp_dset.attrs['timestamp']
+            if not file is None:
+                temp_dset = file["root"]
+                temp_timestamp = temp_dset.attrs['timestamp']
+            else:
+                print "Invalid file timestamp, returning empty buffer."
+                return output_buffer
         except Exception as e:
             print "Can't load file for data reading: ", e.message
             raise
-
-        output_buffer = numpy.zeros([len(antennas),len(polarizations), n_samples],dtype='int8')
 
         data_flushed = False
         while not data_flushed:
@@ -128,7 +131,7 @@ class RawFormatFileManager(AAVSFileManager):
         self.fig.canvas.mpl_connect('close_event', self.handle_close)
         dummy_data = numpy.zeros(n_samples)
         total_plots = len(antennas) * len(polarizations)
-        plot_div_value = total_plots / 2.0;
+        plot_div_value = total_plots / 2.0
 
         plot_cnt = 1
         for antenna_idx in xrange(0, len(antennas)):
