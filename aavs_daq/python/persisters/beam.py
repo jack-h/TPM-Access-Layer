@@ -142,42 +142,68 @@ class BeamFormatFileManager(AAVSFileManager):
             self.fig.canvas.draw()
             plt.show()
 
-    def progressive_plot(self, timestamp=None, channels=[], polarizations=[], sample_start=0, sample_end=0, n_samples_view=0):
+    def progressive_plot(self, power_spectrum = False, normalize = False, log_plot = False, timestamp=None, channels=[], polarizations=[], sample_start=0, sample_end=0, n_samples_view=0):
         plt.close()
         plt.ion()
-        try:
-            file = self.load_file(timestamp)
-        except Exception as e:
-            print "Can't load file: ", e.message
-            raise
+        # try:
+        #     file = self.load_file(timestamp)
+        # except Exception as e:
+        #     print "Can't load file: ", e.message
+        #     raise
         complex_func = numpy.vectorize(self.complex_abs)
-        self.plot(real_time=False, timestamp=timestamp,channels=channels, polarizations=polarizations, n_samples=n_samples_view)
+        self.plot(power_spectrum = power_spectrum, normalize = normalize, log_plot = log_plot, real_time=False, timestamp=timestamp,channels=channels, polarizations=polarizations, n_samples=n_samples_view)
 
         #now start real plotting
         current_sample_start = sample_start
         while (current_sample_start+n_samples_view) < sample_end:
             #print current_sample_start
-            plot_cnt = 1
+            #plot_cnt = 1
             data = self.read_data(timestamp=timestamp, channels=channels, polarizations=polarizations, n_samples=n_samples_view, sample_offset=current_sample_start)
             sub_data = complex_func(data[:,:,:])
-            max_data = numpy.amax(sub_data)
-            if(max_data>0):
-                sub_data = sub_data/max_data
+
+            if self.plot_normalize:
+                max_data = numpy.amax(sub_data)
+                if(max_data>0):
+                    sub_data = sub_data/max_data
+
+            if self.plot_log:
+                sub_data = 10 * math.log10(sub_data)
+
+            if self.plot_powerspectrum:
+                sub_data = numpy.mean(sub_data, 2)
+
             plt.waitforbuttonpress()
 
-            for polarization_idx in xrange(0, len(polarizations)):
-                self.images[plot_cnt-1].set_data(sub_data[polarization_idx,:,:])
-                self.images[plot_cnt-1].autoscale()
-                self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
-                plot_cnt += 1
+            if not self.plot_powerspectrum:
+                plot_cnt = 1
+                for polarization_idx in xrange(0, len(polarizations)):
+                    self.images[plot_cnt-1].set_data(sub_data[polarization_idx,:,:])
+                    self.images[plot_cnt-1].autoscale()
+                    plot_cnt += 1
+                self.update_canvas = True
+            else:
+                plot_cnt = 1
+                for polarization_idx in xrange(0, len(polarizations)):
+                    self.images[plot_cnt-1].set_ydata(sub_data[polarization_idx,:])
+                    self.subplots[plot_cnt-1].relim()
+                    self.subplots[plot_cnt-1].autoscale_view()
+                    plot_cnt += 1
+                self.update_canvas = True
+
+            # for polarization_idx in xrange(0, len(polarizations)):
+            #     self.images[plot_cnt-1].set_data(sub_data[polarization_idx,:,:])
+            #     self.images[plot_cnt-1].autoscale()
+            #     self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
+            #     plot_cnt += 1
             current_sample_start += n_samples_view
 
             #single colorbar
-            im = self.images[len(self.images)-1]
-            self.fig.subplots_adjust(right=0.8)
-            cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
-            if plot_cnt==1:
-                self.fig.colorbar(im, cax=cbar_ax)
+            if not self.plot_powerspectrum:
+                im = self.images[len(self.images)-1]
+                self.fig.subplots_adjust(right=0.8)
+                cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
+                if plot_cnt==1:
+                    self.fig.colorbar(im, cax=cbar_ax)
 
             self.fig.canvas.draw()
             plt.show(block=False)
@@ -282,7 +308,6 @@ if __name__ == '__main__':
     #samples = 500000 * 8
     runs = 2
 
-
     print "ingesting..."
     ctype = numpy.dtype([('real', numpy.int8), ('imag', numpy.int8)])
 
@@ -320,4 +345,5 @@ if __name__ == '__main__':
     # print end - start
 
     beam_file_mgr = BeamFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
-    beam_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = False, timestamp=0, channels=range(0,4), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    #beam_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = False, timestamp=0, channels=range(0,4), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    beam_file_mgr.progressive_plot(power_spectrum = True, normalize = False, log_plot = False, timestamp=0, channels=range(0, channels), polarizations=range(0, pols), sample_start=0, sample_end=samples, n_samples_view=256)

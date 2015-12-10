@@ -150,44 +150,71 @@ class ChannelFormatFileManager(AAVSFileManager):
             self.fig.canvas.draw()
             plt.show()
 
-    def progressive_plot(self, timestamp=None, channels=[], antennas=[], polarizations=[], sample_start=0, sample_end=0, n_samples_view=0):
+    def progressive_plot(self, power_spectrum = False, normalize = False, log_plot = False, timestamp=None, channels=[], antennas=[], polarizations=[], sample_start=0, sample_end=0, n_samples_view=0):
         plt.close()
         plt.ion()
-        try:
-            file = self.load_file(timestamp)
-        except Exception as e:
-            print "Can't load file: ", e.message
-            raise
+        # try:
+        #     file = self.load_file(timestamp)
+        # except Exception as e:
+        #     print "Can't load file: ", e.message
+        #     raise
         complex_func = numpy.vectorize(self.complex_abs)
-        self.plot(real_time=False, timestamp=timestamp,channels=channels,antennas=antennas, polarizations=polarizations, n_samples=n_samples_view)
+        self.plot(power_spectrum = power_spectrum, normalize = normalize, log_plot = log_plot, real_time=False, timestamp=timestamp,channels=channels,antennas=antennas, polarizations=polarizations, n_samples=n_samples_view)
 
         #now start real plotting
         current_sample_start = sample_start
         while (current_sample_start+n_samples_view) < sample_end:
             #print current_sample_start
-            plot_cnt = 1
             data = self.read_data(timestamp=timestamp, channels=channels, antennas=antennas, polarizations=polarizations, n_samples=n_samples_view, sample_offset=current_sample_start)
-            complex_func = numpy.vectorize(self.complex_abs)
             sub_data = complex_func(data[:,:,:,:])
-            max_data = numpy.amax(sub_data)
-            if(max_data>0):
-                sub_data = sub_data/max_data
+
+            if self.plot_normalize:
+                max_data = numpy.amax(sub_data)
+                if(max_data>0):
+                    sub_data = sub_data/max_data
+
+            if self.plot_log:
+                sub_data = 10 * math.log10(sub_data)
+
+            if self.plot_powerspectrum:
+                sub_data = numpy.mean(sub_data, 3)
+
             plt.waitforbuttonpress()
 
-            for antenna_idx in xrange(0, len(antennas)):
-                for polarization_idx in xrange(0, len(polarizations)):
-                    self.images[plot_cnt-1].set_data(sub_data[:,antenna_idx,polarization_idx,:])
-                    self.images[plot_cnt-1].autoscale()
-                    self.images[plot_cnt-1].set_clim(vmin=0, vmax=1)
-                    plot_cnt += 1
+            #now start real plotting
+            if not self.plot_powerspectrum:
+                plot_cnt = 1
+                for antenna_idx in xrange(0, len(antennas)):
+                    for polarization_idx in xrange(0, len(polarizations)):
+                        self.images[plot_cnt-1].set_data(sub_data[:,antenna_idx,polarization_idx,:])
+                        self.images[plot_cnt-1].autoscale()
+                        plot_cnt += 1
+                self.update_canvas = True
+            else:
+                plot_cnt = 1
+                for antenna_idx in xrange(0, len(antennas)):
+                    for polarization_idx in xrange(0, len(polarizations)):
+                        self.images[plot_cnt-1].set_ydata(sub_data[:,antenna_idx,polarization_idx])
+                        self.subplots[plot_cnt-1].relim()
+                        self.subplots[plot_cnt-1].autoscale_view()
+                        plot_cnt += 1
+                self.update_canvas = True
+
+            # for antenna_idx in xrange(0, len(antennas)):
+            #     for polarization_idx in xrange(0, len(polarizations)):
+            #         self.images[plot_cnt-1].set_data(sub_data[:,antenna_idx,polarization_idx,:])
+            #         self.images[plot_cnt-1].autoscale()
+            #         plot_cnt += 1
+
             current_sample_start += n_samples_view
 
             #single colorbar
-            im = self.images[len(self.images)-1]
-            self.fig.subplots_adjust(right=0.8)
-            cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
-            if plot_cnt==1:
-                self.fig.colorbar(im, cax=cbar_ax)
+            if not self.plot_powerspectrum:
+                im = self.images[len(self.images)-1]
+                self.fig.subplots_adjust(right=0.8)
+                cbar_ax = self.fig.add_axes([0.85, 0.15, 0.05, 0.7])
+                if plot_cnt==1:
+                    self.fig.colorbar(im, cax=cbar_ax)
 
             self.fig.canvas.draw()
             plt.show(block=False)
@@ -314,7 +341,7 @@ if __name__ == '__main__':
     for channel_value in xrange(0,channels):
         a[channel_value*(samples*antennas*pols):((channel_value+1)*(samples*antennas*pols))] = channel_value
     b = numpy.zeros(channels * samples * antennas * pols, dtype=numpy.int8)
-    data = numpy.array([(a[i],b[i]) for i in range(0,len(a))],dtype=ctype)
+    data = numpy.array([(a[i], b[i]) for i in range(0,len(a))], dtype=ctype)
     a=[]
     b=[]
     # numpy.set_printoptions(threshold='nan')
@@ -348,4 +375,6 @@ if __name__ == '__main__':
     channel_file_mgr = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
     #channel_file_mgr.progressive_plot(channels=range(0, channels), antennas=range(0, 2), polarizations=range(0, pols), sample_start=0, sample_end=samples, n_samples_view=10)
     #channel_file_mgr.plot(channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
-    channel_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = False, real_time=True, channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    #channel_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = False, real_time=True, channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    channel_file_mgr.progressive_plot(power_spectrum = True, normalize = False, log_plot = False, channels=range(0, channels), antennas=range(0, 2), polarizations=range(0, pols), sample_start=0, sample_end=samples, n_samples_view=10)
+
