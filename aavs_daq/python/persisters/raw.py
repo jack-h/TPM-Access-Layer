@@ -128,7 +128,7 @@ class RawFormatFileManager(AAVSFileManager):
 
         #set up image area
         self.fig = plt.figure()
-        self.fig.canvas.mpl_connect('close_event', self.handle_close)
+        #self.fig.canvas.mpl_connect('close_event', self.handle_close)
         dummy_data = numpy.zeros(n_samples)
         total_plots = len(antennas) * len(polarizations)
         plot_div_value = total_plots / 2.0

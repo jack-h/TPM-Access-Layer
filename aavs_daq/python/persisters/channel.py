@@ -223,7 +223,7 @@ class ChannelFormatFileManager(AAVSFileManager):
         print "All file processed"
 
     def read_data(self, timestamp=None, channels=[], antennas=[], polarizations=[], n_samples=0, sample_offset=0):
-        output_buffer = numpy.zeros([len(channels),len(antennas),len(polarizations), n_samples],dtype=self.ctype)
+        output_buffer = numpy.zeros([len(channels),len(antennas),len(polarizations), n_samples], dtype=self.ctype)
         try:
             file = self.load_file(timestamp)
             if not file is None:
