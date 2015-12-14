@@ -46,7 +46,7 @@ H5File AAVSFile::loadFile(string timestamp){
     if(timestamp.empty()){
         QStringList nameFilter("*.hdf5");      
         QDir directory(QString::fromStdString(this->root_path));
-        QStringList hdf5list = directory.entryList(nameFilter);
+        QStringList hdf5list = directory.entryList(nameFilter, QDir::NoFilter, QDir::Time);
         for(unsigned file_idx = 0; file_idx < hdf5list.length(); file_idx++){
             QString filename = hdf5list.at(file_idx);
             if (filename.startsWith(filename_prefix)){

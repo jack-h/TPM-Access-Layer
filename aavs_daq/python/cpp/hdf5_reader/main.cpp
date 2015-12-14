@@ -41,6 +41,13 @@ int main(int argc, char** argv) {
     int8_t *output_raw = rw_fmgr.read_data("0",antennas,polarizations,n_samples,sample_offset);  
     for(unsigned i = 0; i < num_antennas*num_polarizations*n_samples; i++){
         cout << "[" << i << "] " << static_cast<int>(output_raw[i]) << endl;
+    }    
+        
+    // passing an empty timestamp
+    RawFormatFileManager rw_fmgr2 = RawFormatFileManager("/media/andrea/hdf5", FileModes::READ);
+    int8_t *output_raw2 = rw_fmgr2.read_data(string(),antennas,polarizations,n_samples,sample_offset);  
+    for(unsigned i = 0; i < num_antennas*num_polarizations*n_samples; i++){
+        cout << "[" << i << "] " << static_cast<int>(output_raw2[i]) << endl;
     }
 }
 
