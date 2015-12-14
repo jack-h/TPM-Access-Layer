@@ -4,8 +4,6 @@ import math
 from abc import abstractmethod
 from enum import Enum
 import os
-from scipy.signal.windows import slepian
-import threading
 import time
 import zope.event
 import signal
@@ -104,80 +102,6 @@ class FileMonitor(Thread):
         zope.event.subscribers.append(subscriber)
 
 
-# class FileMonitor(object):
-#     # Class constructor
-#     def __init__(self, root_path = '.', type=FileTypes.Raw):
-#         self.root_path = root_path
-#         self.type = type
-#         self.thread_handler = threading.Thread(target=self.__run_file_monitor, args=(1,), daemon=True)
-#         #self.thread_handler.daemon = True
-#         self.terminate = False
-#         del zope.event.subscribers[:]
-#         if not self.__check_path():
-#             print "Invalid directory"
-#             self.valid = False
-#         else:
-#             self.valid = True
-#
-#     def __run_file_monitor(self, delay):
-#         counter = 0
-#         if self.valid:
-#             current_file_list = self.__get_file_list()
-#             while not self.terminate:
-#                 try:
-#                     print "[" + str(counter) + "] - Polling for new files..."
-#                     time.sleep(delay)
-#                     next_file_list = self.__get_file_list()
-#                     if not set(current_file_list) == set(next_file_list):
-#                         if len(next_file_list) > len(current_file_list): #new file(s) added
-#                             print "\t [" + str(counter) + "] - New file detected!"
-#                             # We have a list of matched filename, sort by last modified date and get latest one
-#                             new_filename = sorted(next_file_list, cmp=lambda a, b: -1 if os.stat(a).st_mtime > os.stat(b).st_mtime else 1)[0]
-#                             event = NewFileAddedEvent(filename=new_filename)
-#                             zope.event.notify(event)
-#                     current_file_list = next_file_list
-#                     counter += 1
-#                 except (KeyboardInterrupt, SystemExit):
-#                     self.file_monitor.stop_file_monitor()
-#                     print "Exiting thread..."
-#             print "Monitor thread terminated."
-#         self.terminate = False
-#
-#     def start_file_monitor(self):
-#         if not self.thread_handler.isAlive():
-#             self.terminate = False
-#             self.thread_handler.start()
-#         else:
-#             print "Thread already running..."
-#
-#     def stop_file_monitor(self):
-#         self.terminate = True
-#
-#     def __get_file_list(self):
-#         if self.type == FileTypes.Raw:
-#             filename_prefix = "raw_"
-#         elif self.type == FileTypes.Channel:
-#             filename_prefix = "channel_"
-#         elif self.type == FileTypes.Beamformed:
-#             filename_prefix = "beamformed_"
-#
-#         matched_files = []
-#         if self.valid:
-#             files = next(os.walk(self.root_path))[2]
-#             for file in files:
-#                 if file.startswith(filename_prefix) and file.endswith(".hdf5"):
-#                     matched_files.append(os.path.join(self.root_path, file))
-#         return matched_files
-#
-#     def __check_path(self):
-#         if os.path.isdir(self.root_path):
-#             return True
-#         else:
-#             return False
-#
-#     def add_subscriber(self, subscriber):
-#         zope.event.subscribers.append(subscriber)
-
 class AAVSFileManager(object):
     # Class constructor
     def __init__(self, root_path='', type=None, mode=FileModes.Read):
@@ -259,29 +183,33 @@ class AAVSFileManager(object):
             if not file_dset == None:
                 attrs_found = file_dset.attrs.items()
                 dict_attrs_found = dict(attrs_found)
-                if not dict_attrs_found.has_key("timestamp"):
-                    integrity = False
-                if not dict_attrs_found.has_key("n_antennas"):
-                    integrity = False
-                if not dict_attrs_found.has_key("n_pols"):
-                    integrity = False
-                if not dict_attrs_found.has_key("n_stations"):
-                    integrity = False
-                if not dict_attrs_found.has_key("n_beams"):
-                    integrity = False
-                if not dict_attrs_found.has_key("n_tiles"):
-                    integrity = False
-                if not dict_attrs_found.has_key("n_chans"):
-                    integrity = False
-                if not dict_attrs_found.has_key("n_samples"):
-                    integrity = False
-                if not dict_attrs_found.has_key("type"):
+                if len(dict_attrs_found) >= 9:
+                    if not dict_attrs_found.has_key("timestamp"):
+                        integrity = False
+                    if not dict_attrs_found.has_key("n_antennas"):
+                        integrity = False
+                    if not dict_attrs_found.has_key("n_pols"):
+                        integrity = False
+                    if not dict_attrs_found.has_key("n_stations"):
+                        integrity = False
+                    if not dict_attrs_found.has_key("n_beams"):
+                        integrity = False
+                    if not dict_attrs_found.has_key("n_tiles"):
+                        integrity = False
+                    if not dict_attrs_found.has_key("n_chans"):
+                        integrity = False
+                    if not dict_attrs_found.has_key("n_samples"):
+                        integrity = False
+                    if not dict_attrs_found.has_key("type"):
+                        integrity = False
+                else:
                     integrity = False
             else:
                 integrity = False
         except Exception as e:
             integrity = False
         finally:
+            print "File root integrity: " + integrity
             return integrity
 
     def load_file(self, timestamp=None):
