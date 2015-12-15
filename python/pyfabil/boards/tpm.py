@@ -156,7 +156,7 @@ class TPM(FPGABoard):
             zipped_xml = self._get_xml_file(self[register])
 
             # Process
-            filepath = "/tmp/xml_file.xml"
+            filepath = "/tmp/file.xml"
             with open(filepath, "w") as f:
                 # Add necessary XML and write to file
                 f.write("%s%s%s" % ('<node>\n', zipped_xml.replace('id="tpm_test"', 'id="fpga1"'), "</node>"))
@@ -188,7 +188,7 @@ class TPM(FPGABoard):
         cpld_xml =  self._get_xml_file(self.read_address(self._cpld_xml_offset))
 
         # Process XML file
-        filepath = "/tmp/xml_file.xml"
+        filepath = "/tmp/cpld.xml"
         with open(filepath, "w") as f:
             # Add necessary XML and write to temporary file
             cpld_xml = "%s%s%s" % ('<node>\n', cpld_xml, "</node>")

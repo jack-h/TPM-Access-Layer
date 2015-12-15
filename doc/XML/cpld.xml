@@ -1,0 +1,69 @@
+<node>
+<?xml version="1.0" ?>
+<node id="CPLD">
+   <node address="0x80000000" description="Info registers" id="info">
+      <node address="0x0" description="Magic Number 0xF1233210" id="cpld_magic" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x4" description="" id="cpld_xml_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x8" description="" id="spi_xml_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0xC" description="" id="fpga1_base_add" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x10" description="" id="fpga2_base_add" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x14" description="" id="fw1_xml_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x18" description="" id="fw2_xml_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x1C" description="" id="fw3_xml_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x20" description="" id="fw1_extended_info_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x24" description="" id="fw2_extended_info_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x28" description="" id="fw3_extended_info_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x2C" description="" id="fw1_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x30" description="" id="fw2_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x34" description="" id="fw3_offset" mask="0xFFFFFFFF" permission="r" rst="no"/>
+   </node>
+   <node address="0x30000000" description="Register File" id="regfile">
+      <node address="0x0" description="Compile date" id="date_code" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x4" description="Empty" id="empty" mask="0xFFFFFFFF" permission="r" rst="no"/>
+      <node address="0x8" description="Control register" id="ctrl">
+         <node description="" id="ad9528_rst" mask="0x00000001" permission="rw" rst="0"/>
+         <node description="" id="ad9528_spi" mask="0x00000002" permission="rw" rst="0"/>
+         <node description="" id="ad9528_refb_en" mask="0x00000004" permission="rw" rst="0"/>
+         <node description="" id="ad9528_ref_sel" mask="0x00000008" permission="rw" rst="0"/>
+         <node description="" id="xil_program" mask="0x00000030" permission="rw" rst="0"/>
+         <node description="" id="xil_reset" mask="0x00000040" permission="rw" rst="0"/>
+         <node description="" id="ad_pdwn" mask="0x00000080" permission="rw" rst="0"/>
+         <node description="" id="en_ddr_vdd" mask="0x00000100" permission="rw" rst="0"/>
+         <node description="" id="en_sw_ada_vdd" mask="0x00000200" permission="rw" rst="0"/>
+      </node>
+      <node address="0xC" description="Ethernet TX IFG" id="ethernet_pause" mask="0x0000FFFF" permission="rw" rst="0"/>
+      <node address="0x10" description="ADA control " id="ada_ctrl">
+         <node description="" id="ada4961_pwup" mask="0x00000001" permission="rw" rst="0"/>
+         <node description="" id="ada4961_lp" mask="0x00000002" permission="rw" rst="0"/>
+         <node description="" id="ada4961_mode" mask="0x00000004" permission="rw" rst="0"/>
+         <node description="" id="ada4961_latch" mask="0x00000008" permission="rw" rst="0"/>
+         <node description="" id="ada4961_a" mask="0x00000010" permission="rw" rst="0"/>
+         <node description="" id="ada4961_fa" mask="0x00000020" permission="rw" rst="0"/>
+      </node>
+      <node address="0x14" description="10G status " id="pll_10g">
+         <node description="" id="locked" mask="0x00000001" permission="rw" rst="0"/>
+      </node>
+      <node address="0x18" description="Enable c2c streaming" id="c2c_stream_enable" mask="0x00000001" permission="rw" rst="0"/>
+      <node address="0x30" description="Firmware running on FPGA1" id="fpga1_programmed_fw" mask="0x00000003" permission="rw" rst="0"/>
+      <node address="0x34" description="Firmware running on FPGA2" id="fpga2_programmed_fw" mask="0x00000003" permission="rw" rst="0"/>
+   </node>
+   <node address="0x20000000" description="SPI interface" id="spi">
+      <node address="0x0" description="" id="address" mask="0x0000FFFF" permission="rw" rst="0"/>
+      <node address="0x4" description="" id="write_data" mask="0x0000FFFF" permission="rw" rst="0"/>
+      <node address="0x8" description="" id="read_data" mask="0x0000FFFF" permission="rw" rst="0"/>
+      <node address="0xC" description="" id="chip_select" mask="0x0000FFFF" permission="rw" rst="0"/>
+      <node address="0x10" description="" id="sclk" mask="0x0000FFFF" permission="rw" rst="0"/>
+      <node address="0x14" description="" id="cmd">
+         <node description="" id="start" mask="0x00000001" permission="rw" rst="0"/>
+         <node description="" id="rnw" mask="0x00000002" permission="rw" rst="0"/>
+      </node>
+   </node>
+   <node address="0x50000000" description="selectMAP interface" id="smap">
+      <node address="0x0" description="" id="global" mask="0xFFFFFFFF" permission="rw" rst="0"/>
+      <node address="0x4" description="" id="xil_0" mask="0xFFFFFFFF" permission="rw" rst="0"/>
+      <node address="0x8" description="" id="xil_1" mask="0xFFFFFFFF" permission="rw" rst="0"/>
+      <node address="0x1000" description="" id="wr_fifo" mask="0xFFFFFFFF" permission="rw" rst="0"/>
+      <node address="0x2000" description="" id="rd_fifo" mask="0xFFFFFFFF" permission="rw" rst="0"/>
+   </node>
+</node>
+</node>

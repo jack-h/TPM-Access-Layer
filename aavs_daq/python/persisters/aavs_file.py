@@ -209,7 +209,7 @@ class AAVSFileManager(object):
         except Exception as e:
             integrity = False
         finally:
-            print "File root integrity: " + integrity
+            print "File root integrity: " + str(integrity)
             return integrity
 
     def load_file(self, timestamp=None):

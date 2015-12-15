@@ -345,18 +345,14 @@ class Tile(object):
             self.tpm.load_plugin("TpmTestFirmware", device=Device.FPGA_2)
 
     def initialise(self):
-        # Connect and initliase
+        """ Connect and initliase """
 
         # Connect to board
         self.connect(initialise=True)
 
         # Initialise firmware plugin
-        # Try except temporary due to fault board
-      #  try:
         for firmware in self.tpm.tpm_test_firmware:
             firmware.initialise_firmware()
-      #  except:
-      #      pass
 
         # Enable streaming
         self.tpm["board.regfile.c2c_stream_enable"] = 0x1
@@ -417,7 +413,7 @@ class Tile(object):
 
         # Setting sync time
         for f in devices:
-            self.tpm["%s.pps_manager.sync_time_write_val" % f] = int(time.time())
+            self.tpm["%s.pps_manager.sync_time_write_val" % f] = 0 #int(time.time())
 
         # sync time write command
         for f in devices:
@@ -434,7 +430,7 @@ class Tile(object):
 
         fpga = "fpga1" if t0 > t1 else "fpga2"
         for i in range(abs(t1 - t0)):
-            print "Decrementing %s by 1" % fpga
+            logging.info("Decrementing %s by 1" % fpga)
             self.tpm["%s.pps_manager.sync_time_cmd.down_req" % fpga] = 0x1
 
     def synchronised_data_operation(self):
