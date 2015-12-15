@@ -281,5 +281,5 @@ if __name__ == "__main__":
     logging.info("Ready to receive data. Enter 'quit' to quit")
 
     # Wait until "quit" is input
-    while (raw_input("").replace(" ", "").upper() != "QUIT")):
+    while (raw_input("").replace(" ", "").upper() != "QUIT"):
         pass

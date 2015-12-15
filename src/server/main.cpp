@@ -207,21 +207,21 @@ void processLoadFirmware(Request *message, Reply *replyMessage)
         {
             printf("Get board registers\n");
             err = loadFirmware(message -> id(), dev,
-                                      "/home/lessju/Code/TPM-Access-Layer/src/server/xml/cpld.xml");
+                                      "/opt/aavs/firmware_xml/cpld.xml");
             break;
         }
         case FPGA_1:
         {
             printf("Get fpga1 registers\n");
             err = loadFirmware(message -> id(), dev,
-                                      "/home/lessju/Code/TPM-Access-Layer/src/server/xml/fpga.xml");
+                                      "/opt/aavs/firmware_xml/fpga.xml");
             break;
         }
         case FPGA_2:
         {
             printf("Get fpga2 registers\n");
             err = loadFirmware(message -> id(), dev,
-                                      "/home/lessju/Code/TPM-Access-Layer/src/server/xml/fpga.xml", 0x10000000);
+                                      "/opt/aavs/firmware_xml/fpga.xml", 0x10000000);
             break;
         }
         default:
@@ -251,8 +251,8 @@ void processGetChannelisedData(Request *message)
     google::protobuf::io::CodedOutputStream *codedOutput =
             new google::protobuf::io::CodedOutputStream(arrayStream);
 
-//    if (0)
-//    {
+    if (0)
+    {
         complex_t *c_buffer = (complex_t *) malloc(dataRequest -> samplecount() * nof_chans * sizeof(complex_t));
         reader = new ChannelisedDataReader("/home/lessju/Code/AAVS/aavs_daq/python/channel_data.hdf5");
         for(unsigned i = 0; i < 16; i++)
@@ -265,7 +265,7 @@ void processGetChannelisedData(Request *message)
                 printf("woohoo\n");
             }
 
-//    }
+    }
 
     // Send a message per channel (Pol X)
     for(unsigned i = 0; i < nof_chans; i++)
@@ -298,7 +298,7 @@ void processGetChannelisedData(Request *message)
         ChannelisedDataResponse *replyMessage = new ChannelisedDataResponse;
 
         // Compose reply message
-        replyMessage ->set_antennaid(dataRequest -> antennaid());
+        replyMessage -> set_antennaid(dataRequest -> antennaid());
         replyMessage -> set_pol(ChannelisedDataResponse::Y);
         replyMessage -> set_samplecount(dataRequest -> samplecount());
         replyMessage -> set_bitspersample(8);
