@@ -20,7 +20,7 @@ public:
     RawFormatFileManager(string root_path=".", int mode = FileModes::READ);
     RawFormatFileManager(const RawFormatFileManager& orig);
     virtual ~RawFormatFileManager();
-    int8_t* read_data(string timestamp, int antennas[], int polarizations[], int n_samples=0, int sample_offset=0);    
+    int8_t* read_data(string timestamp, vector<int> antennas, vector<int> polarizations, int n_samples=0, int sample_offset=0);    
 
 private:    
 };

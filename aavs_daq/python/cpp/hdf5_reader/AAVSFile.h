@@ -44,6 +44,7 @@
 #include <QString>
 #include <iostream>
 #include <stdint.h>
+#include <vector>
 
 #ifdef WIN32
 #include <windows.h>

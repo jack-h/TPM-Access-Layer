@@ -27,7 +27,7 @@ public:
     ChannelFormatFileManager(string root_path=".", int mode = FileModes::READ);
     ChannelFormatFileManager(const ChannelFormatFileManager& orig);
     virtual ~ChannelFormatFileManager();    
-    complex16_t* read_data(string timestamp, int channels[], int antennas[], int polarizations[], int n_samples=0, int sample_offset=0);
+    complex16_t* read_data(string timestamp, vector<int> channels, vector<int> antennas, vector<int> polarizations, int n_samples=0, int sample_offset=0);
 private:
 };
 

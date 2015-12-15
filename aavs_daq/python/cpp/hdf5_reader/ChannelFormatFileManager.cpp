@@ -23,12 +23,12 @@ ChannelFormatFileManager::ChannelFormatFileManager(const ChannelFormatFileManage
 ChannelFormatFileManager::~ChannelFormatFileManager() {
 }
 
-complex16_t* ChannelFormatFileManager::read_data(string timestamp, int channels[], int antennas[], int polarizations[], int n_samples, int sample_offset) {
+complex16_t* ChannelFormatFileManager::read_data(string timestamp, vector<int> channels, vector<int> antennas, vector<int> polarizations, int n_samples, int sample_offset) {
 
     // Create output buffer
-    int num_channels = sizeof (channels) / sizeof (channels[0]);
-    int num_antennas = sizeof (antennas) / sizeof (antennas[0]);
-    int num_polarizations = sizeof (polarizations) / sizeof (polarizations[0]);
+    int num_channels = channels.size();
+    int num_antennas = antennas.size();
+    int num_polarizations = polarizations.size();
     complex16_t *output_buffer = new complex16_t[num_channels * num_antennas * num_polarizations * n_samples];
 
     H5File file;
