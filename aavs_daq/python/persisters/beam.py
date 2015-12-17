@@ -36,7 +36,9 @@ class BeamFormatFileManager(AAVSFileManager):
                 sub_data = sub_data/max_data
 
         if self.plot_log:
-            sub_data = 10 * math.log10(sub_data)
+            #first replace zeros with -70db
+            sub_data[sub_data == 0] = 0.0000001 # 10 * np.log10(0.0000001) = -70db
+            sub_data = 10 * numpy.log10(sub_data)
 
         if self.plot_powerspectrum:
             sub_data = numpy.mean(sub_data, 2)
@@ -134,7 +136,8 @@ class BeamFormatFileManager(AAVSFileManager):
                         self.update_canvas = False
                 except KeyboardInterrupt:
                     self.file_monitor.stop_file_monitor()
-                    self.file_monitor.thread_handler.join()
+                    self.file_monitor.join()
+                    #self.file_monitor.thread_handler.join()
                     print "Exiting..."
                     break
         else:
@@ -167,7 +170,9 @@ class BeamFormatFileManager(AAVSFileManager):
                     sub_data = sub_data/max_data
 
             if self.plot_log:
-                sub_data = 10 * math.log10(sub_data)
+                #first replace zeros with -70db
+                sub_data[sub_data == 0] = 0.0000001 # 10 * np.log10(0.0000001) = -70db
+                sub_data = 10 * numpy.log10(sub_data)
 
             if self.plot_powerspectrum:
                 sub_data = numpy.mean(sub_data, 2)
@@ -257,10 +262,12 @@ class BeamFormatFileManager(AAVSFileManager):
                 time.sleep(5)
                 print "Reloading file..."
                 file = self.load_file(temp_timestamp)
+        self.close_file(file)
         return output_buffer
 
     def write_data(self, timestamp=None, data_ptr=None):
         file = self.create_file(timestamp)
+        file.flush()
         # self.close_file(file)
         #file = self.load_file(timestamp)
 

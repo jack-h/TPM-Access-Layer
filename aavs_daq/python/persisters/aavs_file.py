@@ -16,11 +16,9 @@ class FileTypes(Enum):
     Channel = 2
     Beamformed = 3
 
-
 class FileModes(Enum):
     Read = 1
     Write = 2
-
 
 class NewFileAddedEvent(object):
     def __init__(self, filename):
@@ -29,6 +27,19 @@ class NewFileAddedEvent(object):
     def get_name(self):
         return self.filename
 
+class HDF5FileBusyEvent(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def get_name(self):
+        return self.filename
+
+class HDF5FileFreeEvent(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def get_name(self):
+        return self.filename
 
 class FileMonitor(Thread):
     def __init__(self, root_path='.', type=FileTypes.Raw, poll_delay=1):
@@ -46,6 +57,7 @@ class FileMonitor(Thread):
 
     def run(self):
         counter = 0
+        file_ready_list=list()
         if self.valid:
             current_file_list = self.__get_file_list()
             while not self.terminate:
@@ -59,8 +71,14 @@ class FileMonitor(Thread):
                             # We have a list of matched filename, sort by last modified date and get latest one
                             new_filename = sorted(next_file_list, cmp=lambda a, b: -1 if os.stat(a).st_mtime > os.stat(
                                 b).st_mtime else 1)[0]
-                            event = NewFileAddedEvent(filename=new_filename)
-                            zope.event.notify(event)
+                            file_ready_list.append(new_filename)
+
+                            #check if we have more than one file to stage
+                            if len(file_ready_list)>1:
+                                print "\t [" + str(counter) + "] - Staging file..."
+                                stage_filename = file_ready_list.pop(0) # fifo mode
+                                event = NewFileAddedEvent(filename=stage_filename)
+                                zope.event.notify(event)
                     current_file_list = next_file_list
                     counter += 1
                 except (KeyboardInterrupt, SystemExit):
@@ -101,10 +119,11 @@ class FileMonitor(Thread):
     def add_subscriber(self, subscriber):
         zope.event.subscribers.append(subscriber)
 
-
 class AAVSFileManager(object):
     # Class constructor
     def __init__(self, root_path='', type=None, mode=FileModes.Read):
+        del zope.event.subscribers[:]
+
         self.type = type
         self.root_path = root_path
         self.mode = mode
@@ -125,6 +144,9 @@ class AAVSFileManager(object):
         self.file_monitor = FileMonitor(root_path=root_path, type=type, poll_delay=1)
         self.file_monitor.add_subscriber(self.event_receiver)
 
+        self.files_being_used = []
+        self.add_subscriber(self.file_status_event_receiver)
+
     # def handle_close(self, evt):
     #     self.file_monitor.stop_file_monitor()
 
@@ -141,20 +163,33 @@ class AAVSFileManager(object):
              sample_offset=0):
         pass
 
+    def add_subscriber(self, subscriber):
+        zope.event.subscribers.append(subscriber)
+
     def signal_term_handler(self, signal, frame):
         print 'Exiting in ~5 seconds...'
         self.stop_monitoring()
         time.sleep(5)
         sys.exit(0)
 
+    def file_status_event_receiver(self, event):
+        if type(event) is HDF5FileBusyEvent:
+            print 'NewFileBusyEvent received: ' + event.get_name()
+            self.add_use_lock(event.get_name())
+
+        if type(event) is HDF5FileFreeEvent:
+            print 'NewFileFreeEvent received: ' + event.get_name()
+            self.remove_use_lock(event.get_name())
+
     def event_receiver(self, event):
-        print 'Event received: ' + event.get_name()
-        filename_ext = os.path.basename(event.get_name())
-        filename, file_ext = os.path.splitext(filename_ext)
-        filename_parts = filename.split('_')
-        self.plot_timestamp = filename_parts[1]
-        self.real_time_timestamp = filename_parts[1]
-        self.do_plotting()
+        if type(event) is NewFileAddedEvent:
+            print 'NewFileAddedEvent received: ' + event.get_name()
+            filename_ext = os.path.basename(event.get_name())
+            filename, file_ext = os.path.splitext(filename_ext)
+            filename_parts = filename.split('_')
+            self.plot_timestamp = filename_parts[1]
+            self.real_time_timestamp = filename_parts[1]
+            self.do_plotting()
 
     def set_metadata(self, n_antennas=16, n_pols=2, n_stations=1, n_beams=1, n_tiles=1, n_chans=512, n_samples=0):
         self.n_antennas = n_antennas
@@ -238,7 +273,8 @@ class AAVSFileManager(object):
             slept_time = 0
             try:
                 while not file_read and slept_time < 5:
-                    file = h5py.File(full_filename, 'r+')
+                    file = self.open_file(full_filename, 'r+')
+                    #file = h5py.File(full_filename, 'r+')
                     if self.check_root_integrity(file):
                         self.main_dset = file["root"]
                         self.n_antennas = self.main_dset.attrs['n_antennas']
@@ -274,18 +310,10 @@ class AAVSFileManager(object):
         if os.path.isfile(full_filename):
             os.remove(full_filename)
 
-        file = h5py.File(full_filename, 'w')
-        os.chmod(full_filename, 0776);
+        file = self.open_file(full_filename, 'w')
+        os.chmod(full_filename, 0776)
         self.close_file(file)
-        file = h5py.File(full_filename, 'r+')
-
-
-        # if self.mode == FileModes.Read:
-        #     file = h5py.File(full_filename, 'r+')
-        #     os.chmod(full_filename, 0776);
-        # elif self.mode == FileModes.Write:
-        #     file = h5py.File(full_filename, 'w')
-        #     os.chmod(full_filename, 0776);
+        file = self.open_file(full_filename, 'r+')
 
         self.main_dset = file.create_dataset("root", (1,), chunks=True, dtype='float16')
 
@@ -302,7 +330,19 @@ class AAVSFileManager(object):
         return file
 
     def close_file(self, file):
+        filename = file.filename
         file.close()
+        event = HDF5FileFreeEvent(filename=filename)
+        zope.event.notify(event)
+
+    def open_file(self, filename, mode):
+        while self.is_file_being_used(filename):
+            time.sleep(1)
+        else:
+            event = HDF5FileBusyEvent(filename=filename)
+            zope.event.notify(event)
+            file = h5py.File(filename, mode)
+            return file
 
     def stop_monitoring(self):
         self.file_monitor.stop_file_monitor()
@@ -311,7 +351,15 @@ class AAVSFileManager(object):
     def start_monitoring(self):
         self.file_monitor.start_file_monitor()
 
-# if __name__ == '__main__':
-#     file_monitor = FileMonitor(root_path="/media/andrea/hdf5", type=FileTypes.Raw)
-#     file_monitor.start_file_monitor()
-#     #file_monitor.stop_file_monitr()
+    def is_file_being_used(self, filename):
+        if filename in self.files_being_used:
+            return True
+        else:
+            return False
+
+    def add_use_lock(self, filename):
+        self.files_being_used.append(filename)
+
+    def remove_use_lock(self, filename):
+        self.files_being_used.remove(filename)
+

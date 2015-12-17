@@ -38,7 +38,9 @@ class ChannelFormatFileManager(AAVSFileManager):
                 sub_data = sub_data/max_data
 
         if self.plot_log:
-            sub_data = 10 * math.log10(sub_data)
+            #first replace zeros with -70db
+            sub_data[sub_data == 0] = 0.0000001 # 10 * np.log10(0.0000001) = -70db
+            sub_data = 10 * numpy.log10(sub_data)
 
         if self.plot_powerspectrum:
             sub_data = numpy.mean(sub_data, 3)
@@ -142,7 +144,8 @@ class ChannelFormatFileManager(AAVSFileManager):
                         self.update_canvas = False
                 except (KeyboardInterrupt, SystemExit):
                     self.file_monitor.stop_file_monitor()
-                    self.file_monitor.thread_handler.join()
+                    self.file_monitor.join()
+                    #self.file_monitor.thread_handler.join()
                     print "Exiting..."
                     break
         else:
@@ -174,7 +177,9 @@ class ChannelFormatFileManager(AAVSFileManager):
                     sub_data = sub_data/max_data
 
             if self.plot_log:
-                sub_data = 10 * math.log10(sub_data)
+                #first replace zeros with -70db
+                sub_data[sub_data == 0] = 0.0000001 # 10 * np.log10(0.0000001) = -70db
+                sub_data = 10 * numpy.log10(sub_data)
 
             if self.plot_powerspectrum:
                 sub_data = numpy.mean(sub_data, 3)
@@ -270,10 +275,12 @@ class ChannelFormatFileManager(AAVSFileManager):
                 time.sleep(5)
                 print "Reloading file..."
                 file = self.load_file(temp_timestamp)
+        self.close_file(file)
         return output_buffer
 
     def write_data(self, data_ptr=None, timestamp=None):
         file = self.create_file(timestamp)
+        file.flush()
         # self.close_file(file)
         #file = self.load_file(timestamp)
 
@@ -332,29 +339,29 @@ if __name__ == '__main__':
 
     ctype = numpy.dtype([('real', numpy.int8), ('imag', numpy.int8)])
 
-    print "ingesting..."
-    channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Write)
-    channel_file.set_metadata(n_chans=channels, n_antennas=antennas, n_pols=pols, n_samples=samples)
-    #data = numpy.zeros(channels * samples * antennas * pols, dtype=ctype)
-
-    a = numpy.arange(0,channels * samples * antennas * pols, dtype=numpy.int8)
-    for channel_value in xrange(0,channels):
-        a[channel_value*(samples*antennas*pols):((channel_value+1)*(samples*antennas*pols))] = channel_value
-    b = numpy.zeros(channels * samples * antennas * pols, dtype=numpy.int8)
-    data = numpy.array([(a[i], b[i]) for i in range(0,len(a))], dtype=ctype)
-    a=[]
-    b=[]
-    # numpy.set_printoptions(threshold='nan')
-    # print data
-    start = time.time()
-    for i in xrange(0, 1):
-        for run in xrange(0, runs):
-            channel_file.write_data(data_ptr=data, timestamp=run)
-            #channel_file.append_data(data_ptr=data, timestamp=0)
-    end = time.time()
-    bits = (channels * antennas * pols * samples * runs * 16)
-    mbs = bits * 1.25e-7
-    print "Write speed: " + str(mbs/(end - start)) + " Mb/s"
+    # print "ingesting..."
+    # channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Write)
+    # channel_file.set_metadata(n_chans=channels, n_antennas=antennas, n_pols=pols, n_samples=samples)
+    # #data = numpy.zeros(channels * samples * antennas * pols, dtype=ctype)
+    #
+    # a = numpy.arange(0,channels * samples * antennas * pols, dtype=numpy.int8)
+    # for channel_value in xrange(0,channels):
+    #     a[channel_value*(samples*antennas*pols):((channel_value+1)*(samples*antennas*pols))] = channel_value
+    # b = numpy.zeros(channels * samples * antennas * pols, dtype=numpy.int8)
+    # data = numpy.array([(a[i], b[i]) for i in range(0,len(a))], dtype=ctype)
+    # a=[]
+    # b=[]
+    # # numpy.set_printoptions(threshold='nan')
+    # # print data
+    # start = time.time()
+    # for i in xrange(0, 1):
+    #     for run in xrange(0, runs):
+    #         channel_file.write_data(data_ptr=data, timestamp=run)
+    #         #channel_file.append_data(data_ptr=data, timestamp=0)
+    # end = time.time()
+    # bits = (channels * antennas * pols * samples * runs * 16)
+    # mbs = bits * 1.25e-7
+    # print "Write speed: " + str(mbs/(end - start)) + " Mb/s"
 
     # print "reading back out"
     # channel_file = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
@@ -375,6 +382,6 @@ if __name__ == '__main__':
     channel_file_mgr = ChannelFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
     #channel_file_mgr.progressive_plot(channels=range(0, channels), antennas=range(0, 2), polarizations=range(0, pols), sample_start=0, sample_end=samples, n_samples_view=10)
     #channel_file_mgr.plot(channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
-    #channel_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = False, real_time=True, channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
-    channel_file_mgr.progressive_plot(power_spectrum = True, normalize = False, log_plot = False, channels=range(0, channels), antennas=range(0, 2), polarizations=range(0, pols), sample_start=0, sample_end=samples, n_samples_view=10)
+    channel_file_mgr.plot(power_spectrum = True, normalize = False, log_plot = True, real_time=False, channels=range(0,4), antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    #channel_file_mgr.progressive_plot(power_spectrum = True, normalize = False, log_plot = False, channels=range(0, channels), antennas=range(0, 2), polarizations=range(0, pols), sample_start=0, sample_end=samples, n_samples_view=10)
 

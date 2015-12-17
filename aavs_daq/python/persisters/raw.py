@@ -70,6 +70,7 @@ class RawFormatFileManager(AAVSFileManager):
                 time.sleep(5)
                 print "Reloading file..."
                 file = self.load_file(temp_timestamp)
+        self.close_file(file)
         return output_buffer
 
     def do_plotting(self):
@@ -168,7 +169,8 @@ class RawFormatFileManager(AAVSFileManager):
                         self.update_canvas = False
                 except KeyboardInterrupt:
                     self.file_monitor.stop_file_monitor()
-                    self.file_monitor.thread_handler.join()
+                    self.file_monitor.join()
+                    #self.file_monitor.thread_handler.join()
                     print "Exiting..."
                     break
         else:
@@ -209,8 +211,7 @@ class RawFormatFileManager(AAVSFileManager):
 
     def write_data(self, data_ptr=None, timestamp=None):
         file = self.create_file(timestamp)
-        self.close_file(file)
-        file = self.load_file(timestamp)
+        file.flush()
 
         n_pols = self.main_dset.attrs['n_pols']
         n_antennas = self.main_dset.attrs['n_antennas']
@@ -261,20 +262,20 @@ if __name__ == '__main__':
     samples = 1024
     runs = 1
 
-    raw_file_mgr = RawFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Write)
-    raw_file_mgr.set_metadata(n_antennas=antennas, n_pols=pols, n_samples=samples)
-    #data = numpy.zeros(antennas * pols * samples, dtype='int8')
-    data = numpy.arange(0,antennas * pols * samples,dtype='int8')
-
-    start = time.time()
-    for i in xrange(0, 1):
-        for run in xrange(0, runs):
-            raw_file_mgr.write_data(timestamp=run, data_ptr=data)
-            #raw_file_mgr.append_data(timestamp=run, data_ptr=data)
-    end = time.time()
-    bits = (antennas * pols * samples * runs * 8)
-    mbs = bits * 1.25e-7
-    print "Write speed: " + str(mbs/(end - start)) + " Mb/s"
+    # raw_file_mgr = RawFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Write)
+    # raw_file_mgr.set_metadata(n_antennas=antennas, n_pols=pols, n_samples=samples)
+    # #data = numpy.zeros(antennas * pols * samples, dtype='int8')
+    # data = numpy.arange(0,antennas * pols * samples,dtype='int8')
+    #
+    # start = time.time()
+    # for i in xrange(0, 1):
+    #     for run in xrange(0, runs):
+    #         raw_file_mgr.write_data(timestamp=run, data_ptr=data)
+    #         #raw_file_mgr.append_data(timestamp=run, data_ptr=data)
+    # end = time.time()
+    # bits = (antennas * pols * samples * runs * 8)
+    # mbs = bits * 1.25e-7
+    # print "Write speed: " + str(mbs/(end - start)) + " Mb/s"
 
     # raw_file_mgr = RawFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
     # print "reading back out"
@@ -293,6 +294,5 @@ if __name__ == '__main__':
     # print end - start
 
     raw_file_mgr = RawFormatFileManager(root_path="/media/andrea/hdf5", mode=FileModes.Read)
-    raw_file_mgr.plot(antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
-
-    #raw_file_mgr.plot(real_time=True, antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    #raw_file_mgr.plot(antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
+    raw_file_mgr.plot(real_time=True, antennas=range(0, 1), polarizations=range(0, 2), n_samples=samples, sample_offset=0)
