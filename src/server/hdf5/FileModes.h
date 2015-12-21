@@ -14,10 +14,6 @@
 #ifndef FILEMODES_H
 #define FILEMODES_H
 
-
-
-#endif /* FILEMODES_H */
-
 class FileModes
 {
 public:
@@ -25,3 +21,4 @@ public:
   static const int WRITE = 2;  
 };
 
+#endif /* FILEMODES_H */

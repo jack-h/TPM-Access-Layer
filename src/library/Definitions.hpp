@@ -35,7 +35,7 @@ typedef enum { TPM_BOARD       = 1,
 
 // Return type for most of the function calls, specifying whether the call
 // succeeded or failed
-typedef enum {SUCCESS = 0, FAILURE = -1, NOT_IMPLEMENTED = -2} RETURN;
+typedef enum {SUCCESS = 0, FAILURE = -1, NOT_IMPLEMENTED = -2, BOARD_NOT_CONNECTED = -3} RETURN;
 
 // Define possible board statuses
 typedef enum { OK                =  0,  // Board is functioning properly

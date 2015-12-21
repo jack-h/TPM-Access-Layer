@@ -10,6 +10,14 @@ set(SOURCE_FILES
         utils.cpp
         utils.hpp
         zmq.hpp
-        ChannelisedDataReader.h)
+        hdf5/AAVSFile.h
+        hdf5/AAVSFile.cpp
+        hdf5/RawFormatFileManager.cpp
+        hdf5/RawFormatFileManager.h
+        hdf5/FileModes.h
+        hdf5/FileTypes.h
+        hdf5/ChannelFormatFileManager.cpp
+        hdf5/ChannelFormatFileManager.h
+        )
 
-add_executable(server main.cpp ChannelisedDataReader.cpp ChannelisedDataReader.h)
+add_executable(server main)

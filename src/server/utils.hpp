@@ -16,6 +16,9 @@ DEVICE convertDeviceEnum(Reply::DeviceType dev);
 // Convert Device enum (overload 3)
 DEVICE convertDeviceEnum(Request::DeviceType dev);
 
+// Convert TPM Status
+Reply::TpmStatus convertTpmStatus(STATUS status);
+
 // Convert Register Type enum
 Reply::RegisterType convertTypeEnum(REGISTER_TYPE type);
 
