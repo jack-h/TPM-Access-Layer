@@ -646,8 +646,6 @@ if __name__ == "__main__":
                       default=False, help="Load test firmware (-P still required) [default: False]")
     parser.add_option("-I", "--initialise", action="store_true", dest="initialise",
                       default=False, help="Initialie TPM [default: False]")
-    parser.add_option("-B", "--initialise-beamformer", action="store_true", dest="beamformer",
-                  default=False, help="Initialie beamformer [default: False]")
     (conf, args) = parser.parse_args(argv[1:])
 
     # Set logging
@@ -686,10 +684,8 @@ if __name__ == "__main__":
     tile.connect()
 
     # Initialise beamformer if required
-    beamformer = None
-    if conf.beamformer:
-        logging.info("Initialising beamformer")
-        beamformer = Beamformer(tile, conf.nof_channels, conf.nof_antennas, conf.nof_polarisations, conf.nof_beams)
+    logging.info("Initialising beamformer")
+    beamformer = Beamformer(tile, conf.nof_channels, conf.nof_antennas, conf.nof_polarisations, conf.nof_beams)
 
     # Example commands (to generate weigts, mask antennas and download coefficients to TPM
     #beamformer.generate_empty_weights(ones=True)

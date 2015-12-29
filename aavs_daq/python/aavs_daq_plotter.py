@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import logging
 
 __author__ = 'Alessio Magro'
@@ -52,7 +54,10 @@ def plot_channel_data():
                       antennas=conf.antennas,
                       polarizations=conf.polarisations,
                       n_samples=conf.nof_samples,
-                      sample_offset=conf.sample_offset)
+                      sample_offset=conf.sample_offset,
+	              log_plot=conf.log,
+                      power_spectrum=conf.power_spectrum,
+		      normalize=conf.normalize)
 
 def plot_beam_data():
     """ Plot beam data """
@@ -82,19 +87,26 @@ if __name__ == "__main__":
 
     # Plotting parameters
     parser.add_option("-r", "--real_time", action="store_true", dest="real_time",
-                      default=False, help="Continuously update plot with incoming data [default: False")
+                      default=False, help="Continuously update plot with incoming data [default: False]")
+    parser.add_option("-l", "--log", action="store_true", dest="log",
+                      default=False, help="Log the data (10log(X)) [default: False]")
+    parser.add_option("-x", "--power_spectrum", action="store_true", dest="power_spectrum",
+                      default=False, help="Compute the power spectrum of the data [default: False]")
+    parser.add_option("-n", "--normalize", action="store_true", dest="normalize",
+                      default=False, help="Normalize the data [default: False]")
+
     parser.add_option("-t", "--timestamp", action="store", dest="timestamp",
-                      default=None, help="Timestamp to plot (default: Latest file in directory")
+                      default=None, help="Timestamp to plot [default: Latest file in directory]")
     parser.add_option("-d", "--data_directory", action="store", dest="directory",
-                      default="/data", help="Data directory (default: /data)")
+                      default="/data", help="Data directory [default: /data]")
     parser.add_option("-p", "--polarisations", action="store", dest="polarisations",
                       default="0,1", help="Polarisations to plot [default: All]")
     parser.add_option("-a", "--antennas", action="store", dest="antennas",
-                      default="0:15", help="Antennas to plot (default: All)")
+                      default="0:15", help="Antennas to plot [default: All]")
     parser.add_option("-c", "--channels", action="store", dest="channels",
-                      default="0:511", help="Channels to plot (default: All)")
+                      default="0:511", help="Channels to plot [default: All]")
     parser.add_option("-s", "--nof_samples",action="store", dest="nof_samples",
-                      default=1024, help="Number of samples to plot (default: 1024")
+                      type='int', default=1024, help="Number of samples to plot [default: 1024]")
     parser.add_option("-o", "--sample_offset", action="store", dest="sample_offset",
                       default=0, help="Sample offset [default: 0]")
 

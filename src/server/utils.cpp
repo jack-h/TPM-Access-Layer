@@ -53,6 +53,25 @@ DEVICE convertDeviceEnum(Request::DeviceType dev)
     return BOARD;
 }
 
+// Convert TPM status
+Reply::TpmStatus convertTpmStatus(STATUS status)
+{
+    if (status == OK)
+        return Reply::OK;
+    else if (status == LOADING_FIRMWARE)
+        return Reply::LOADING_FIRMWARE;
+    else if (status == CONFIG_ERROR)
+        return Reply::LOADING_FIRMWARE;
+    else if (status == BOARD_ERROR)
+        return Reply::CONFIG_ERROR;
+    else if (status == NOT_CONNECTED)
+        return Reply::NOT_CONNECTED;
+    else if (status == NETWORK_ERROR)
+        return Reply::NETWORK_ERROR;
+
+    return Reply::NOT_CONNECTED;
+}
+
 // Convert Register Type enum
 Reply::RegisterType convertTypeEnum(REGISTER_TYPE type)
 {
