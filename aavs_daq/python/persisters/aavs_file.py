@@ -9,7 +9,8 @@ import zope.event
 import signal
 import sys
 from threading import Thread
-
+#import filelock
+from lockfile import FileLock
 
 class FileTypes(Enum):
     Raw = 1
@@ -42,12 +43,13 @@ class HDF5FileFreeEvent(object):
         return self.filename
 
 class FileMonitor(Thread):
-    def __init__(self, root_path='.', type=FileTypes.Raw, poll_delay=1):
+    def __init__(self, root_path='.', type=FileTypes.Raw, poll_delay=1, staging_threshold=1):
         super(FileMonitor, self).__init__()
         self.root_path = root_path
         self.type = type
         self.poll_delay = poll_delay
         self.terminate = False
+        self.staging_threshold = staging_threshold
         del zope.event.subscribers[:]
         if not self.__check_path():
             print "Invalid directory"
@@ -69,12 +71,11 @@ class FileMonitor(Thread):
                         if len(next_file_list) > len(current_file_list):  # new file(s) added
                             print "\t [" + str(counter) + "] - New file detected!"
                             # We have a list of matched filename, sort by last modified date and get latest one
-                            new_filename = sorted(next_file_list, cmp=lambda a, b: -1 if os.stat(a).st_mtime > os.stat(
-                                b).st_mtime else 1)[0]
+                            new_filename = sorted(next_file_list, cmp=lambda a, b: -1 if os.stat(a).st_mtime > os.stat(b).st_mtime else 1)[0]
                             file_ready_list.append(new_filename)
 
                             #check if we have more than one file to stage
-                            if len(file_ready_list)>1:
+                            if len(file_ready_list)>self.staging_threshold:
                                 print "\t [" + str(counter) + "] - Staging file..."
                                 stage_filename = file_ready_list.pop(0) # fifo mode
                                 event = NewFileAddedEvent(filename=stage_filename)
@@ -124,6 +125,7 @@ class AAVSFileManager(object):
     def __init__(self, root_path='', type=None, mode=FileModes.Read):
         del zope.event.subscribers[:]
 
+        self.lock = None
         self.type = type
         self.root_path = root_path
         self.mode = mode
@@ -141,10 +143,11 @@ class AAVSFileManager(object):
         self.update_canvas = False
 
         signal.signal(signal.SIGTERM, self.signal_term_handler)
-        self.file_monitor = FileMonitor(root_path=root_path, type=type, poll_delay=1)
+        self.file_monitor = FileMonitor(root_path=root_path, type=type, poll_delay=1, staging_threshold=1)
         self.file_monitor.add_subscriber(self.event_receiver)
 
         self.files_being_used = []
+        self.file_locks = {}
         self.add_subscriber(self.file_status_event_receiver)
 
     # def handle_close(self, evt):
@@ -266,7 +269,7 @@ class AAVSFileManager(object):
                 if file.startswith(filename_prefix) and file.endswith(".hdf5"):
                     matched_files.append(os.path.join(self.root_path, file))
                     # We have a list of matched filename, sort by last modified date and get latest one
-                    full_filename = sorted(matched_files, cmp=lambda a, b: -1 if os.stat(a).st_mtime > os.stat(b).st_mtime else 1)[0]
+            full_filename = sorted(matched_files, cmp=lambda a, b: -1 if os.stat(a).st_mtime > os.stat(b).st_mtime else 1)[0]
 
         if not full_filename is None:
             file_read = False
@@ -331,14 +334,31 @@ class AAVSFileManager(object):
 
     def close_file(self, file):
         filename = file.filename
+
+        #check if lock already exists for this file
+        lock = self.file_locks.get(filename)
+
         file.close()
         event = HDF5FileFreeEvent(filename=filename)
         zope.event.notify(event)
+        lock.release()
+        self.file_locks.pop(filename)
 
     def open_file(self, filename, mode):
         while self.is_file_being_used(filename):
             time.sleep(1)
         else:
+            #check if lock already exists for this file
+            lock = self.file_locks.get(filename)
+
+            if lock is None:
+                lock = FileLock(filename)
+                #lock = filelock.UnixFileLock(filename)
+                self.file_locks[filename] = lock
+                lock.acquire()
+            else:
+                lock.acquire()
+
             event = HDF5FileBusyEvent(filename=filename)
             zope.event.notify(event)
             file = h5py.File(filename, mode)
