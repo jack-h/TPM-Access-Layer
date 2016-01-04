@@ -80,7 +80,7 @@ RETURN MemoryMap::updateMemoryMap(char *xmlFile, DEVICE device, uint32_t base_ad
         else */
         {
             currDevice = device;
-            if (device == BOARD_REGISTER)
+            if (device == BOARD)
                 currType   = BOARD_REGISTER;
             else
                 currType = FIRMWARE_REGISTER;
