@@ -165,6 +165,9 @@ class TPM(FPGABoard):
                 # Call superclass with this file
                 super(TPM, self).load_firmware(device = device, filepath = filepath,
                                                base_address = base_address, load_values = load_values)
+
+                # Delete file
+		os.remove(filepath)
         else:
             # Check if file exists
             if not os.path.exists(filepath):
@@ -201,6 +204,9 @@ class TPM(FPGABoard):
             except:
                 raise LibraryError("Failed to load CPLD XML file from TPM")
 
+            # Remove file
+	    os.remove(filepath)
+
         # Load SPI file, if exists
         if self.register_list.has_key('board.info.spi_xml_offset'):
 
@@ -219,6 +225,9 @@ class TPM(FPGABoard):
 
                 # Update device list
                 self.get_device_list(reset = True)
+
+                # Delete file
+		os.remove(filepath)
 
         # Update firmware information
         [info.update_information() for info in self.tpm_firmware_information]

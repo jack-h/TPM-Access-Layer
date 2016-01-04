@@ -101,7 +101,7 @@ complex16_t* ChannelFormatFileManager::read_data(string timestamp, vector<int> c
 
                     DataType datatype = dataset.getDataType();
                     dataset.read(internal_buffer, datatype, memspace, dataspace);
-                    cout << "Antenna: " << current_antenna << " Polarization: " << current_polarization << " Offset: " << (current_antenna * this->n_pols) + current_polarization << endl;
+                    //cout << "Antenna: " << current_antenna << " Polarization: " << current_polarization << " Offset: " << (current_antenna * this->n_pols) + current_polarization << endl;
 
                     int channel_skip = (channel_idx * num_antennas * num_polarizations * n_samples);
                     int antenna_skip = (antenna_idx * num_polarizations * n_samples);

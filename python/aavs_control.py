@@ -413,7 +413,7 @@ class Tile(object):
 
         # Setting sync time
         for f in devices:
-            self.tpm["%s.pps_manager.sync_time_write_val" % f] = 0 #int(time.time())
+            self.tpm["%s.pps_manager.sync_time_write_val" % f] = int(time.time())
 
         # sync time write command
         for f in devices:

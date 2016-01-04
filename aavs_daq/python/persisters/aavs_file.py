@@ -9,7 +9,6 @@ import zope.event
 import signal
 import sys
 from threading import Thread
-#import filelock
 from lockfile import FileLock
 
 class FileTypes(Enum):
@@ -277,7 +276,6 @@ class AAVSFileManager(object):
             try:
                 while not file_read and slept_time < 5:
                     file = self.open_file(full_filename, 'r+')
-                    #file = h5py.File(full_filename, 'r+')
                     if self.check_root_integrity(file):
                         self.main_dset = file["root"]
                         self.n_antennas = self.main_dset.attrs['n_antennas']
@@ -348,12 +346,11 @@ class AAVSFileManager(object):
         while self.is_file_being_used(filename):
             time.sleep(1)
         else:
-            #check if lock already exists for this file
+            # Check if lock already exists for this file
             lock = self.file_locks.get(filename)
 
             if lock is None:
                 lock = FileLock(filename)
-                #lock = filelock.UnixFileLock(filename)
                 self.file_locks[filename] = lock
                 lock.acquire()
             else:

@@ -68,10 +68,13 @@ void processConnectBoard(Request *message, Reply *replyMessage)
         if (board == ROACH_BOARD || board == ROACH2_BOARD)
         {
             // Get list of firmware from the board
-            uint32_t num_firmware;
+            uint32_t num_firmware = 0;
             FIRMWARE firmware = getFirmware(id, BOARD, &num_firmware);
             for(unsigned i = 0; i < num_firmware; i++)
+            {
+                printf("Firmware %d: %s\n", i+1, firmware[i]);
                 replyMessage->add_firmware(firmware[i]);
+            }
         }
     }
     else
@@ -241,33 +244,36 @@ void processLoadFirmware(Request *message, Reply *replyMessage)
     DEVICE dev = convertDeviceEnum(message -> device());
 
     RETURN err;
-    switch(dev)
+
+    // Check if we are programming a ROACH board
+    if (message->board() == ROACH_BOARD || message->board()== ROACH2_BOARD)
+        err = loadFirmware(message->id(), dev, message->file().c_str());
+    else
     {
-        case BOARD:
-        {
-            printf("Get board registers\n");
-            err = loadFirmware(message -> id(), dev,
-                                      "xml/cpld.xml");
-            break;
-        }
-        case FPGA_1:
-        {
-            printf("Get fpga1 registers\n");
-            err = loadFirmware(message -> id(), dev,
-                                      "xml/fpga.xml");
-            break;
-        }
-        case FPGA_2:
-        {
-            printf("Get fpga2 registers\n");
-            err = loadFirmware(message -> id(), dev,
-                                      "xml/fpga.xml", 0x10000000);
-            break;
-        }
-        default:
-        {
-            printf("Invalid device\n");
-            err = FAILURE;
+        // If we are loading firmware on the roach, simple call underlying method
+        switch (dev) {
+            case BOARD: {
+                printf("Get board registers\n");
+                err = loadFirmware(message->id(), dev,
+                                   "xml/cpld.xml");
+                break;
+            }
+            case FPGA_1: {
+                printf("Get fpga1 registers\n");
+                err = loadFirmware(message->id(), dev,
+                                   "xml/fpga.xml");
+                break;
+            }
+            case FPGA_2: {
+                printf("Get fpga2 registers\n");
+                err = loadFirmware(message->id(), dev,
+                                   "xml/fpga.xml", 0x10000000);
+                break;
+            }
+            default: {
+                printf("Invalid device\n");
+                err = FAILURE;
+            }
         }
     }
 
@@ -281,10 +287,10 @@ void processLoadFirmware(Request *message, Reply *replyMessage)
 
 void processGetChannelisedData(Request *message)
 {
-    std::cout << "Received get channelised data request" << std::endl;
-    
     // Get channelised data request message from request
     ChannelisedDataRequest *dataRequest = message -> mutable_channeliseddatarequest();
+
+    std::cout << "Received get channelised data request for " << dataRequest->samplecount() << " samples" << std::endl;
 
     size_t buffer_size = nof_chans * dataRequest->samplecount() * 2 * (sizeof(Complex) + 16);
     unsigned char *buffer = (unsigned char *) malloc(buffer_size);
@@ -296,10 +302,10 @@ void processGetChannelisedData(Request *message)
 
     // Read data form latest file
     // All channels, one polarisations, requested antenna, requested sample count
-    int antennas[1] = { dataRequest->antennaid() };
-    int *channels = (int *) malloc(nof_chans * sizeof(int));
-    int pol[1] = { 0 };
-    for(unsigned i = 0; i < nof_chans; i++) channels[i] = i;
+    std::vector<int> antennas = { dataRequest -> antennaid()};
+    std::vector<int> channels;
+    for(unsigned i = 0; i < nof_chans; i++) channels.push_back(i);
+    std::vector<int> pol = { 0 };
     complex16_t *channel_data = channelDataReader.read_data("", channels, antennas, pol, dataRequest -> samplecount(), 0);
 
     // Send a message per channel (Pol X)
@@ -317,8 +323,8 @@ void processGetChannelisedData(Request *message)
         {
             // Create new RegisterInfoType instance and populate
             ChannelisedDataResponse::ComplexSignedInt *value = replyMessage -> add_csi();
-            value -> set_real((uint8_t) (channel_data + i * dataRequest-> samplecount() + j)->real);
-            value -> set_imaginary((uint8_t) (channel_data + i * dataRequest-> samplecount() + j)->imag);
+            value -> set_real((int8_t) (channel_data + i * dataRequest-> samplecount() + j)->real);
+            value -> set_imaginary((int8_t) (channel_data + i * dataRequest-> samplecount() + j)->imag);
         }
 
         codedOutput -> WriteLittleEndian32((uint32_t) replyMessage -> ByteSize());
@@ -348,8 +354,8 @@ void processGetChannelisedData(Request *message)
         {
             // Create new RegisterInfoType instance and populate
             ChannelisedDataResponse::ComplexSignedInt *value = replyMessage -> add_csi();
-            value -> set_real((uint8_t) (channel_data + i * dataRequest-> samplecount() + j)->real);
-            value -> set_imaginary((uint8_t) (channel_data + i * dataRequest-> samplecount() + j)->imag);
+            value -> set_real((int8_t) (channel_data + i * dataRequest-> samplecount() + j)->real);
+            value -> set_imaginary((int8_t) (channel_data + i * dataRequest-> samplecount() + j)->imag);
         }
 
         codedOutput -> WriteLittleEndian32((uint32_t) replyMessage -> ByteSize());
@@ -368,7 +374,6 @@ void processGetChannelisedData(Request *message)
     delete arrayStream;
 
     free(channel_data);
-    free(channels);
     free(buffer);
 }
 
@@ -377,7 +382,7 @@ void processGetRawData(Request *message, Reply *reply)
     std::cout << "Received get antenna data request" << std::endl;
 
     // Get channelised data request message from request
-    RawDataRequest *dataRequest = message -> mutable_rawdatarequest();
+/*    RawDataRequest *dataRequest = message -> mutable_rawdatarequest();
 
     // Get pointer to reply object
     Reply::RawDataReply *raw_data_reply = reply -> mutable_rawdata();
@@ -401,7 +406,7 @@ void processGetRawData(Request *message, Reply *reply)
             power->add_powersamples(raw_data[(i * 2 + 1) * dataRequest->samplecount() + j]);
     }
 
-    reply->set_result(Reply::SUCCESS);
+    reply->set_result(Reply::SUCCESS); */
 }
 
 // ------------------------------------------------------------------------
@@ -467,9 +472,9 @@ int main(int argc, char *argv[])
             {
                 std::cout << "Received get status request" << std::endl;
 
-                // NOTE: Not implemented yet, reply with dummy value
+                //
                 replyMessage.set_result(Reply::SUCCESS);
-                replyMessage.set_status(Reply::OK);
+                replyMessage.set_status(convertTpmStatus(getStatus(message.id())));
 
                 // Done
                 break;                

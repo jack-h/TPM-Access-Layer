@@ -365,9 +365,8 @@ RETURN  writeDevice(ID id, REGISTER device, UINT address, UINT value)
 // Get list of firmware on board
 FIRMWARE  getFirmware(ID id, DEVICE device, UINT *num_firmware)
 {
-    // Check if device is valid
-    if (!(device == FPGA_1 || device == FPGA_2))
-        return NULL;
+    // Set initial value for num_firmware
+    *num_firmware = 0;
 
     // Check if board exists
     map<unsigned int, Board *>::iterator it;

@@ -101,26 +101,12 @@ RETURN ROACH::writeRegister(DEVICE device, REGISTER reg, UINT *value, UINT n, UI
 // Get list of firmware from board
 FIRMWARE ROACH::getFirmware(DEVICE device, UINT *num_firmware)
 {
-    // Check if device is valid
-    if (device != FPGA_1)
-    {
-        DEBUG_PRINT("ROACH::getFirmware. Invalid device specific, only FPGA_1 is valid for ROACH");
-        return NULL;
-    }
-
     return katcp -> listFirmware(num_firmware);
 }
 
 // Synchronously load firmware to FPGA
 RETURN ROACH::loadFirmware(DEVICE device, const char *bitstream, uint32_t base_address)
 {
-    // Check if device is valid
-    if (device != FPGA_1)
-    {
-        DEBUG_PRINT("ROACH::loadFirmware. Invalid device specific, only FPGA_1 is valid for ROACH");
-        return FAILURE;
-    }
-
     // A new firmware needs to be loaded onto one of the FPGAs
     return katcp -> loadFirmwareBlocking(bitstream);    
 }
